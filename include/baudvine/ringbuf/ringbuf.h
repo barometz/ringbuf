@@ -12,8 +12,6 @@ namespace detail {
 // TODO: make sure moving out of RingBuf leaves something sound
 // TODO: move params, emplace smarts
 // TODO: reverse iterator
-// TODO: type erase for iterators - would be nice if they didn't have to be tied
-//       to a buffer size
 // TODO: decide between front/at/??
 
 template <typename Elem, std::size_t MaxSize>
@@ -48,7 +46,7 @@ class RingBufBase {
       return;
     }
 
-    data_.at(next_) = value;
+    data_.at(GetNext()) = value;
 
     if (size_ == capacity()) {
       base_ = (base_ + 1) % capacity();
@@ -57,8 +55,6 @@ class RingBufBase {
     if (size_ < capacity()) {
       size_++;
     }
-
-    next_ = (next_ + 1) % capacity();
   }
 
   void pop_front() {
@@ -73,8 +69,9 @@ class RingBufBase {
  private:
   std::vector<Elem> data_;
   size_type base_{0U};
-  size_type next_{0U};
   size_type size_{0U};
+
+  size_type GetNext() { return (base_ + size_) % capacity(); }
 };
 
 template <typename Elem, std::size_t MaxSize>
