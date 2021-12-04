@@ -8,8 +8,6 @@
 namespace baudvine {
 namespace detail {
 
-// TODO: move all public functions of RingBufBase over to RingBuf
-// TODO: make sure moving out of RingBuf leaves something sound
 // TODO: move params, emplace smarts
 // TODO: reverse iterator
 // TODO: decide between front/at/??
@@ -19,6 +17,7 @@ class RingBufBase {
  public:
   using value_type = Elem;
   using reference = Elem&;
+  using const_reference = const Elem&;
   using size_type = std::size_t;
 
   constexpr size_type max_size() const noexcept {
@@ -26,26 +25,26 @@ class RingBufBase {
   }
   size_type size() const noexcept { return size_; }
 
-  const Elem& operator[](size_type index) const {
+  const_reference operator[](size_type index) const {
     return data_[Wrap(base_ + index)];
   }
 
-  Elem& operator[](size_type index) { return data_[Wrap(base_ + index)]; }
+  reference operator[](size_type index) { return data_[Wrap(base_ + index)]; }
 
-  const Elem& at(size_type index) const {
+  const_reference at(size_type index) const {
     if (index >= size_) {
       throw std::out_of_range("RingBuf::at: index >= Size");
     }
     return (*this)[index];
   }
-  Elem& at(size_type index) {
+  reference at(size_type index) {
     if (index >= size_) {
       throw std::out_of_range("RingBuf::at: index >= Size");
     }
     return (*this)[index];
   }
 
-  void push_back(const Elem& value) {
+  void push_back(const_reference value) {
     if (Capacity == 0) {
       // A buffer of size zero is conceptually sound, so let's support it.
       return;
@@ -53,10 +52,12 @@ class RingBufBase {
 
     data_[GetNext()] = value;
 
+    // The base only moves when we're full.
     if (size_ == Capacity) {
       base_ = Wrap(base_ + 1);
     }
 
+    // Size will never exceed the capacity.
     if (size_ < Capacity) {
       size_++;
     }
@@ -72,7 +73,7 @@ class RingBufBase {
   }
 
  private:
-  std::array<Elem, Capacity> data_;
+  std::array<value_type, Capacity> data_;
   size_type base_{0U};
   size_type size_{0U};
 
@@ -146,11 +147,11 @@ class Iterator {
   using iterator_category = std::forward_iterator_tag;
 
   Iterator() {}
-  Iterator(RingBufBase<Elem, Capacity>& ring_buf, size_t position)
+  Iterator(RingBufBase<value_type, Capacity>& ring_buf, size_t position)
       : ring_buf_(&ring_buf), position_(position) {}
 
-  operator ConstIterator<Elem, Capacity>() const {
-    return ConstIterator<Elem, Capacity>(*ring_buf_, position_);
+  operator ConstIterator<value_type, Capacity>() const {
+    return ConstIterator<value_type, Capacity>(*ring_buf_, position_);
   }
 
   reference operator*() const { return (*ring_buf_)[position_]; }
@@ -181,7 +182,7 @@ class Iterator {
   }
 
  private:
-  RingBufBase<Elem, Capacity>* ring_buf_{};
+  RingBufBase<value_type, Capacity>* ring_buf_{};
   size_t position_{};
 };
 
@@ -189,11 +190,8 @@ class Iterator {
 
 template <typename Elem, size_t Capacity>
 class RingBuf : public detail::RingBufBase<Elem, Capacity> {
-  using Self = RingBuf<Elem, Capacity>;
-  using Base = detail::RingBufBase<Elem, Capacity>;
-
  public:
-  using size_type = typename Base::size_type;
+  using size_type = typename RingBuf::size_type;
   using iterator = detail::Iterator<Elem, Capacity>;
   using const_iterator = detail::ConstIterator<Elem, Capacity>;
   using difference_type = typename iterator::difference_type;
@@ -207,9 +205,9 @@ class RingBuf : public detail::RingBufBase<Elem, Capacity> {
     return const_iterator(*this, this->size());
   }
 
-  void swap(Self& other) { std::swap(*this, other); }
+  void swap(RingBuf& other) { std::swap(*this, other); }
 
-  friend bool operator==(const Self& lhs, const Self& rhs) {
+  friend bool operator==(const RingBuf& lhs, const RingBuf& rhs) {
     if (lhs.size() != rhs.size())
       return false;
 
@@ -218,7 +216,7 @@ class RingBuf : public detail::RingBufBase<Elem, Capacity> {
     return mismatch.first == end;
   }
 
-  friend bool operator!=(const Self& lhs, const Self& rhs) {
+  friend bool operator!=(const RingBuf& lhs, const RingBuf& rhs) {
     return !(lhs == rhs);
   }
 };
