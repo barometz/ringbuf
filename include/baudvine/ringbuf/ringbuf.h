@@ -14,6 +14,7 @@ namespace detail {
 // TODO: reverse iterator
 // TODO: type erase for iterators - would be nice if they didn't have to be tied
 //       to a buffer size
+// TODO: Pop()
 
 template <typename Elem, std::size_t MaxSize>
 class RingBufBase {
@@ -24,35 +25,35 @@ class RingBufBase {
 
   RingBufBase() : data_(MaxSize) {}
 
-  size_type Size() const noexcept { return size_; }
+  size_type size() const noexcept { return size_; }
 
-  constexpr size_type Capacity() const noexcept { return MaxSize; }
-  const Elem& At(size_type index) const {
+  constexpr size_type capacity() const noexcept { return MaxSize; }
+  const Elem& at(size_type index) const {
     if (index >= size_) {
       throw std::out_of_range("RingBuf::At: index >= Size");
     }
-    return data_.at((GetBase() + index) % Capacity());
+    return data_.at((GetBase() + index) % capacity());
   }
-  Elem& At(size_type index) {
+  Elem& at(size_type index) {
     if (index >= size_) {
       throw std::out_of_range("RingBuf::At: index >= Size");
     }
-    return data_.at((GetBase() + index) % Capacity());
+    return data_.at((GetBase() + index) % capacity());
   }
 
-  void Push(const Elem& value) {
-    if (!Capacity()) {
+  void push_back(const Elem& value) {
+    if (!capacity()) {
       // A buffer of size zero is conceptually sound, so let's support it.
       return;
     }
 
     data_.at(next_) = value;
 
-    if (size_ < Capacity()) {
+    if (size_ < capacity()) {
       size_++;
     }
 
-    next_ = (next_ + 1) % Capacity();
+    next_ = (next_ + 1) % capacity();
   }
 
  protected:
@@ -61,7 +62,7 @@ class RingBufBase {
   size_type size_{0U};
 
   size_type GetBase() const noexcept {
-    if (size_ == Capacity()) {
+    if (size_ == capacity()) {
       return next_;
     } else {
       return 0;
@@ -83,7 +84,7 @@ class ConstIterator {
                 std::size_t position) noexcept
       : ring_buf_(&ring_buf), position_(position) {}
 
-  reference operator*() const { return ring_buf_->At(position_); }
+  reference operator*() const { return ring_buf_->at(position_); }
 
   ConstIterator operator++(int) noexcept {
     ConstIterator copy(*this);
@@ -92,7 +93,7 @@ class ConstIterator {
   }
 
   ConstIterator& operator++() noexcept {
-    position_ = std::min(position_ + 1, ring_buf_->Size());
+    position_ = std::min(position_ + 1, ring_buf_->size());
     return *this;
   }
 
@@ -135,7 +136,7 @@ class Iterator {
     return ConstIterator<Elem, MaxSize>(*ring_buf_, position_);
   }
 
-  reference operator*() const { return ring_buf_->At(position_); }
+  reference operator*() const { return ring_buf_->at(position_); }
 
   Iterator operator++(int) noexcept {
     Iterator copy(*this);
@@ -144,7 +145,7 @@ class Iterator {
   }
 
   Iterator& operator++() noexcept {
-    position_ = std::min(position_ + 1, ring_buf_->Size());
+    position_ = std::min(position_ + 1, ring_buf_->size());
     return *this;
   }
 
@@ -180,21 +181,20 @@ class RingBuf : public detail::RingBufBase<Elem, MaxSize> {
   using const_iterator = detail::ConstIterator<Elem, MaxSize>;
   using difference_type = typename iterator::difference_type;
 
-  size_type size() const noexcept { return this->Size(); }
   size_type max_size() const noexcept { return this->data_.max_size(); }
-  bool empty() const noexcept { return this->Size() == 0; }
+  bool empty() const noexcept { return this->size() == 0; }
 
   iterator begin() noexcept { return iterator(*this, 0); }
-  iterator end() noexcept { return iterator(*this, this->Size()); }
+  iterator end() noexcept { return iterator(*this, this->size()); }
   const_iterator cbegin() const noexcept { return const_iterator(*this, 0); }
   const_iterator cend() const noexcept {
-    return const_iterator(*this, this->Size());
+    return const_iterator(*this, this->size());
   }
 
   void swap(Self& other) { std::swap(*this, other); }
 
   friend bool operator==(const Self& lhs, const Self& rhs) {
-    if (lhs.Size() != rhs.Size())
+    if (lhs.size() != rhs.size())
       return false;
 
     auto end = lhs.cend();
