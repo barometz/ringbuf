@@ -16,22 +16,19 @@ public:
     if (index >= Size) {
       throw std::out_of_range("ringbuf::at: index >= Size");
     }
-    return Data.at((Base + index) % Capacity);
+    return Data.at((GetBase() + index) % Capacity);
   }
   Elem &at(size_t index) {
     if (index >= Size) {
       throw std::out_of_range("ringbuf::at: index >= Size");
     }
-    return Data.at((Base + index) % Capacity);
+    return Data.at((GetBase() + index) % Capacity);
   }
 
   void push(const Elem &value) {
     Data.at(Next) = value;
 
-    if (Size == Capacity)
-      Base = (Base + 1) % Capacity;
-
-    if (Size != Capacity)
+    if (Size < Capacity)
       Size++;
 
     Next = (Next + 1) % Capacity;
@@ -39,9 +36,15 @@ public:
 
 private:
   std::vector<Elem> Data;
-  size_t Base{0U};
   size_t Next{0U};
   size_t Size{0U};
+
+  size_t GetBase() const noexcept {
+    if (Size == Capacity)
+      return Next;
+    else
+      return 0;
+  }
 };
 
 } // namespace baudvine
