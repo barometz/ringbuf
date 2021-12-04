@@ -1,8 +1,10 @@
-add_executable(ringbuf_tests)
+add_executable(ringbuf-test)
 
 # Add test sources
 file(GLOB test_files "test_*.cpp")
-target_sources(ringbuf_tests PRIVATE ${test_files})
+target_sources(ringbuf-test PRIVATE ${test_files})
+
+target_link_libraries(ringbuf-test PRIVATE baudvine-ringbuf)
 
 # Wire up googletest
 include(FetchContent)
@@ -13,9 +15,4 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 # googletest includes a default main() that's good enough here
-target_link_libraries(ringbuf_tests gtest_main)
-
-# Enable CTest support for googletest
-enable_testing()
-include(GoogleTest)
-gtest_discover_tests(ringbuf_tests)
+target_link_libraries(ringbuf-test PRIVATE gtest_main)
