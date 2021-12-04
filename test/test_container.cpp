@@ -71,3 +71,20 @@ TEST(Container, End) {
   EXPECT_EQ(std::next(underTest.begin()), underTest.end());
   EXPECT_EQ(underTest.end(), underTest.cend());
 }
+
+TEST(Container, Equality) {
+  baudvine::RingBuf<int, 3> a;
+  baudvine::RingBuf<int, 3> b;
+  EXPECT_EQ(a, b);
+
+  a.Push(2010);
+  a.Push(3030);
+  EXPECT_NE(a, b);
+
+  b.Push(2010);
+  b.Push(3030);
+  EXPECT_EQ(a, b);
+
+  b.Push(4070);
+  EXPECT_NE(a, b);
+}

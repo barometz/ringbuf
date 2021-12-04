@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <stdexcept>
 #include <tuple>
 #include <vector>
@@ -168,6 +169,8 @@ class Iterator {
 
 template <typename Elem, size_t MaxSize>
 class RingBuf : public detail::RingBufBase<Elem, MaxSize> {
+  using Self = RingBuf<Elem, MaxSize>;
+
  public:
   using iterator = detail::Iterator<Elem, MaxSize>;
   using const_iterator = detail::ConstIterator<Elem, MaxSize>;
@@ -178,6 +181,19 @@ class RingBuf : public detail::RingBufBase<Elem, MaxSize> {
   const_iterator cbegin() const noexcept { return const_iterator(*this, 0); }
   const_iterator cend() const noexcept {
     return const_iterator(*this, this->Size());
+  }
+
+  friend bool operator==(const Self& lhs, const Self& rhs) {
+    if (lhs.Size() != rhs.Size())
+      return false;
+
+    auto end = lhs.cend();
+    auto mismatch = std::mismatch(lhs.cbegin(), end, rhs.cbegin());
+    return mismatch.first == end;
+  }
+
+  friend bool operator!=(const Self& lhs, const Self& rhs) {
+    return !(lhs == rhs);
   }
 };
 
