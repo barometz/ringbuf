@@ -57,6 +57,16 @@ TEST(Push, PushOver) {
   EXPECT_EQ(underTest.At(1), 18);
 }
 
+TEST(Iterators, BeginAndEnd)
+{
+  baudvine::RingBuf<int, 4> underTest;
+  EXPECT_EQ(underTest.begin(), underTest.end());
+  underTest.Push(3);
+  EXPECT_EQ(std::distance(underTest.begin(), underTest.end()), 1);
+  EXPECT_EQ(underTest.begin(), underTest.cbegin());
+  EXPECT_EQ(underTest.end(), underTest.cend());
+}
+
 TEST(Iterators, RangeFor) {
   baudvine::RingBuf<int, 4> underTest;
   underTest.Push(41);
@@ -70,3 +80,5 @@ TEST(Iterators, RangeFor) {
     expected--;
   }
 }
+
+

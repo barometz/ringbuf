@@ -1,8 +1,7 @@
 #pragma once
 
+#include <type_traits>
 #include <vector>
-
-#include <array>
 
 namespace baudvine {
 
@@ -64,6 +63,11 @@ class Iterator {
   Iterator(RingBufBase<Elem, MaxSize>& ring_buf, size_t position)
       : ring_buf_(&ring_buf), position_(position) {}
 
+  Iterator(Iterator<typename std::remove_const<Elem>::type, MaxSize> iterator)
+      : ring_buf_(iterator.ring_buf_), position_(iterator.position_) {}
+
+  friend Iterator<const Elem, MaxSize>;
+
   reference operator*() { return ring_buf_->At(position_); }
 
   Iterator operator++(int) {
@@ -105,12 +109,14 @@ class RingBuf : public detail::RingBufBase<Elem, MaxSize> {
   using reference = Elem&;
   using const_reference = const Elem&;
   using iterator = detail::Iterator<Elem, MaxSize>;
-  // TODO const_iterator =
+  using const_iterator = detail::Iterator<const Elem, MaxSize>;
   using difference_type = typename iterator::difference_type;
   using size_type = size_t;
 
   iterator begin() { return iterator(*this, 0); }
   iterator end() { return iterator(*this, this->Size()); }
+  const_iterator cbegin() { return const_iterator(begin()); }
+  const_iterator cend() { return const_iterator(end()); }
 };
 
 }  // namespace baudvine
