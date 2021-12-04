@@ -68,15 +68,6 @@ TEST(Push, PushOver) {
   EXPECT_EQ(underTest.at(1), 18);
 }
 
-TEST(Iterators, BeginAndEnd) {
-  baudvine::RingBuf<int, 4> underTest;
-  EXPECT_EQ(underTest.begin(), underTest.end());
-  underTest.push_back(3);
-  EXPECT_EQ(std::distance(underTest.begin(), underTest.end()), 1);
-  EXPECT_EQ(underTest.begin(), underTest.cbegin());
-  EXPECT_EQ(underTest.end(), underTest.cend());
-}
-
 TEST(Iterators, RangeFor) {
   baudvine::RingBuf<int, 4> underTest;
   underTest.push_back(41);
@@ -89,5 +80,25 @@ TEST(Iterators, RangeFor) {
   for (auto val : underTest) {
     EXPECT_EQ(expected, val);
     expected--;
+  }
+}
+
+TEST(Pop, Pop) {
+  baudvine::RingBuf<int, 3> underTest;
+  underTest.push_back(41);
+  underTest.pop_front();
+  EXPECT_TRUE(underTest.empty());
+  EXPECT_EQ(underTest.size(), 0);
+
+  for (auto i : {1, 2}) {
+    std::ignore = i;
+    underTest.push_back(42);
+    underTest.push_back(43);
+    underTest.push_back(44);
+    underTest.push_back(45);
+    underTest.pop_front();
+
+    EXPECT_EQ(underTest.at(0), 44);
+    EXPECT_EQ(underTest.size(), 2);
   }
 }

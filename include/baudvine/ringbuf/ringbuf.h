@@ -14,7 +14,7 @@ namespace detail {
 // TODO: reverse iterator
 // TODO: type erase for iterators - would be nice if they didn't have to be tied
 //       to a buffer size
-// TODO: Pop()
+// TODO: decide between front/at/??
 
 template <typename Elem, std::size_t MaxSize>
 class RingBufBase {
@@ -33,13 +33,13 @@ class RingBufBase {
     if (index >= size_) {
       throw std::out_of_range("RingBuf::At: index >= Size");
     }
-    return data_.at((GetBase() + index) % capacity());
+    return data_.at((base_ + index) % capacity());
   }
   Elem& at(size_type index) {
     if (index >= size_) {
       throw std::out_of_range("RingBuf::At: index >= Size");
     }
-    return data_.at((GetBase() + index) % capacity());
+    return data_.at((base_ + index) % capacity());
   }
 
   void push_back(const Elem& value) {
@@ -50,6 +50,10 @@ class RingBufBase {
 
     data_.at(next_) = value;
 
+    if (size_ == capacity()) {
+      base_ = (base_ + 1) % capacity();
+    }
+
     if (size_ < capacity()) {
       size_++;
     }
@@ -57,18 +61,20 @@ class RingBufBase {
     next_ = (next_ + 1) % capacity();
   }
 
+  void pop_front() {
+    if (size_ == 0) {
+      return;
+    }
+
+    base_ = (base_ + 1) % capacity();
+    size_--;
+  }
+
  private:
   std::vector<Elem> data_;
+  size_type base_{0U};
   size_type next_{0U};
   size_type size_{0U};
-
-  size_type GetBase() const noexcept {
-    if (size_ == capacity()) {
-      return next_;
-    } else {
-      return 0;
-    }
-  }
 };
 
 template <typename Elem, std::size_t MaxSize>
