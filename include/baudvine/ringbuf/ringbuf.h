@@ -25,9 +25,10 @@ class RingBufBase {
 
   RingBufBase() : data_(MaxSize) {}
 
+  constexpr size_type capacity() const noexcept { return MaxSize; }
+  size_type max_size() const noexcept { return this->data_.max_size(); }
   size_type size() const noexcept { return size_; }
 
-  constexpr size_type capacity() const noexcept { return MaxSize; }
   const Elem& at(size_type index) const {
     if (index >= size_) {
       throw std::out_of_range("RingBuf::At: index >= Size");
@@ -56,7 +57,7 @@ class RingBufBase {
     next_ = (next_ + 1) % capacity();
   }
 
- protected:
+ private:
   std::vector<Elem> data_;
   size_type next_{0U};
   size_type size_{0U};
@@ -181,7 +182,6 @@ class RingBuf : public detail::RingBufBase<Elem, MaxSize> {
   using const_iterator = detail::ConstIterator<Elem, MaxSize>;
   using difference_type = typename iterator::difference_type;
 
-  size_type max_size() const noexcept { return this->data_.max_size(); }
   bool empty() const noexcept { return this->size() == 0; }
 
   iterator begin() noexcept { return iterator(*this, 0); }
