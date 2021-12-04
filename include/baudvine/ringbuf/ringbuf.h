@@ -29,6 +29,12 @@ class RingBufBase {
   }
 
   void Push(const Elem& value) {
+    if (!Capacity())
+    {
+      // A buffer of size zero is conceptually sound, so let's support it.
+      return;
+    }
+
     data_.at(next_) = value;
 
     if (size_ < Capacity())

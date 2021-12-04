@@ -2,8 +2,19 @@
 
 #include <baudvine/ringbuf/ringbuf.h>
 
+TEST(Zero, Zero) {
+  // The degenerate case of a size zero buffer can still essentially work, it
+  // just doesn't do anything useful. Consistency is king.
+  baudvine::RingBuf<int, 0> underTest{};
+
+  EXPECT_EQ(underTest.begin(), underTest.end());
+  EXPECT_EQ(underTest.Capacity(), 0);
+  EXPECT_EQ(underTest.Size(), 0);
+  EXPECT_NO_THROW(underTest.Push(53));
+  EXPECT_EQ(underTest.Size(), 0);
+}
+
 TEST(Capacity, Capacity) {
-  EXPECT_EQ((baudvine::RingBuf<int, 0>){}.Capacity(), 0);
   EXPECT_EQ((baudvine::RingBuf<int, 1>){}.Capacity(), 1);
   EXPECT_EQ((baudvine::RingBuf<int, 128>){}.Capacity(), 128);
   EXPECT_EQ((baudvine::RingBuf<int, 500>){}.Capacity(), 500);
