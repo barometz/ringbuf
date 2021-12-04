@@ -7,6 +7,11 @@
 namespace baudvine {
 namespace detail {
 
+// TODO: move all public functions of RingBufBase over to RingBuf
+// TODO: make sure moving out of RingBuf leaves something sound
+// TODO: move params, emplace smarts
+// TODO: reverse iterator
+
 template <typename Elem, std::size_t MaxSize>
 class RingBufBase {
  public:
