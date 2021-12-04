@@ -29,16 +29,16 @@ class RingBufBase {
   }
 
   void Push(const Elem& value) {
-    if (!Capacity())
-    {
+    if (!Capacity()) {
       // A buffer of size zero is conceptually sound, so let's support it.
       return;
     }
 
     data_.at(next_) = value;
 
-    if (size_ < Capacity())
+    if (size_ < Capacity()) {
       size_++;
+    }
 
     next_ = (next_ + 1) % Capacity();
   }
@@ -49,10 +49,11 @@ class RingBufBase {
   size_t size_{0U};
 
   size_t GetBase() const noexcept {
-    if (size_ == Capacity())
+    if (size_ == Capacity()) {
       return next_;
-    else
+    } else {
       return 0;
+    }
   }
 };
 
