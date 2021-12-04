@@ -51,6 +51,55 @@ class RingBufBase {
 };
 
 template <typename Elem, size_t MaxSize>
+class ConstIterator {
+ public:
+  using difference_type = std::ptrdiff_t;
+  using value_type = Elem;
+  using pointer = const Elem*;
+  using reference = const Elem&;
+  using iterator_category = std::forward_iterator_tag;
+
+  constexpr ConstIterator() noexcept {}
+  ConstIterator(const RingBufBase<Elem, MaxSize>& ring_buf,
+                size_t position) noexcept
+      : ring_buf_(&ring_buf), position_(position) {}
+
+  reference operator*() const { return ring_buf_->At(position_); }
+
+  ConstIterator operator++(int) noexcept {
+    ConstIterator copy(*this);
+    operator++();
+    return copy;
+  }
+
+  ConstIterator& operator++() noexcept {
+    position_ = std::min(position_ + 1, ring_buf_->Size());
+    return *this;
+  }
+
+  friend bool operator<(const ConstIterator& lhs,
+                        const ConstIterator& rhs) noexcept {
+    return std::tie(lhs.ring_buf_, lhs.position_) <
+           std::tie(rhs.ring_buf_, rhs.position_);
+  }
+
+  friend bool operator==(const ConstIterator& lhs,
+                         const ConstIterator& rhs) noexcept {
+    return std::tie(lhs.ring_buf_, lhs.position_) ==
+           std::tie(rhs.ring_buf_, rhs.position_);
+  }
+
+  friend bool operator!=(const ConstIterator& lhs,
+                         const ConstIterator& rhs) noexcept {
+    return !(lhs == rhs);
+  }
+
+ private:
+  const RingBufBase<Elem, MaxSize>* ring_buf_{};
+  size_t position_{};
+};
+
+template <typename Elem, size_t MaxSize>
 class Iterator {
  public:
   using difference_type = std::ptrdiff_t;
@@ -63,35 +112,34 @@ class Iterator {
   Iterator(RingBufBase<Elem, MaxSize>& ring_buf, size_t position)
       : ring_buf_(&ring_buf), position_(position) {}
 
-  Iterator(Iterator<typename std::remove_const<Elem>::type, MaxSize> iterator)
-      : ring_buf_(iterator.ring_buf_), position_(iterator.position_) {}
+  operator ConstIterator<Elem, MaxSize>() const {
+    return ConstIterator<Elem, MaxSize>(*ring_buf_, position_);
+  }
 
-  friend Iterator<const Elem, MaxSize>;
+  reference operator*() const { return ring_buf_->At(position_); }
 
-  reference operator*() { return ring_buf_->At(position_); }
-
-  Iterator operator++(int) {
+  Iterator operator++(int) noexcept {
     Iterator copy(*this);
     operator++();
     return copy;
   }
 
-  Iterator& operator++() {
+  Iterator& operator++() noexcept {
     position_ = std::min(position_ + 1, ring_buf_->Size());
     return *this;
   }
 
-  friend bool operator<(const Iterator& lhs, const Iterator& rhs) {
+  friend bool operator<(const Iterator& lhs, const Iterator& rhs) noexcept {
     return std::tie(lhs.ring_buf_, lhs.position_) <
            std::tie(rhs.ring_buf_, rhs.position_);
   }
 
-  friend bool operator==(const Iterator& lhs, const Iterator& rhs) {
+  friend bool operator==(const Iterator& lhs, const Iterator& rhs) noexcept {
     return std::tie(lhs.ring_buf_, lhs.position_) ==
            std::tie(rhs.ring_buf_, rhs.position_);
   }
 
-  friend bool operator!=(const Iterator& lhs, const Iterator& rhs) {
+  friend bool operator!=(const Iterator& lhs, const Iterator& rhs) noexcept {
     return !(lhs == rhs);
   }
 
@@ -109,14 +157,16 @@ class RingBuf : public detail::RingBufBase<Elem, MaxSize> {
   using reference = Elem&;
   using const_reference = const Elem&;
   using iterator = detail::Iterator<Elem, MaxSize>;
-  using const_iterator = detail::Iterator<const Elem, MaxSize>;
+  using const_iterator = detail::ConstIterator<Elem, MaxSize>;
   using difference_type = typename iterator::difference_type;
   using size_type = size_t;
 
-  iterator begin() { return iterator(*this, 0); }
-  iterator end() { return iterator(*this, this->Size()); }
-  const_iterator cbegin() { return const_iterator(begin()); }
-  const_iterator cend() { return const_iterator(end()); }
+  iterator begin() noexcept { return iterator(*this, 0); }
+  iterator end() noexcept { return iterator(*this, this->Size()); }
+  const_iterator cbegin() const noexcept { return const_iterator(*this, 0); }
+  const_iterator cend() const noexcept {
+    return const_iterator(*this, this->Size());
+  }
 };
 
 }  // namespace baudvine
