@@ -20,29 +20,12 @@ class RingBufBase {
   using const_reference = const Elem&;
   using size_type = std::size_t;
 
-  constexpr size_type max_size() const noexcept {
-    return this->data_.max_size();
-  }
   size_type size() const noexcept { return size_; }
 
   const_reference operator[](size_type index) const {
     return data_[Wrap(base_ + index)];
   }
-
   reference operator[](size_type index) { return data_[Wrap(base_ + index)]; }
-
-  const_reference at(size_type index) const {
-    if (index >= size_) {
-      throw std::out_of_range("RingBuf::at: index >= Size");
-    }
-    return (*this)[index];
-  }
-  reference at(size_type index) {
-    if (index >= size_) {
-      throw std::out_of_range("RingBuf::at: index >= Size");
-    }
-    return (*this)[index];
-  }
 
   void push_back(const_reference value) {
     if (Capacity == 0) {
@@ -191,10 +174,14 @@ class Iterator {
 template <typename Elem, size_t Capacity>
 class RingBuf : public detail::RingBufBase<Elem, Capacity> {
  public:
+  using reference = Elem&;
+  using const_reference = const Elem&;
   using size_type = typename RingBuf::size_type;
   using iterator = detail::Iterator<Elem, Capacity>;
   using const_iterator = detail::ConstIterator<Elem, Capacity>;
   using difference_type = typename iterator::difference_type;
+
+  constexpr size_type max_size() const noexcept { return Capacity; }
 
   bool empty() const noexcept { return this->size() == 0; }
 
@@ -206,6 +193,19 @@ class RingBuf : public detail::RingBufBase<Elem, Capacity> {
   }
 
   void swap(RingBuf& other) { std::swap(*this, other); }
+
+  const_reference at(size_type index) const {
+    if (index >= this->size()) {
+      throw std::out_of_range("RingBuf::at: index >= Size");
+    }
+    return (*this)[index];
+  }
+  reference at(size_type index) {
+    if (index >= this->size()) {
+      throw std::out_of_range("RingBuf::at: index >= Size");
+    }
+    return (*this)[index];
+  }
 
   friend bool operator==(const RingBuf& lhs, const RingBuf& rhs) {
     if (lhs.size() != rhs.size())
