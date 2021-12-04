@@ -16,3 +16,5 @@ FetchContent_MakeAvailable(googletest)
 
 # googletest includes a default main() that's good enough here
 target_link_libraries(ringbuf-test PRIVATE gtest_main)
+include(GoogleTest)
+gtest_discover_tests(ringbuf-test)

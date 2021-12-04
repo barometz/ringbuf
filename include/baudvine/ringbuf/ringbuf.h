@@ -1,10 +1,7 @@
 #pragma once
 
-namespace baudvine
-{
+namespace baudvine {
 
-class ringbuf
-{
-};
-  
+template <typename Elem, size_t Size> class ringbuf {};
+
 } // namespace baudvine

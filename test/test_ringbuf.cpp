@@ -2,7 +2,7 @@
 
 #include <baudvine/ringbuf/ringbuf.h>
 
-TEST(Hello, World)
+TEST(Create, Create)
 {
-  baudvine::ringbuf{};
+  baudvine::ringbuf<int, 128>{};
 }

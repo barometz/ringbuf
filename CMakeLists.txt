@@ -30,5 +30,6 @@ install(
 
 # Build the tests (or not)
 if (${RINGBUF_TESTS})
+  enable_testing()
   add_subdirectory(test)
 endif()
