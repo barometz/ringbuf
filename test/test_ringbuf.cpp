@@ -1,6 +1,8 @@
+#include <baudvine/ringbuf/ringbuf.h>
+
 #include <gtest/gtest.h>
 
-#include <baudvine/ringbuf/ringbuf.h>
+#include <memory>
 
 TEST(Zero, Zero) {
   // The degenerate case of a size zero buffer can still essentially work, it
@@ -8,20 +10,20 @@ TEST(Zero, Zero) {
   baudvine::RingBuf<int, 0> underTest{};
 
   EXPECT_EQ(underTest.begin(), underTest.end());
-  EXPECT_EQ(underTest.capacity(), 0);
+  EXPECT_EQ(underTest.max_size(), 0);
   EXPECT_EQ(underTest.size(), 0);
   EXPECT_NO_THROW(underTest.push_back(53));
   EXPECT_EQ(underTest.size(), 0);
 }
 
 TEST(Capacity, Capacity) {
-  EXPECT_EQ((baudvine::RingBuf<int, 1>){}.capacity(), 1);
-  EXPECT_EQ((baudvine::RingBuf<int, 128>){}.capacity(), 128);
-  EXPECT_EQ((baudvine::RingBuf<int, 500>){}.capacity(), 500);
-  EXPECT_EQ((baudvine::RingBuf<int, 10 * 1024 * 1024>){}.capacity(),
-            10 * 1024 * 1024);
+  EXPECT_EQ((baudvine::RingBuf<char, 128>){}.max_size(), 128);
+  EXPECT_EQ((baudvine::RingBuf<int, 1>){}.max_size(), 1);
+  EXPECT_EQ((baudvine::RingBuf<int, 128>){}.max_size(), 128);
+  EXPECT_EQ((baudvine::RingBuf<int, 500>){}.max_size(), 500);
 
-  EXPECT_EQ((baudvine::RingBuf<char, 128>){}.capacity(), 128);
+  auto dynamic = std::make_unique<baudvine::RingBuf<int, 10 * 1024 * 1024>>();
+  EXPECT_EQ(dynamic->max_size(), 10 * 1024 * 1024);
 }
 
 TEST(At, Empty) {
@@ -33,7 +35,7 @@ TEST(At, Empty) {
 }
 
 TEST(AtConst, Empty) {
-  const baudvine::RingBuf<int, 4> underTest;
+  const baudvine::RingBuf<int, 4> underTest{};
 
   EXPECT_THROW(underTest.at(0), std::out_of_range);
   EXPECT_THROW(underTest.at(1), std::out_of_range);

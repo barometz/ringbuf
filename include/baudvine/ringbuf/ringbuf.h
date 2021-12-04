@@ -1,9 +1,9 @@
 #pragma once
 
+#include <array>
 #include <cassert>
 #include <stdexcept>
 #include <tuple>
-#include <vector>
 
 namespace baudvine {
 namespace detail {
@@ -21,17 +21,16 @@ class RingBufBase {
   using reference = Elem&;
   using size_type = std::size_t;
 
-  RingBufBase() : data_(Capacity) {}
-
-  constexpr size_type capacity() const noexcept { return Capacity; }
-  size_type max_size() const noexcept { return this->data_.max_size(); }
+  constexpr size_type max_size() const noexcept {
+    return this->data_.max_size();
+  }
   size_type size() const noexcept { return size_; }
 
   const Elem& operator[](size_type index) const {
-    return data_[(base_ + index) % Capacity];
+    return data_[Wrap(base_ + index)];
   }
 
-  Elem& operator[](size_type index) { return data_[(base_ + index) % Capacity]; }
+  Elem& operator[](size_type index) { return data_[Wrap(base_ + index)]; }
 
   const Elem& at(size_type index) const {
     if (index >= size_) {
@@ -55,7 +54,7 @@ class RingBufBase {
     data_[GetNext()] = value;
 
     if (size_ == Capacity) {
-      base_ = (base_ + 1) % Capacity;
+      base_ = Wrap(base_ + 1);
     }
 
     if (size_ < Capacity) {
@@ -68,16 +67,24 @@ class RingBufBase {
       return;
     }
 
-    base_ = (base_ + 1) % Capacity;
+    base_ = Wrap(base_ + 1);
     size_--;
   }
 
  private:
-  std::vector<Elem> data_;
+  std::array<Elem, Capacity> data_;
   size_type base_{0U};
   size_type size_{0U};
 
-  size_type GetNext() { return (base_ + size_) % Capacity; }
+  size_type GetNext() { return Wrap(base_ + size_); }
+
+  static constexpr size_type Wrap(size_type position) {
+    if (Capacity == 0) {
+      return 0;
+    }
+
+    return position % Capacity;
+  }
 };
 
 template <typename Elem, std::size_t Capacity>

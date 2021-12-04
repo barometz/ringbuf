@@ -123,9 +123,7 @@ TEST(Container, Size) {
 
 TEST(Container, MaxSize) {
   baudvine::RingBuf<float, 3> underTest;
-  // This one's a little fiddly - the actual value isn't specified since it has
-  // platform and runtime limitations to deal with.
-  EXPECT_GE(underTest.max_size(), std::numeric_limits<int>::max());
+  EXPECT_GE(underTest.max_size(), 3);
 }
 
 TEST(Container, Empty) {
