@@ -1,27 +1,31 @@
 #pragma once
 
-#include <type_traits>
+#include <stdexcept>
+#include <tuple>
 #include <vector>
 
 namespace baudvine {
-
 namespace detail {
 
-template <typename Elem, size_t MaxSize>
+template <typename Elem, std::size_t MaxSize>
 class RingBufBase {
  public:
+  using value_type = Elem;
+  using reference = Elem&;
+  using size_type = std::size_t;
+
   RingBufBase() : data_(MaxSize) {}
 
-  size_t Size() const noexcept { return size_; }
+  size_type Size() const noexcept { return size_; }
 
-  constexpr size_t Capacity() const noexcept { return MaxSize; }
-  const Elem& At(size_t index) const {
+  constexpr size_type Capacity() const noexcept { return MaxSize; }
+  const Elem& At(size_type index) const {
     if (index >= size_) {
       throw std::out_of_range("RingBuf::At: index >= Size");
     }
     return data_.at((GetBase() + index) % Capacity());
   }
-  Elem& At(size_t index) {
+  Elem& At(size_type index) {
     if (index >= size_) {
       throw std::out_of_range("RingBuf::At: index >= Size");
     }
@@ -45,10 +49,10 @@ class RingBufBase {
 
  protected:
   std::vector<Elem> data_;
-  size_t next_{0U};
-  size_t size_{0U};
+  size_type next_{0U};
+  size_type size_{0U};
 
-  size_t GetBase() const noexcept {
+  size_type GetBase() const noexcept {
     if (size_ == Capacity()) {
       return next_;
     } else {
@@ -57,7 +61,7 @@ class RingBufBase {
   }
 };
 
-template <typename Elem, size_t MaxSize>
+template <typename Elem, std::size_t MaxSize>
 class ConstIterator {
  public:
   using difference_type = std::ptrdiff_t;
@@ -68,7 +72,7 @@ class ConstIterator {
 
   constexpr ConstIterator() noexcept {}
   ConstIterator(const RingBufBase<Elem, MaxSize>& ring_buf,
-                size_t position) noexcept
+                std::size_t position) noexcept
       : ring_buf_(&ring_buf), position_(position) {}
 
   reference operator*() const { return ring_buf_->At(position_); }
@@ -160,13 +164,9 @@ class Iterator {
 template <typename Elem, size_t MaxSize>
 class RingBuf : public detail::RingBufBase<Elem, MaxSize> {
  public:
-  using value_type = Elem;
-  using reference = Elem&;
-  using const_reference = const Elem&;
   using iterator = detail::Iterator<Elem, MaxSize>;
   using const_iterator = detail::ConstIterator<Elem, MaxSize>;
   using difference_type = typename iterator::difference_type;
-  using size_type = size_t;
 
   iterator begin() noexcept { return iterator(*this, 0); }
   iterator end() noexcept { return iterator(*this, this->Size()); }
