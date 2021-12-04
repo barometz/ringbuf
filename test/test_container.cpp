@@ -88,3 +88,58 @@ TEST(Container, Equality) {
   b.Push(4070);
   EXPECT_NE(a, b);
 }
+
+TEST(Container, Swap) {
+  baudvine::RingBuf<int, 3> a;
+  baudvine::RingBuf<int, 3> b;
+
+  a.Push(2010);
+  a.Push(3030);
+
+  b.Push(4500);
+  b.Push(20);
+  b.Push(9999);
+
+  auto a2 = a;
+  auto b2 = b;
+  a2.swap(b2);
+
+  EXPECT_EQ(a, b2);
+  EXPECT_EQ(b, a2);
+}
+
+TEST(Container, Size) {
+  baudvine::RingBuf<float, 3> underTest;
+  EXPECT_EQ(underTest.size(), 0);
+
+  underTest.Push(0.4f);
+  EXPECT_EQ(underTest.size(), 1);
+
+  underTest.Push(0.0f);
+  underTest.Push(2.4e9f);
+  underTest.Push(5.0e9f);
+  EXPECT_EQ(underTest.size(), 3);
+}
+
+TEST(Container, MaxSize) {
+  baudvine::RingBuf<float, 3> underTest;
+  // This one's a little fiddly - the actual value isn't specified since it has
+  // platform and runtime limitations to deal with.
+  EXPECT_GE(underTest.max_size(), std::numeric_limits<int>::max());
+}
+
+TEST(Container, Empty) {
+  baudvine::RingBuf<double, 2> underTest;
+  EXPECT_TRUE(underTest.empty());
+  underTest.Push(0);
+  EXPECT_FALSE(underTest.empty());
+  underTest.Push(1.0);
+  EXPECT_FALSE(underTest.empty());
+  underTest.Push(2.0);
+  EXPECT_FALSE(underTest.empty());
+
+  baudvine::RingBuf<double, 0> alwaysEmpty;
+  EXPECT_TRUE(alwaysEmpty.empty());
+  underTest.Push(0.1);
+  EXPECT_TRUE(alwaysEmpty.empty());
+}

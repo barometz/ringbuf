@@ -12,6 +12,8 @@ namespace detail {
 // TODO: make sure moving out of RingBuf leaves something sound
 // TODO: move params, emplace smarts
 // TODO: reverse iterator
+// TODO: type erase for iterators - would be nice if they didn't have to be tied
+//       to a buffer size
 
 template <typename Elem, std::size_t MaxSize>
 class RingBufBase {
@@ -170,11 +172,17 @@ class Iterator {
 template <typename Elem, size_t MaxSize>
 class RingBuf : public detail::RingBufBase<Elem, MaxSize> {
   using Self = RingBuf<Elem, MaxSize>;
+  using Base = detail::RingBufBase<Elem, MaxSize>;
 
  public:
+  using size_type = typename Base::size_type;
   using iterator = detail::Iterator<Elem, MaxSize>;
   using const_iterator = detail::ConstIterator<Elem, MaxSize>;
   using difference_type = typename iterator::difference_type;
+
+  size_type size() const noexcept { return this->Size(); }
+  size_type max_size() const noexcept { return this->data_.max_size(); }
+  bool empty() const noexcept { return this->Size() == 0; }
 
   iterator begin() noexcept { return iterator(*this, 0); }
   iterator end() noexcept { return iterator(*this, this->Size()); }
@@ -182,6 +190,8 @@ class RingBuf : public detail::RingBufBase<Elem, MaxSize> {
   const_iterator cend() const noexcept {
     return const_iterator(*this, this->Size());
   }
+
+  void swap(Self& other) { std::swap(*this, other); }
 
   friend bool operator==(const Self& lhs, const Self& rhs) {
     if (lhs.Size() != rhs.Size())
