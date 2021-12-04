@@ -3,56 +3,56 @@
 #include <baudvine/ringbuf/ringbuf.h>
 
 TEST(Capacity, Capacity) {
-  EXPECT_EQ((baudvine::ringbuf<int, 0>){}.capacity(), 0);
-  EXPECT_EQ((baudvine::ringbuf<int, 1>){}.capacity(), 1);
-  EXPECT_EQ((baudvine::ringbuf<int, 128>){}.capacity(), 128);
-  EXPECT_EQ((baudvine::ringbuf<int, 500>){}.capacity(), 500);
-  EXPECT_EQ((baudvine::ringbuf<int, 10 * 1024 * 1024>){}.capacity(),
+  EXPECT_EQ((baudvine::RingBuf<int, 0>){}.Capacity(), 0);
+  EXPECT_EQ((baudvine::RingBuf<int, 1>){}.Capacity(), 1);
+  EXPECT_EQ((baudvine::RingBuf<int, 128>){}.Capacity(), 128);
+  EXPECT_EQ((baudvine::RingBuf<int, 500>){}.Capacity(), 500);
+  EXPECT_EQ((baudvine::RingBuf<int, 10 * 1024 * 1024>){}.Capacity(),
             10 * 1024 * 1024);
 
-  EXPECT_EQ((baudvine::ringbuf<char, 128>){}.capacity(), 128);
+  EXPECT_EQ((baudvine::RingBuf<char, 128>){}.Capacity(), 128);
 }
 
 TEST(At, Empty) {
-  baudvine::ringbuf<int, 4> underTest;
+  baudvine::RingBuf<int, 4> underTest;
 
-  EXPECT_THROW(underTest.at(0), std::out_of_range);
-  EXPECT_THROW(underTest.at(1), std::out_of_range);
-  EXPECT_THROW(underTest.at(4), std::out_of_range);
+  EXPECT_THROW(underTest.At(0), std::out_of_range);
+  EXPECT_THROW(underTest.At(1), std::out_of_range);
+  EXPECT_THROW(underTest.At(4), std::out_of_range);
 }
 
 TEST(AtConst, Empty) {
-  const baudvine::ringbuf<int, 4> underTest;
+  const baudvine::RingBuf<int, 4> underTest;
 
-  EXPECT_THROW(underTest.at(0), std::out_of_range);
-  EXPECT_THROW(underTest.at(1), std::out_of_range);
-  EXPECT_THROW(underTest.at(4), std::out_of_range);
+  EXPECT_THROW(underTest.At(0), std::out_of_range);
+  EXPECT_THROW(underTest.At(1), std::out_of_range);
+  EXPECT_THROW(underTest.At(4), std::out_of_range);
 }
 
-TEST(Push, Push){
-  baudvine::ringbuf<int, 4> underTest;
-  underTest.push(56);
-  EXPECT_EQ(underTest.at(0), 56);
-  underTest.push(1100);
-  EXPECT_EQ(underTest.at(1), 1100);
-  EXPECT_EQ(underTest.at(0), 56);
-  EXPECT_EQ(underTest.size(), 2);
+TEST(Push, Push) {
+  baudvine::RingBuf<int, 4> underTest;
+  underTest.Push(56);
+  EXPECT_EQ(underTest.At(0), 56);
+  underTest.Push(1100);
+  EXPECT_EQ(underTest.At(1), 1100);
+  EXPECT_EQ(underTest.At(0), 56);
+  EXPECT_EQ(underTest.Size(), 2);
 }
 
-TEST(Push, PushOver){
-  baudvine::ringbuf<int, 2> underTest;
-  underTest.push(56);
-  underTest.push(1100);
-  underTest.push(6500);
+TEST(Push, PushOver) {
+  baudvine::RingBuf<int, 2> underTest;
+  underTest.Push(56);
+  underTest.Push(1100);
+  underTest.Push(6500);
 
-  EXPECT_EQ(underTest.size(), 2);
-  EXPECT_EQ(underTest.at(0), 1100);
-  EXPECT_EQ(underTest.at(1), 6500);
+  EXPECT_EQ(underTest.Size(), 2);
+  EXPECT_EQ(underTest.At(0), 1100);
+  EXPECT_EQ(underTest.At(1), 6500);
 
-  underTest.push(10);
-  underTest.push(12);
-  underTest.push(18);
-  EXPECT_EQ(underTest.size(), 2);
-  EXPECT_EQ(underTest.at(0), 12);
-  EXPECT_EQ(underTest.at(1), 18);
+  underTest.Push(10);
+  underTest.Push(12);
+  underTest.Push(18);
+  EXPECT_EQ(underTest.Size(), 2);
+  EXPECT_EQ(underTest.At(0), 12);
+  EXPECT_EQ(underTest.At(1), 18);
 }
