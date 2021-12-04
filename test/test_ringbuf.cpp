@@ -56,3 +56,17 @@ TEST(Push, PushOver) {
   EXPECT_EQ(underTest.At(0), 12);
   EXPECT_EQ(underTest.At(1), 18);
 }
+
+TEST(Iterators, RangeFor) {
+  baudvine::RingBuf<int, 4> underTest;
+  underTest.Push(41);
+  underTest.Push(40);
+  underTest.Push(39);
+  underTest.Push(38);
+
+  auto expected = 41;
+  for (auto val : underTest) {
+    EXPECT_EQ(expected, val);
+    expected--;
+  }
+}
