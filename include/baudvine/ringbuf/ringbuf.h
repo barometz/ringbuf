@@ -11,8 +11,12 @@ namespace detail {
 
 // TODO: move params, emplace smarts
 // TODO: reverse iterator
-// TODO: decide between front/at/??
 // TODO: std::copy optimization?
+
+// Would-be-nices:
+// - std::array-style aggregate initialization. Probably impossible because
+//   RingBuf has private fields.
+// - Do something smart with in-place construction/destruction
 
 template <std::size_t Capacity>
 constexpr std::size_t RingWrap(std::size_t position) {
@@ -167,6 +171,7 @@ class RingBuf {
       return;
     }
 
+    data_[base_] = {};
     base_ = detail::RingWrap<Capacity>(base_ + 1);
     size_--;
   }
