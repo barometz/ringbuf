@@ -1,4 +1,4 @@
-#include <baudvine/ringbuf/ringbuf.h>
+#include <baudvine/ringbuf/dynamic_ringbuf.h>
 
 #include <gtest/gtest.h>
 
@@ -35,7 +35,7 @@ TEST(Dynamic_At, Empty) {
 }
 
 TEST(Dynamic_AtConst, Empty) {
-  const baudvine::RingBuf<int, 4> underTest{};
+  const baudvine::DynamicRingBuf<int> underTest(4);
 
   EXPECT_THROW(underTest.at(0), std::out_of_range);
   EXPECT_THROW(underTest.at(1), std::out_of_range);
