@@ -146,6 +146,7 @@ class RingBuf {
   using difference_type = typename iterator::difference_type;
   using size_type = std::size_t;
 
+  constexpr size_type capacity() const noexcept { return Capacity; }
   constexpr size_type max_size() const noexcept { return Capacity; }
   size_type size() const noexcept { return size_; }
   bool empty() const noexcept { return this->size() == 0; }

@@ -22,6 +22,7 @@ class DynamicRingBuf {
   DynamicRingBuf(size_type capacity) : capacity_(capacity) {}
 
   size_type capacity() const { return capacity_; }
+  size_type max_size() const { return data_.max_size(); }
   size_type size() const { return data_.size(); }
   bool empty() const { return data_.empty(); }
 
@@ -33,6 +34,10 @@ class DynamicRingBuf {
   }
 
   void push_back(const_reference value) {
+    if (capacity() == 0) {
+      return;
+    }
+
     if (size() == capacity()) {
       pop_front();
     }
