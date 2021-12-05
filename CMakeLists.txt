@@ -8,7 +8,6 @@ option(RINGBUF_TESTS "Build the baudvine-ringbuf tests" ON)
 add_library(baudvine-ringbuf INTERFACE)
 target_include_directories(baudvine-ringbuf INTERFACE include)
 target_compile_features(baudvine-ringbuf INTERFACE cxx_std_11)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
 if (MSVC)
   add_compile_options(/W4)

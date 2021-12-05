@@ -22,8 +22,10 @@ TEST(Capacity, Capacity) {
   EXPECT_EQ((baudvine::RingBuf<int, 128>){}.max_size(), 128);
   EXPECT_EQ((baudvine::RingBuf<int, 500>){}.max_size(), 500);
 
-  auto dynamic = std::make_unique<baudvine::RingBuf<int, 10 * 1024 * 1024>>();
-  EXPECT_EQ(dynamic->max_size(), 10 * 1024 * 1024);
+  constexpr size_t tenMB = 10 * 1024 * 1024;
+  auto dynamic = std::unique_ptr<baudvine::RingBuf<int, tenMB>>(
+      new baudvine::RingBuf<int, tenMB>());
+  EXPECT_EQ(dynamic->max_size(), tenMB);
 }
 
 TEST(At, Empty) {

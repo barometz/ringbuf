@@ -6,6 +6,11 @@ target_sources(ringbuf-test PRIVATE ${test_files})
 
 target_link_libraries(ringbuf-test PRIVATE baudvine-ringbuf)
 
+set_target_properties(ringbuf-test
+  PROPERTIES
+  CXX_STANDARD 11
+  CXX_EXTENSIONS OFF)
+
 # Wire up googletest
 include(FetchContent)
 FetchContent_Declare(

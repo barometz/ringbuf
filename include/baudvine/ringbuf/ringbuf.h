@@ -62,12 +62,13 @@ class RingBufBase {
 
   size_type GetNext() { return Wrap(base_ + size_); }
 
+  template <size_type C = Capacity>
   static constexpr size_type Wrap(size_type position) {
-    if (Capacity == 0) {
-      return 0;
-    }
-
-    return position % Capacity;
+    return position % C;
+  }
+  template <>
+  static constexpr size_type Wrap<0>(size_type /*position*/) {
+    return 0;
   }
 };
 
