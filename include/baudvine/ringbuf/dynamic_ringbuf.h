@@ -65,6 +65,15 @@ class DynamicRingBuf {
   friend bool operator<(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
     return lhs.data_ < rhs.data_;
   }
+  friend bool operator>(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
+    return lhs.data_ > rhs.data_;
+  }
+  friend bool operator<=(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
+    return lhs.data_ <= rhs.data_;
+  }
+  friend bool operator>=(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
+    return lhs.data_ >= rhs.data_;
+  }
   friend bool operator==(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
     return lhs.data_ == rhs.data_;
   }

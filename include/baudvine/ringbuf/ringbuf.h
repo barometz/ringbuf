@@ -15,7 +15,6 @@ namespace detail {
 // TODO: clear
 // TODO: erase?
 // TODO: front, back
-// TODO: remaining comparison ops
 
 // Would-be-nices:
 // - std::array-style aggregate initialization. Probably impossible because
@@ -155,7 +154,7 @@ class RingBuf {
   reference operator[](size_type index) {
     return data_[detail::RingWrap<Capacity>(base_ + index)];
   }
-  
+
   const_reference at(size_type index) const {
     if (index >= this->size()) {
       throw std::out_of_range("RingBuf::at: index >= Size");
@@ -222,12 +221,26 @@ class RingBuf {
   void swap(RingBuf& other) { std::swap(*this, other); }
 
   friend bool operator<(const RingBuf& lhs, const RingBuf& rhs) {
-    if (lhs.size() != rhs.size())
+    if (lhs.size() != rhs.size()) {
       return false;
+    }
 
     auto end = lhs.cend();
     auto mismatch = std::mismatch(lhs.cbegin(), end, rhs.cbegin());
+    if (mismatch.first == end) {
+      return false;
+    }
 
+    return *mismatch.first < *mismatch.second;
+  }
+
+  friend bool operator>(const RingBuf& lhs, const RingBuf& rhs) {
+    if (lhs.size() != rhs.size()) {
+      return false;
+    }
+
+    auto end = lhs.cend();
+    auto mismatch = std::mismatch(lhs.cbegin(), end, rhs.cbegin());
     if (mismatch.first == end) {
       return false;
     }
@@ -236,14 +249,21 @@ class RingBuf {
   }
 
   friend bool operator==(const RingBuf& lhs, const RingBuf& rhs) {
-    if (lhs.size() != rhs.size())
+    if (lhs.size() != rhs.size()) {
       return false;
+    }
 
     auto end = lhs.cend();
     auto mismatch = std::mismatch(lhs.cbegin(), end, rhs.cbegin());
     return mismatch.first == end;
   }
 
+  friend bool operator>=(const RingBuf& lhs, const RingBuf& rhs) {
+    return !(lhs < rhs);
+  }
+  friend bool operator<=(const RingBuf& lhs, const RingBuf& rhs) {
+    return !(lhs > rhs);
+  }
   friend bool operator!=(const RingBuf& lhs, const RingBuf& rhs) {
     return !(lhs == rhs);
   }
