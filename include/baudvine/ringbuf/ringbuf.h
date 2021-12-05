@@ -215,6 +215,20 @@ class RingBuf {
 
   void swap(RingBuf& other) { std::swap(*this, other); }
 
+  friend bool operator<(const RingBuf& lhs, const RingBuf& rhs) {
+      if (lhs.size() != rhs.size())
+      return false;
+
+    auto end = lhs.cend();
+    auto mismatch = std::mismatch(lhs.cbegin(), end, rhs.cbegin());
+
+    if (mismatch.first == end) {
+      return false;
+    }
+
+    return *mismatch.first < *mismatch.second;
+  }
+  
   friend bool operator==(const RingBuf& lhs, const RingBuf& rhs) {
     if (lhs.size() != rhs.size())
       return false;

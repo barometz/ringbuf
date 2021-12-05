@@ -57,6 +57,18 @@ class DynamicRingBuf {
   reference at(size_type index) { return data_.at(index); }
   const_reference at(size_type index) const { return data_.at(index); }
 
+  friend bool operator<(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
+    return lhs.data_ < rhs.data_;
+  }
+
+  friend bool operator==(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
+    return lhs.data_ == rhs.data_;
+  }
+
+  friend bool operator!=(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
+    return lhs.data_ != rhs.data_;
+  }
+
  private:
   std::deque<value_type> data_{};
   size_type capacity_{};
