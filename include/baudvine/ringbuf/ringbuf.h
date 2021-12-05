@@ -99,6 +99,10 @@ class Iterator {
     return data_[RingWrap<Capacity>(base_ + position_)];
   }
 
+  pointer operator->() const {
+    return &**this;
+  }
+
   Iterator operator++(int) noexcept {
     Iterator copy(*this);
     operator++();
