@@ -21,17 +21,23 @@ class DynamicRingBuf {
   DynamicRingBuf() {}
   DynamicRingBuf(size_type capacity) : capacity_(capacity) {}
 
-  size_type capacity() const { return capacity_; }
-  size_type max_size() const { return data_.max_size(); }
-  size_type size() const { return data_.size(); }
-  bool empty() const { return data_.empty(); }
+  reference at(size_type index) { return data_.at(index); }
+  const_reference at(size_type index) const { return data_.at(index); }
+  reference operator[](size_type index) { return data_[index]; }
+  const_reference operator[](size_type index) const { return data_[index]; }
 
-  void set_capacity(size_type capacity) {
-    capacity_ = capacity;
-    while (size() > capacity_) {
-      pop_front();
-    }
-  }
+  iterator begin() { return data_.begin(); }
+  iterator end() { return data_.end(); }
+  const_iterator begin() const { return data_.begin(); }
+  const_iterator end() const { return data_.end(); }
+  const_iterator cbegin() const { return data_.cbegin(); }
+  const_iterator cend() const { return data_.cend(); }
+
+  bool empty() const { return data_.empty(); }
+  size_type size() const { return data_.size(); }
+  size_type max_size() const { return data_.max_size(); }
+  size_type capacity() const { return capacity_; }
+  void shrink_to_fit() { return data_.shrink_to_fit(); }
 
   void push_back(const_reference value) {
     if (capacity() == 0) {
@@ -47,26 +53,21 @@ class DynamicRingBuf {
 
   void pop_front() { data_.pop_front(); }
 
-  iterator begin() { return data_.begin(); }
-  iterator end() { return data_.end(); }
-  const_iterator begin() const { return data_.begin(); }
-  const_iterator end() const { return data_.end(); }
-  const_iterator cbegin() const { return data_.cbegin(); }
-  const_iterator cend() const { return data_.cend(); }
+  void set_capacity(size_type capacity) {
+    capacity_ = capacity;
+    while (size() > capacity_) {
+      pop_front();
+    }
+  }
 
-  reference operator[](size_type index) { return data_[index]; }
-  const_reference operator[](size_type index) const { return data_[index]; }
-  reference at(size_type index) { return data_.at(index); }
-  const_reference at(size_type index) const { return data_.at(index); }
+  void swap(DynamicRingBuf& other) { return std::swap(*this, other); }
 
   friend bool operator<(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
     return lhs.data_ < rhs.data_;
   }
-
   friend bool operator==(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
     return lhs.data_ == rhs.data_;
   }
-
   friend bool operator!=(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
     return lhs.data_ != rhs.data_;
   }

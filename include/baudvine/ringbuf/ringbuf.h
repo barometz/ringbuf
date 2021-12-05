@@ -12,6 +12,10 @@ namespace detail {
 // TODO: move params, emplace smarts
 // TODO: reverse iterator
 // TODO: std::copy optimization?
+// TODO: clear
+// TODO: erase?
+// TODO: front, back
+// TODO: remaining comparison ops
 
 // Would-be-nices:
 // - std::array-style aggregate initialization. Probably impossible because
@@ -145,10 +149,46 @@ class RingBuf {
   using difference_type = typename iterator::difference_type;
   using size_type = std::size_t;
 
-  constexpr size_type capacity() const noexcept { return Capacity; }
-  constexpr size_type max_size() const noexcept { return Capacity; }
-  size_type size() const noexcept { return size_; }
+  const_reference operator[](size_type index) const {
+    return data_[detail::RingWrap<Capacity>(base_ + index)];
+  }
+  reference operator[](size_type index) {
+    return data_[detail::RingWrap<Capacity>(base_ + index)];
+  }
+  
+  const_reference at(size_type index) const {
+    if (index >= this->size()) {
+      throw std::out_of_range("RingBuf::at: index >= Size");
+    }
+    return (*this)[index];
+  }
+
+  reference at(size_type index) {
+    if (index >= this->size()) {
+      throw std::out_of_range("RingBuf::at: index >= Size");
+    }
+    return (*this)[index];
+  }
+
+  iterator begin() noexcept {
+    return iterator(&this->data_[0], this->base_, 0);
+  }
+  iterator end() noexcept {
+    return iterator(&this->data_[0], this->base_, this->size());
+  }
+  const_iterator begin() const noexcept { return cbegin(); }
+  const_iterator end() const noexcept { return cend(); }
+  const_iterator cbegin() const noexcept {
+    return const_iterator(&this->data_[0], this->base_, 0);
+  }
+  const_iterator cend() const noexcept {
+    return const_iterator(&this->data_[0], this->base_, this->size());
+  }
+
   bool empty() const noexcept { return this->size() == 0; }
+  size_type size() const noexcept { return size_; }
+  constexpr size_type max_size() const noexcept { return Capacity; }
+  constexpr size_type capacity() const noexcept { return Capacity; }
 
   void push_back(const_reference value) {
     if (Capacity == 0) {
@@ -177,41 +217,6 @@ class RingBuf {
     data_[base_] = {};
     base_ = detail::RingWrap<Capacity>(base_ + 1);
     size_--;
-  }
-
-  iterator begin() noexcept {
-    return iterator(&this->data_[0], this->base_, 0);
-  }
-  iterator end() noexcept {
-    return iterator(&this->data_[0], this->base_, this->size());
-  }
-  const_iterator begin() const noexcept { return cbegin(); }
-  const_iterator end() const noexcept { return cend(); }
-  const_iterator cbegin() const noexcept {
-    return const_iterator(&this->data_[0], this->base_, 0);
-  }
-  const_iterator cend() const noexcept {
-    return const_iterator(&this->data_[0], this->base_, this->size());
-  }
-
-  const_reference operator[](size_type index) const {
-    return data_[detail::RingWrap<Capacity>(base_ + index)];
-  }
-  reference operator[](size_type index) {
-    return data_[detail::RingWrap<Capacity>(base_ + index)];
-  }
-
-  const_reference at(size_type index) const {
-    if (index >= this->size()) {
-      throw std::out_of_range("RingBuf::at: index >= Size");
-    }
-    return (*this)[index];
-  }
-  reference at(size_type index) {
-    if (index >= this->size()) {
-      throw std::out_of_range("RingBuf::at: index >= Size");
-    }
-    return (*this)[index];
   }
 
   void swap(RingBuf& other) { std::swap(*this, other); }

@@ -111,8 +111,8 @@ TEST_P(Container, Empty) {
 }
 
 TEST_P(Container, Swap) {
-  baudvine::RingBuf<int, 3> a;
-  baudvine::RingBuf<int, 3> b;
+  auto a = MakeAdapter<int, 3>();
+  auto b = MakeAdapter<int, 3>();
 
   a.push_back(2010);
   a.push_back(3030);

@@ -87,9 +87,9 @@ class RingBufAdapter {
   void swap(RingBufAdapter& other) {
     switch (variant_) {
       case (Variant::Static):
-        return static_.swap(other);
+        return static_.swap(other.static_);
       case (Variant::Dynamic):
-        return dynamic_.swap(other);
+        return dynamic_.swap(other.dynamic_);
     }
   }
 
