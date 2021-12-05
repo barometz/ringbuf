@@ -27,12 +27,17 @@ class DynamicRingBuf {
 
   void set_capacity(size_type capacity) {
     capacity_ = capacity;
-    Shrink();
+    while (size() > capacity_) {
+      pop_front();
+    }
   }
 
   void push_back(const_reference value) {
+    if (size() == capacity()) {
+      pop_front();
+    }
+
     data_.push_back(value);
-    Shrink();
   }
 
   void pop_front() { data_.pop_front(); }
@@ -42,23 +47,14 @@ class DynamicRingBuf {
   const_iterator cbegin() const { return data_.cbegin(); }
   const_iterator cend() const { return data_.cend(); }
 
-  reference at(size_type index) { return data_.at(index); }
-
-  const_reference at(size_type index) const { return data_.at(index); }
-
   reference operator[](size_type index) { return data_[index]; }
-
   const_reference operator[](size_type index) const { return data_[index]; }
+  reference at(size_type index) { return data_.at(index); }
+  const_reference at(size_type index) const { return data_.at(index); }
 
  private:
   std::deque<value_type> data_{};
   size_type capacity_{};
-
-  void Shrink() {
-    while (data_.size() > capacity_) {
-      data_.pop_front();
-    }
-  }
 };
 
 }  // namespace baudvine
