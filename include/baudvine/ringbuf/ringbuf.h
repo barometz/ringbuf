@@ -12,7 +12,6 @@ namespace detail {
 // TODO: move params, emplace smarts
 // TODO: reverse iterator
 // TODO: std::copy optimization?
-// TODO: begin() const
 
 // Would-be-nices:
 // - std::array-style aggregate initialization. Probably impossible because
@@ -186,6 +185,8 @@ class RingBuf {
   iterator end() noexcept {
     return iterator(&this->data_[0], this->base_, this->size());
   }
+  const_iterator begin() const noexcept { return cbegin(); }
+  const_iterator end() const noexcept { return cend(); }
   const_iterator cbegin() const noexcept {
     return const_iterator(&this->data_[0], this->base_, 0);
   }

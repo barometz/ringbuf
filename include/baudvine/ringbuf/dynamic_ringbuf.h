@@ -49,6 +49,8 @@ class DynamicRingBuf {
 
   iterator begin() { return data_.begin(); }
   iterator end() { return data_.end(); }
+  const_iterator begin() const { return data_.begin(); }
+  const_iterator end() const { return data_.end(); }
   const_iterator cbegin() const { return data_.cbegin(); }
   const_iterator cend() const { return data_.cend(); }
 
