@@ -9,17 +9,10 @@
 namespace baudvine {
 namespace detail {
 
-// TODO: move params, emplace smarts
 // TODO: reverse iterator
-// TODO: std::copy optimization?
 // TODO: clear
 // TODO: erase?
 // TODO: front, back
-
-// Would-be-nices:
-// - std::array-style aggregate initialization. Probably impossible because
-//   RingBuf has private fields.
-// - Do something smart with in-place construction/destruction
 
 template <std::size_t Capacity>
 constexpr std::size_t RingWrap(std::size_t position) {
@@ -163,7 +156,7 @@ class RingBuf {
       : data_(allocator_traits::allocate(allocator_, Capacity)) {
     *this = other;
   }
-  
+
   RingBuf(RingBuf&& other)
       : data_(allocator_traits::allocate(allocator_, Capacity)) {
     *this = std::move(other);
@@ -239,19 +232,26 @@ class RingBuf {
       pop_front();
     }
 
-    std::allocator<Elem> allocator;
-    std::allocator_traits<decltype(allocator)>::construct(
-        allocator, &data_[GetNext()], value);
+    allocator_traits::construct(allocator_, &data_[GetNext()], value);
+    Progress();
+  }
 
-    // The base only moves when we're full.
+  void push_back(value_type&& value) { return emplace_back(std::move(value)); }
+
+  template <typename... Args>
+  void emplace_back(Args&&... args) {
+    if (Capacity == 0) {
+      // A buffer of size zero is conceptually sound, so let's support it.
+      return;
+    }
+
     if (size_ == Capacity) {
-      base_ = detail::RingWrap<Capacity>(base_ + 1);
+      pop_front();
     }
 
-    // Size will never exceed the capacity.
-    if (size_ < Capacity) {
-      size_++;
-    }
+    allocator_traits::construct(allocator_, &data_[GetNext()],
+                                std::forward<Args>(args)...);
+    Progress();
   }
 
   void pop_front() {
@@ -259,9 +259,7 @@ class RingBuf {
       return;
     }
 
-    std::allocator<Elem> allocator;
-    std::allocator_traits<decltype(allocator)>::destroy(allocator,
-                                                        &data_[base_]);
+    allocator_traits::destroy(allocator_, &data_[base_]);
 
     base_ = detail::RingWrap<Capacity>(base_ + 1);
     size_--;
@@ -324,5 +322,18 @@ class RingBuf {
   size_type size_{0U};
 
   size_type GetNext() { return detail::RingWrap<Capacity>(base_ + size_); }
+
+  // Move things around after growing.
+  void Progress() {
+    // The base only moves when we're full.
+    if (size_ == Capacity) {
+      base_ = detail::RingWrap<Capacity>(base_ + 1);
+    }
+
+    // Size will never exceed the capacity.
+    if (size_ < Capacity) {
+      size_++;
+    }
+  }
 };
 }  // namespace baudvine

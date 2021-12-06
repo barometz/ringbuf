@@ -98,7 +98,7 @@ class RefCounter {
  public:
   RefCounter() { counter_++; }
   RefCounter(const RefCounter&) { counter_++; }
-  RefCounter(RefCounter&&) {}
+  RefCounter(RefCounter&&) { counter_++; }
   ~RefCounter() { counter_--; }
 
   static int counter_;
