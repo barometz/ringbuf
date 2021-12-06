@@ -60,19 +60,8 @@ class DequeRingBuf {
 
   void clear() { return data_.clear(); }
 
-  void push_back(const_reference value) {
-    if (capacity() == 0) {
-      return;
-    }
-
-    if (size() == capacity()) {
-      pop_front();
-    }
-
-    data_.push_back(value);
-  }
-
-  void push_back(value_type&& value) { emplace_back(std::move(value)); }
+  void push_back(const_reference value) { return emplace_back(value); }
+  void push_back(value_type&& value) { return emplace_back(std::move(value)); }
 
   template <typename... Args>
   void emplace_back(Args... args) {

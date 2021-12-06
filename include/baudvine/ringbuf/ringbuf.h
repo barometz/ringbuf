@@ -247,20 +247,7 @@ class RingBuf {
     }
   }
 
-  void push_back(const_reference value) {
-    if (Capacity == 0) {
-      // A buffer of size zero is conceptually sound, so let's support it.
-      return;
-    }
-
-    if (size_ == Capacity) {
-      pop_front();
-    }
-
-    alloc_traits::construct(alloc_, &data_[GetNext()], value);
-    Progress();
-  }
-
+  void push_back(const_reference value) { return emplace_back(value); }
   void push_back(value_type&& value) { return emplace_back(std::move(value)); }
 
   template <typename... Args>
