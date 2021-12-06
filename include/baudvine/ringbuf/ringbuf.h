@@ -142,11 +142,51 @@ class RingBuf {
  public:
   using value_type = Elem;
   using reference = Elem&;
+  using pointer = Elem*;
   using const_reference = const Elem&;
   using iterator = detail::Iterator<Elem, Capacity>;
   using const_iterator = detail::ConstIterator<Elem, Capacity>;
   using difference_type = typename iterator::difference_type;
   using size_type = std::size_t;
+  using alloc = std::allocator<value_type>;
+  using allocator_traits = std::allocator_traits<alloc>;
+
+  RingBuf() : data_(allocator_traits::allocate(allocator_, Capacity)){};
+  ~RingBuf() {
+    while (!empty()) {
+      pop_front();
+    }
+    allocator_traits::deallocate(allocator_, data_, Capacity);
+  }
+
+  RingBuf(const RingBuf& other)
+      : data_(allocator_traits::allocate(allocator_, Capacity)) {
+    *this = other;
+  }
+  
+  RingBuf(RingBuf&& other)
+      : data_(allocator_traits::allocate(allocator_, Capacity)) {
+    *this = std::move(other);
+  }
+
+  RingBuf& operator=(const RingBuf& other) {
+    while (!empty()) {
+      pop_front();
+    }
+    for (const auto& value : other) {
+      push_back(value);
+    }
+    return *this;
+  }
+  RingBuf& operator=(RingBuf&& other) {
+    while (!empty()) {
+      pop_front();
+    }
+    for (const auto& value : other) {
+      push_back(std::move(value));
+    }
+    return *this;
+  }
 
   const_reference operator[](size_type index) const {
     return data_[detail::RingWrap<Capacity>(base_ + index)];
@@ -195,7 +235,13 @@ class RingBuf {
       return;
     }
 
-    data_[GetNext()] = value;
+    if (size_ == Capacity) {
+      pop_front();
+    }
+
+    std::allocator<Elem> allocator;
+    std::allocator_traits<decltype(allocator)>::construct(
+        allocator, &data_[GetNext()], value);
 
     // The base only moves when we're full.
     if (size_ == Capacity) {
@@ -213,7 +259,10 @@ class RingBuf {
       return;
     }
 
-    data_[base_] = {};
+    std::allocator<Elem> allocator;
+    std::allocator_traits<decltype(allocator)>::destroy(allocator,
+                                                        &data_[base_]);
+
     base_ = detail::RingWrap<Capacity>(base_ + 1);
     size_--;
   }
@@ -269,7 +318,8 @@ class RingBuf {
   }
 
  private:
-  value_type data_[Capacity]{};
+  alloc allocator_{};
+  pointer data_{nullptr};
   size_type base_{0U};
   size_type size_{0U};
 

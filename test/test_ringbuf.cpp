@@ -94,6 +94,62 @@ TEST_P(RingBuf, Pop) {
   }
 }
 
+class RefCounter {
+ public:
+  RefCounter() { counter_++; }
+  RefCounter(const RefCounter&) { counter_++; }
+  RefCounter(RefCounter&&) {}
+  ~RefCounter() { counter_--; }
+
+  static int counter_;
+};
+
+int RefCounter::counter_ = 0;
+
+TEST(RingBuf, LifeTimeStatic) {
+  RefCounter::counter_ = 0;
+
+  {
+    baudvine::RingBuf<RefCounter, 3> underTest;
+    EXPECT_EQ(RefCounter::counter_, 0);
+  }
+  EXPECT_EQ(RefCounter::counter_, 0);
+
+  {
+    baudvine::RingBuf<RefCounter, 2> underTest;
+    underTest.push_back(RefCounter{});
+    underTest.push_back(RefCounter{});
+    EXPECT_EQ(RefCounter::counter_, 2);
+    underTest.push_back(RefCounter{});
+    EXPECT_EQ(RefCounter::counter_, 2);
+    underTest.pop_front();
+    EXPECT_EQ(RefCounter::counter_, 1);
+  }
+  EXPECT_EQ(RefCounter::counter_, 0);
+}
+
+TEST(RingBuf, LifeTimeDynamic) {
+  RefCounter::counter_ = 0;
+
+  {
+    baudvine::DynamicRingBuf<RefCounter> underTest(3);
+    EXPECT_EQ(RefCounter::counter_, 0);
+  }
+  EXPECT_EQ(RefCounter::counter_, 0);
+
+  {
+    baudvine::DynamicRingBuf<RefCounter> underTest(2);
+    underTest.push_back(RefCounter{});
+    underTest.push_back(RefCounter{});
+    EXPECT_EQ(RefCounter::counter_, 2);
+    underTest.push_back(RefCounter{});
+    EXPECT_EQ(RefCounter::counter_, 2);
+    underTest.pop_front();
+    EXPECT_EQ(RefCounter::counter_, 1);
+  }
+  EXPECT_EQ(RefCounter::counter_, 0);
+}
+
 INSTANTIATE_TEST_SUITE_P(RingBuf,
                          RingBuf,
                          testing::Values(Variant::Static, Variant::Dynamic));
