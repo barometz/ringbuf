@@ -46,11 +46,19 @@ class RingBufAdapter {
     }                          \
   } while (false)
 
+  Elem& front() { DISPATCH(front()); }
+  Elem& back() { DISPATCH(back()); }
   Elem& operator[](size_t index) { DISPATCH(operator[](index)); }
   const Elem& operator[](size_t index) const { DISPATCH(operator[](index)); }
   Elem& at(size_t index) { DISPATCH(at(index)); }
   const Elem& at(size_t index) const { DISPATCH(at(index)); }
+  void clear() { DISPATCH(clear()); }
   void push_back(const Elem& value) { DISPATCH(push_back(value)); }
+  void push_back(Elem&& value) { DISPATCH(push_back(std::move(value))); }
+  template <typename... Args>
+  void emplace_back(Args... args) {
+    DISPATCH(emplace_back(std::forward<Args>(args)...));
+  }
   void pop_front() { DISPATCH(pop_front()); }
   size_t size() { DISPATCH(size()); }
   size_t capacity() { DISPATCH(capacity()); }

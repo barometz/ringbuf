@@ -9,11 +9,6 @@
 namespace baudvine {
 namespace detail {
 
-// TODO: reverse iterator
-// TODO: clear
-// TODO: erase?
-// TODO: front, back
-
 template <std::size_t Capacity>
 constexpr std::size_t RingWrap(std::size_t position) {
   return position % Capacity;
@@ -178,8 +173,12 @@ class RingBuf {
     for (const auto& value : other) {
       push_back(std::move(value));
     }
+    other.clear();
     return *this;
   }
+
+  reference front() { return at(0); }
+  reference back() { return at(size() - 1); }
 
   const_reference operator[](size_type index) const {
     return data_[detail::RingWrap<Capacity>(base_ + index)];
@@ -221,6 +220,12 @@ class RingBuf {
   size_type size() const noexcept { return size_; }
   constexpr size_type max_size() const noexcept { return Capacity; }
   constexpr size_type capacity() const noexcept { return Capacity; }
+
+  void clear() {
+    while (!empty()) {
+      pop_front();
+    }
+  }
 
   void push_back(const_reference value) {
     if (Capacity == 0) {

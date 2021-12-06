@@ -94,6 +94,24 @@ TEST_P(RingBuf, Pop) {
   }
 }
 
+TEST_P(RingBuf, FrontBack) {
+  auto underTest = MakeAdapter<int, 3>();
+
+  underTest.push_back(4);
+  underTest.push_back(3);
+  EXPECT_EQ(underTest.front(), 4);
+  EXPECT_EQ(underTest.back(), 3);
+
+  underTest.push_back(2);
+  underTest.push_back(1);
+  EXPECT_EQ(underTest.front(), 3);
+  EXPECT_EQ(underTest.back(), 1);
+
+  underTest.pop_front();
+  EXPECT_EQ(underTest.front(), 2);
+  EXPECT_EQ(underTest.back(), 1);
+}
+
 class RefCounter {
  public:
   RefCounter() { counter_++; }
@@ -106,17 +124,15 @@ class RefCounter {
 
 int RefCounter::counter_ = 0;
 
-TEST(RingBuf, LifeTimeStatic) {
-  RefCounter::counter_ = 0;
-
+TEST_P(RingBuf, LifeTime) {
   {
-    baudvine::RingBuf<RefCounter, 3> underTest;
+    auto underTest = MakeAdapter<RefCounter, 3>();
     EXPECT_EQ(RefCounter::counter_, 0);
   }
   EXPECT_EQ(RefCounter::counter_, 0);
 
-  {
-    baudvine::RingBuf<RefCounter, 2> underTest;
+  {  // push/pop
+    auto underTest = MakeAdapter<RefCounter, 2>();
     underTest.push_back(RefCounter{});
     underTest.push_back(RefCounter{});
     EXPECT_EQ(RefCounter::counter_, 2);
@@ -124,30 +140,35 @@ TEST(RingBuf, LifeTimeStatic) {
     EXPECT_EQ(RefCounter::counter_, 2);
     underTest.pop_front();
     EXPECT_EQ(RefCounter::counter_, 1);
+  }
+  EXPECT_EQ(RefCounter::counter_, 0);
+
+  {  // copy
+    auto underTest = MakeAdapter<RefCounter, 2>();
+    underTest.push_back(RefCounter{});
+    underTest.push_back(RefCounter{});
+    auto copy = underTest;
+    EXPECT_EQ(RefCounter::counter_, 4);
+  }
+  EXPECT_EQ(RefCounter::counter_, 0);
+
+  {  // move
+    auto underTest = MakeAdapter<RefCounter, 2>();
+    underTest.push_back(RefCounter{});
+    underTest.push_back(RefCounter{});
+    auto copy = std::move(underTest);
+    EXPECT_EQ(RefCounter::counter_, 2);
   }
   EXPECT_EQ(RefCounter::counter_, 0);
 }
 
-TEST(RingBuf, LifeTimeDynamic) {
-  RefCounter::counter_ = 0;
-
-  {
-    baudvine::DynamicRingBuf<RefCounter> underTest(3);
-    EXPECT_EQ(RefCounter::counter_, 0);
-  }
-  EXPECT_EQ(RefCounter::counter_, 0);
-
-  {
-    baudvine::DynamicRingBuf<RefCounter> underTest(2);
-    underTest.push_back(RefCounter{});
-    underTest.push_back(RefCounter{});
-    EXPECT_EQ(RefCounter::counter_, 2);
-    underTest.push_back(RefCounter{});
-    EXPECT_EQ(RefCounter::counter_, 2);
-    underTest.pop_front();
-    EXPECT_EQ(RefCounter::counter_, 1);
-  }
-  EXPECT_EQ(RefCounter::counter_, 0);
+TEST_P(RingBuf, Clear) {
+  auto underTest = MakeAdapter<RefCounter, 3>();
+  EXPECT_NO_THROW(underTest.clear());
+  underTest.push_back(RefCounter{});
+  underTest.push_back(RefCounter{});
+  EXPECT_NO_THROW(underTest.clear());
+  EXPECT_EQ(underTest.size(), 0);
 }
 
 INSTANTIATE_TEST_SUITE_P(RingBuf,
