@@ -6,16 +6,16 @@
 #include <ostream>
 
 enum class Variant {
-  Static,
-  Dynamic,
+  Standard,
+  Deque,
 };
 
 inline std::ostream& operator<<(std::ostream& os, Variant variant) {
   switch (variant) {
-    case Variant::Static:
-      return os << "Static";
-    case Variant::Dynamic:
-      return os << "Dynamic";
+    case Variant::Standard:
+      return os << "Standard";
+    case Variant::Deque:
+      return os << "Deque";
   }
 }
 
@@ -27,10 +27,10 @@ class RingBufAdapter {
  public:
   RingBufAdapter(Variant variant) : variant_(variant) {
     switch (variant) {
-      case Variant::Static:
+      case Variant::Standard:
         static_ = baudvine::RingBuf<Elem, Capacity>();
         break;
-      case Variant::Dynamic:
+      case Variant::Deque:
         dynamic_ = baudvine::DequeRingBuf<Elem>(Capacity);
         break;
     }
@@ -39,9 +39,9 @@ class RingBufAdapter {
 #define DISPATCH(call)         \
   do {                         \
     switch (variant_) {        \
-      case (Variant::Static):  \
+      case (Variant::Standard):  \
         return static_.call;   \
-      case (Variant::Dynamic): \
+      case (Variant::Deque): \
         return dynamic_.call;  \
     }                          \
   } while (false)
@@ -67,36 +67,36 @@ class RingBufAdapter {
 
   friend bool operator<(const RingBufAdapter& lhs, const RingBufAdapter& rhs) {
     switch (lhs.variant_) {
-      case (Variant::Static):
+      case (Variant::Standard):
         return lhs.static_ < rhs.static_;
-      case (Variant::Dynamic):
+      case (Variant::Deque):
         return lhs.dynamic_ < rhs.dynamic_;
     }
   }
 
   friend bool operator==(const RingBufAdapter& lhs, const RingBufAdapter& rhs) {
     switch (lhs.variant_) {
-      case (Variant::Static):
+      case (Variant::Standard):
         return lhs.static_ == rhs.static_;
-      case (Variant::Dynamic):
+      case (Variant::Deque):
         return lhs.dynamic_ == rhs.dynamic_;
     }
   }
 
   friend bool operator!=(const RingBufAdapter& lhs, const RingBufAdapter& rhs) {
     switch (lhs.variant_) {
-      case (Variant::Static):
+      case (Variant::Standard):
         return lhs.static_ != rhs.static_;
-      case (Variant::Dynamic):
+      case (Variant::Deque):
         return lhs.dynamic_ != rhs.dynamic_;
     }
   }
 
   void swap(RingBufAdapter& other) {
     switch (variant_) {
-      case (Variant::Static):
+      case (Variant::Standard):
         return static_.swap(other.static_);
-      case (Variant::Dynamic):
+      case (Variant::Deque):
         return dynamic_.swap(other.dynamic_);
     }
   }

@@ -173,4 +173,4 @@ TEST_P(RingBuf, Clear) {
 
 INSTANTIATE_TEST_SUITE_P(RingBuf,
                          RingBuf,
-                         testing::Values(Variant::Static, Variant::Dynamic));
+                         testing::Values(Variant::Standard, Variant::Deque));

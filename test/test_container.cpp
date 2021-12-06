@@ -131,4 +131,4 @@ TEST_P(Container, Swap) {
 
 INSTANTIATE_TEST_SUITE_P(Container,
                          Container,
-                         testing::Values(Variant::Static, Variant::Dynamic));
+                         testing::Values(Variant::Standard, Variant::Deque));
