@@ -20,8 +20,6 @@
 
 #pragma once
 
-#include <array>
-#include <cassert>
 #include <cstddef>
 #include <stdexcept>
 #include <tuple>
