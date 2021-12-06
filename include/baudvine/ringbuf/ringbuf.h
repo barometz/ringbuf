@@ -142,23 +142,22 @@ class RingBuf {
   using difference_type = typename iterator::difference_type;
   using size_type = std::size_t;
   using alloc = std::allocator<value_type>;
-  using allocator_traits = std::allocator_traits<alloc>;
+  using alloc_traits = std::allocator_traits<alloc>;
 
-  RingBuf() : data_(allocator_traits::allocate(allocator_, Capacity)){};
+  RingBuf() : data_(alloc_traits::allocate(alloc_, Capacity)){};
   ~RingBuf() {
     while (!empty()) {
       pop_front();
     }
-    allocator_traits::deallocate(allocator_, data_, Capacity);
+    alloc_traits::deallocate(alloc_, data_, Capacity);
   }
 
   RingBuf(const RingBuf& other)
-      : data_(allocator_traits::allocate(allocator_, Capacity)) {
+      : data_(alloc_traits::allocate(alloc_, Capacity)) {
     *this = other;
   }
 
-  RingBuf(RingBuf&& other)
-      : data_(allocator_traits::allocate(allocator_, Capacity)) {
+  RingBuf(RingBuf&& other) : data_(alloc_traits::allocate(alloc_, Capacity)) {
     *this = std::move(other);
   }
 
@@ -171,6 +170,7 @@ class RingBuf {
     }
     return *this;
   }
+
   RingBuf& operator=(RingBuf&& other) {
     while (!empty()) {
       pop_front();
@@ -232,7 +232,7 @@ class RingBuf {
       pop_front();
     }
 
-    allocator_traits::construct(allocator_, &data_[GetNext()], value);
+    alloc_traits::construct(alloc_, &data_[GetNext()], value);
     Progress();
   }
 
@@ -249,8 +249,8 @@ class RingBuf {
       pop_front();
     }
 
-    allocator_traits::construct(allocator_, &data_[GetNext()],
-                                std::forward<Args>(args)...);
+    alloc_traits::construct(alloc_, &data_[GetNext()],
+                            std::forward<Args>(args)...);
     Progress();
   }
 
@@ -259,7 +259,7 @@ class RingBuf {
       return;
     }
 
-    allocator_traits::destroy(allocator_, &data_[base_]);
+    alloc_traits::destroy(alloc_, &data_[base_]);
 
     base_ = detail::RingWrap<Capacity>(base_ + 1);
     size_--;
@@ -316,7 +316,7 @@ class RingBuf {
   }
 
  private:
-  alloc allocator_{};
+  alloc alloc_{};
   pointer data_{nullptr};
   size_type base_{0U};
   size_type size_{0U};
