@@ -51,6 +51,21 @@ class DynamicRingBuf {
     data_.push_back(value);
   }
 
+  void push_back(value_type&& value) { emplace_back(std::move(value)); }
+
+  template <typename... Args>
+  void emplace_back(Args... args) {
+    if (capacity() == 0) {
+      return;
+    }
+
+    if (size() == capacity()) {
+      pop_front();
+    }
+
+    data_.emplace_back(std::forward<Args>(args)...);
+  }
+
   void pop_front() { data_.pop_front(); }
 
   void set_capacity(size_type capacity) {
