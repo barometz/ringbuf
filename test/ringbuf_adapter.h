@@ -1,6 +1,6 @@
 #pragma once
 
-#include <baudvine/ringbuf/dynamic_ringbuf.h>
+#include <baudvine/ringbuf/deque_ringbuf.h>
 #include <baudvine/ringbuf/ringbuf.h>
 
 #include <ostream>
@@ -31,7 +31,7 @@ class RingBufAdapter {
         static_ = baudvine::RingBuf<Elem, Capacity>();
         break;
       case Variant::Dynamic:
-        dynamic_ = baudvine::DynamicRingBuf<Elem>(Capacity);
+        dynamic_ = baudvine::DequeRingBuf<Elem>(Capacity);
         break;
     }
   }
@@ -109,5 +109,5 @@ class RingBufAdapter {
   // This would be less annoying with std::variant, but the build should also
   // run with C++11.
   baudvine::RingBuf<Elem, Capacity> static_{};
-  baudvine::DynamicRingBuf<Elem> dynamic_{};
+  baudvine::DequeRingBuf<Elem> dynamic_{};
 };

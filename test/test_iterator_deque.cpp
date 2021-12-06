@@ -1,14 +1,14 @@
 // The iterator should be
 // https://en.cppreference.com/w/cpp/named_req/BidirectionalIterator
 
-#include <baudvine/ringbuf/dynamic_ringbuf.h>
+#include <baudvine/ringbuf/deque_ringbuf.h>
 #include <gtest/gtest.h>
 
 #include <type_traits>
 
 namespace {
-baudvine::DynamicRingBuf<int> GetBuf() {
-  baudvine::DynamicRingBuf<int> result(3);
+baudvine::DequeRingBuf<int> GetBuf() {
+  baudvine::DequeRingBuf<int> result(3);
   result.push_back(10);
   result.push_back(20);
   return result;
@@ -38,7 +38,7 @@ TEST(IteratorDyn, DerefToValueType) {
 }
 
 TEST(IteratorDyn, ArrowDeref) {
-  baudvine::DynamicRingBuf<std::string> buf(1);
+  baudvine::DequeRingBuf<std::string> buf(1);
   buf.push_back("hello");
   EXPECT_EQ(buf.begin()->size(), (*buf.begin()).size());
 }
@@ -55,12 +55,12 @@ TEST(IteratorDyn, PostfixIncrement) {
 // And a little extra:
 
 TEST(IteratorDyn, Zero) {
-  baudvine::DynamicRingBuf<int> underTest(0);
+  baudvine::DequeRingBuf<int> underTest(0);
   EXPECT_EQ(underTest.begin(), underTest.end());
 }
 
 TEST(IteratorDyn, RangeFor) {
-  baudvine::DynamicRingBuf<int> underTest(4);
+  baudvine::DequeRingBuf<int> underTest(4);
   underTest.push_back(41);
   underTest.push_back(40);
   underTest.push_back(39);

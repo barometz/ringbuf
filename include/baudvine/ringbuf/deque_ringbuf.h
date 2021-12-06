@@ -5,10 +5,10 @@
 
 namespace baudvine {
 
-// Container with ring buffer semantics, backed by non-contiguous dynamically
-// allocated memory.
+// A ring buffer based on std::deque. Inefficient, but compact and easily
+// verifiable.
 template <typename Elem>
-class DynamicRingBuf {
+class DequeRingBuf {
  public:
   using value_type = Elem;
   using reference = Elem&;
@@ -18,8 +18,8 @@ class DynamicRingBuf {
   using difference_type = typename iterator::difference_type;
   using size_type = std::size_t;
 
-  DynamicRingBuf() {}
-  DynamicRingBuf(size_type capacity) : capacity_(capacity) {}
+  DequeRingBuf() {}
+  DequeRingBuf(size_type capacity) : capacity_(capacity) {}
 
   reference front() { return data_.front(); }
   reference back() { return data_.back(); }
@@ -79,24 +79,24 @@ class DynamicRingBuf {
     }
   }
 
-  void swap(DynamicRingBuf& other) { return std::swap(*this, other); }
+  void swap(DequeRingBuf& other) { return std::swap(*this, other); }
 
-  friend bool operator<(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
+  friend bool operator<(const DequeRingBuf& lhs, const DequeRingBuf& rhs) {
     return lhs.data_ < rhs.data_;
   }
-  friend bool operator>(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
+  friend bool operator>(const DequeRingBuf& lhs, const DequeRingBuf& rhs) {
     return lhs.data_ > rhs.data_;
   }
-  friend bool operator<=(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
+  friend bool operator<=(const DequeRingBuf& lhs, const DequeRingBuf& rhs) {
     return lhs.data_ <= rhs.data_;
   }
-  friend bool operator>=(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
+  friend bool operator>=(const DequeRingBuf& lhs, const DequeRingBuf& rhs) {
     return lhs.data_ >= rhs.data_;
   }
-  friend bool operator==(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
+  friend bool operator==(const DequeRingBuf& lhs, const DequeRingBuf& rhs) {
     return lhs.data_ == rhs.data_;
   }
-  friend bool operator!=(const DynamicRingBuf& lhs, const DynamicRingBuf& rhs) {
+  friend bool operator!=(const DequeRingBuf& lhs, const DequeRingBuf& rhs) {
     return lhs.data_ != rhs.data_;
   }
 
