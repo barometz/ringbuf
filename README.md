@@ -26,6 +26,11 @@ What can't it do? Well:
 
 - Reverse iterators.
 - There are separate tests for the deque and non-deque iterators.
+- Speed could be better.
+
+  Compared to the `std::deque` variant in a debug build, insertion is about 2x
+  faster, and a range-for is ~10x slower. See the `feature/speed-test` branch
+  for some tinkering in that area.
 
 ## NOT TODO
 What won't it do? Most of these will be because of the "Readable" goal. A
