@@ -62,14 +62,14 @@ TEST(Speed, PushBackOverFull) {
 }
 
 TEST(Speed, IterateOver) {
-  baudvine::RingBuf<std::string, (1U << 18) - 1> standard;
-  baudvine::DequeRingBuf<std::string> deque((1U << 18) - 1);
+  baudvine::RingBuf<std::string, 1U << 19> standard;
+  baudvine::DequeRingBuf<std::string> deque(1U << 19);
 
-  for (uint32_t i = 0; i < 1U << 18; i++) {
+  for (uint32_t i = 0; i < 1U << 19; i++) {
     standard.push_back("this is a moderately long string");
   }
 
-  for (uint32_t i = 0; i < 1U << 18; i++) {
+  for (uint32_t i = 0; i < 1U << 19; i++) {
     deque.push_back("this is a moderately long string");
   }
 

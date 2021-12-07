@@ -29,7 +29,7 @@ namespace detail {
 
 template <std::size_t Capacity>
 constexpr std::size_t RingWrap(std::size_t position) {
-  return position % (Capacity + 1);
+  return position % Capacity;
 }
 template <>
 constexpr std::size_t RingWrap<0>(std::size_t /*position*/) {
@@ -46,12 +46,10 @@ class ConstIterator {
   using iterator_category = std::forward_iterator_tag;
 
   constexpr ConstIterator() noexcept {}
-  ConstIterator(pointer data, std::size_t position) noexcept
-      : data_(data), position_(position) {}
+  ConstIterator(pointer data, pointer end, std::size_t position) noexcept
+      : data_(data), end_(end), position_(position) {}
 
-  reference operator*() const {
-    return data_[position_];
-  }
+  reference operator*() const { return *data_; }
 
   ConstIterator operator++(int) noexcept {
     ConstIterator copy(*this);
@@ -60,20 +58,24 @@ class ConstIterator {
   }
 
   ConstIterator& operator++() noexcept {
-    position_ = RingWrap<Capacity>(position_ + 1);
+    ++data_;
+    ++position_;
+    if (data_ == end_)
+      data_ -= Capacity;
+
     return *this;
   }
 
   friend bool operator<(const ConstIterator& lhs,
                         const ConstIterator& rhs) noexcept {
-    return std::tie(lhs.data_, lhs.position_) <
-           std::tie(rhs.data_, rhs.position_);
+    return std::tie(lhs.end_, lhs.position_) <
+           std::tie(rhs.end_, rhs.position_);
   }
 
   friend bool operator==(const ConstIterator& lhs,
                          const ConstIterator& rhs) noexcept {
-    return std::tie(lhs.data_, lhs.position_) ==
-           std::tie(rhs.data_, rhs.position_);
+    return std::tie(lhs.end_, lhs.position_) ==
+           std::tie(rhs.end_, rhs.position_);
   }
 
   friend bool operator!=(const ConstIterator& lhs,
@@ -83,6 +85,7 @@ class ConstIterator {
 
  private:
   pointer data_{};
+  pointer end_{};
   std::size_t position_{};
 };
 
@@ -96,16 +99,14 @@ class Iterator {
   using iterator_category = std::forward_iterator_tag;
 
   Iterator() {}
-  Iterator(pointer data, size_t position)
-      : data_(data), position_(position) {}
+  Iterator(pointer data, pointer end, std::size_t position)
+      : data_(data), end_(end), position_(position) {}
 
   operator ConstIterator<value_type, Capacity>() const {
-    return ConstIterator<value_type, Capacity>(data_, position_);
+    return ConstIterator<value_type, Capacity>(data_, end_, position_);
   }
 
-  reference operator*() const {
-    return data_[position_];
-  }
+  reference operator*() const { return *data_; }
 
   pointer operator->() const { return &**this; }
 
@@ -116,18 +117,23 @@ class Iterator {
   }
 
   Iterator& operator++() noexcept {
-    position_ = RingWrap<Capacity>(position_ + 1);
+    ++data_;
+    ++position_;
+    if (data_ == end_)
+      data_ -= (Capacity + 1);
     return *this;
   }
 
   friend bool operator<(const Iterator& lhs, const Iterator& rhs) noexcept {
-    return std::tie(lhs.data_, lhs.position_) <
-           std::tie(rhs.data_, rhs.position_);
+    return std::tie(lhs.end_, lhs.position_) <
+           std::tie(rhs.end_, rhs.position_);
   }
 
   friend bool operator==(const Iterator& lhs, const Iterator& rhs) noexcept {
-    return std::tie(lhs.data_, lhs.position_) ==
-           std::tie(rhs.data_, rhs.position_);
+    return lhs.position_ == rhs.position_ && lhs.end_ == rhs.end_;
+
+    // return std::tie(lhs.end_, lhs.position_) ==
+    //        std::tie(rhs.end_, rhs.position_);
   }
 
   friend bool operator!=(const Iterator& lhs, const Iterator& rhs) noexcept {
@@ -136,6 +142,7 @@ class Iterator {
 
  private:
   pointer data_{};
+  pointer end_{};
   std::size_t position_{};
 };
 
@@ -155,13 +162,13 @@ class RingBuf {
   using alloc = std::allocator<value_type>;
   using alloc_traits = std::allocator_traits<alloc>;
 
-  RingBuf() : data_(alloc_traits::allocate(alloc_, Capacity + 1)){};
+  RingBuf() : data_(alloc_traits::allocate(alloc_, Capacity)){};
   ~RingBuf() {
     while (!empty()) {
       pop_front();
     }
     if (data_) {
-      alloc_traits::deallocate(alloc_, data_, Capacity + 1);
+      alloc_traits::deallocate(alloc_, data_, Capacity);
     }
   }
 
@@ -212,18 +219,21 @@ class RingBuf {
   }
 
   iterator begin() noexcept {
-    return iterator(&this->data_[0], this->base_);
+    return iterator(&data_[base_], &data_[Capacity], 0);
   }
   iterator end() noexcept {
-    return iterator(&this->data_[0], detail::RingWrap<Capacity>(this->base_ + this->size()));
+    return iterator(&this->data_[detail::RingWrap<Capacity>(base_ + size())],
+                    &data_[Capacity], Capacity);
   }
   const_iterator begin() const noexcept { return cbegin(); }
   const_iterator end() const noexcept { return cend(); }
   const_iterator cbegin() const noexcept {
-    return const_iterator(&this->data_[0], this->base_);
+    return const_iterator(&data_[base_], &data_[Capacity], 0);
   }
   const_iterator cend() const noexcept {
-    return const_iterator(&this->data_[0], detail::RingWrap<Capacity>(this->base_ + this->size()));
+    return const_iterator(
+        &this->data_[detail::RingWrap<Capacity>(base_ + size())],
+        &data_[Capacity], Capacity);
   }
 
   bool empty() const noexcept { return this->size() == 0; }
