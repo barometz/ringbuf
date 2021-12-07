@@ -185,13 +185,10 @@ class RingBuf {
   }
 
   RingBuf& operator=(RingBuf&& other) {
-    while (!empty()) {
-      pop_front();
-    }
-    for (const auto& value : other) {
-      push_back(std::move(value));
-    }
-    other.clear();
+    std::swap(alloc_, other.alloc_);
+    std::swap(data_, other.data_);
+    std::swap(base_, other.base_);
+    std::swap(size_, other.size_);
     return *this;
   }
 
