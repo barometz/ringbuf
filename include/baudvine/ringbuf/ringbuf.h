@@ -29,7 +29,7 @@ namespace detail {
 
 template <std::size_t Capacity>
 constexpr std::size_t RingWrap(std::size_t position) {
-  return position % Capacity;
+  return position % (Capacity + 1);
 }
 template <>
 constexpr std::size_t RingWrap<0>(std::size_t /*position*/) {
@@ -155,13 +155,13 @@ class RingBuf {
   using alloc = std::allocator<value_type>;
   using alloc_traits = std::allocator_traits<alloc>;
 
-  RingBuf() : data_(alloc_traits::allocate(alloc_, Capacity)){};
+  RingBuf() : data_(alloc_traits::allocate(alloc_, Capacity + 1)){};
   ~RingBuf() {
     while (!empty()) {
       pop_front();
     }
     if (data_) {
-      alloc_traits::deallocate(alloc_, data_, Capacity);
+      alloc_traits::deallocate(alloc_, data_, Capacity + 1);
     }
   }
 

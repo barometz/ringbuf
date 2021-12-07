@@ -39,7 +39,7 @@ TEST(Speed, PushBackToFull) {
     }
   });
 
-  EXPECT_LT(standardDuration, dequeDuration);
+  EXPECT_LE(standardDuration, dequeDuration);
 }
 
 TEST(Speed, PushBackOverFull) {
@@ -58,12 +58,12 @@ TEST(Speed, PushBackOverFull) {
     }
   });
 
-  EXPECT_LT(standardDuration, dequeDuration);
+  EXPECT_LE(standardDuration, dequeDuration);
 }
 
 TEST(Speed, IterateOver) {
-  baudvine::RingBuf<std::string, 1U << 18> standard;
-  baudvine::DequeRingBuf<std::string> deque(1U << 18);
+  baudvine::RingBuf<std::string, (1U << 18) - 1> standard;
+  baudvine::DequeRingBuf<std::string> deque((1U << 18) - 1);
 
   for (uint32_t i = 0; i < 1U << 18; i++) {
     standard.push_back("this is a moderately long string");
@@ -75,6 +75,9 @@ TEST(Speed, IterateOver) {
 
   auto standardDuration = TimeIt([&standard] {
     for (auto& x : standard) {
+      // A release build optimizes these loops out entirely. Add a
+      // chrono::system_clock::now() to stop that, but it'll slow things way
+      // down.
       std::ignore = x;
     }
   });
