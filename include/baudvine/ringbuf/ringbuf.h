@@ -46,10 +46,12 @@ class ConstIterator {
   using iterator_category = std::forward_iterator_tag;
 
   constexpr ConstIterator() noexcept {}
-  ConstIterator(pointer head, pointer data, std::size_t position) noexcept
-      : head_(head), data_(data), position_(position) {}
+  ConstIterator(pointer data, std::size_t base, std::size_t position) noexcept
+      : data_(data), base_(base), position_(position) {}
 
-  reference operator*() const { return *data_; }
+  reference operator*() const {
+    return data_[RingWrap<Capacity>(base_ + position_)];
+  }
 
   ConstIterator operator++(int) noexcept {
     ConstIterator copy(*this);
@@ -58,24 +60,20 @@ class ConstIterator {
   }
 
   ConstIterator& operator++() noexcept {
-    ++data_;
     ++position_;
-    if (data_ == head_ + Capacity)
-      data_ = head_;
-
     return *this;
   }
 
   friend bool operator<(const ConstIterator& lhs,
                         const ConstIterator& rhs) noexcept {
-    return std::tie(lhs.head_, lhs.position_) <
-           std::tie(rhs.head_, rhs.position_);
+    return std::tie(lhs.data_, lhs.base_, lhs.position_) <
+           std::tie(rhs.data_, rhs.base_, rhs.position_);
   }
 
   friend bool operator==(const ConstIterator& lhs,
                          const ConstIterator& rhs) noexcept {
-    return std::tie(lhs.head_, lhs.position_) ==
-           std::tie(rhs.head_, rhs.position_);
+    return lhs.position_ == rhs.position_ && lhs.data_ == rhs.data_ &&
+           lhs.base_ == rhs.base_;
   }
 
   friend bool operator!=(const ConstIterator& lhs,
@@ -84,11 +82,8 @@ class ConstIterator {
   }
 
  private:
-  // Start of container's backing array
-  pointer head_{};
-  // Pointer into backing array
   pointer data_{};
-  // Relative position, so end() != begin()
+  std::size_t base_{};
   std::size_t position_{};
 };
 
@@ -102,14 +97,16 @@ class Iterator {
   using iterator_category = std::forward_iterator_tag;
 
   Iterator() {}
-  Iterator(pointer head, pointer data, std::size_t position)
-      : head_(head), data_(data), position_(position) {}
+  Iterator(pointer data, std::size_t base, size_t position)
+      : data_(data), base_(base), position_(position) {}
 
   operator ConstIterator<value_type, Capacity>() const {
-    return ConstIterator<value_type, Capacity>(head_, data_, position_);
+    return ConstIterator<value_type, Capacity>(data_, base_, position_);
   }
 
-  reference operator*() const { return *data_; }
+  reference operator*() const {
+    return data_[RingWrap<Capacity>(base_ + position_)];
+  }
 
   pointer operator->() const { return &**this; }
 
@@ -120,23 +117,18 @@ class Iterator {
   }
 
   Iterator& operator++() noexcept {
-    ++data_;
     ++position_;
-    if (data_ == head_ + Capacity)
-      data_ = head_;
     return *this;
   }
 
   friend bool operator<(const Iterator& lhs, const Iterator& rhs) noexcept {
-    return std::tie(lhs.head_, lhs.position_) <
-           std::tie(rhs.head_, rhs.position_);
+    return std::tie(lhs.data_, lhs.base_, lhs.position_) <
+           std::tie(rhs.data_, rhs.base_, rhs.position_);
   }
 
   friend bool operator==(const Iterator& lhs, const Iterator& rhs) noexcept {
-    return lhs.position_ == rhs.position_ && lhs.head_ == rhs.head_;
-    // TODO(domber) hello this??
-    // return std::tie(lhs.end_, lhs.position_) ==
-    //        std::tie(rhs.end_, rhs.position_);
+    return lhs.position_ == rhs.position_ && lhs.data_ == rhs.data_ &&
+           lhs.base_ == rhs.base_;
   }
 
   friend bool operator!=(const Iterator& lhs, const Iterator& rhs) noexcept {
@@ -144,11 +136,8 @@ class Iterator {
   }
 
  private:
-  // Start of container's backing array
-  pointer head_{};
-  // Pointer into backing array
   pointer data_{};
-  // Relative position, so end() != begin()
+  std::size_t base_{};
   std::size_t position_{};
 };
 
@@ -225,21 +214,18 @@ class RingBuf {
   }
 
   iterator begin() noexcept {
-    return iterator(data_, &data_[base_], 0);
+    return iterator(&this->data_[0], this->base_, 0);
   }
   iterator end() noexcept {
-    return iterator(data_, &this->data_[detail::RingWrap<Capacity>(base_ + size())],
-                    Capacity);
+    return iterator(&this->data_[0], this->base_, this->size());
   }
   const_iterator begin() const noexcept { return cbegin(); }
   const_iterator end() const noexcept { return cend(); }
   const_iterator cbegin() const noexcept {
-    return const_iterator(data_, &data_[base_], 0);
+    return const_iterator(&this->data_[0], this->base_, 0);
   }
   const_iterator cend() const noexcept {
-    return const_iterator(data_,
-        &this->data_[detail::RingWrap<Capacity>(base_ + size())],
-        Capacity);
+    return const_iterator(&this->data_[0], this->base_, this->size());
   }
 
   bool empty() const noexcept { return this->size() == 0; }
