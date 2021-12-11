@@ -72,8 +72,8 @@ class ConstIterator {
 
   friend bool operator==(const ConstIterator& lhs,
                          const ConstIterator& rhs) noexcept {
-    // std::tie turns out to be really slow sometimes, significantly eating into
-    // range-for cycle time when comparing the iterator to end().
+    // Comparison via std::tie is very slow in debug builds, eating into
+    // range-for cycle time.
     return lhs.position_ == rhs.position_ && lhs.data_ == rhs.data_ &&
            lhs.base_ == rhs.base_;
   }
@@ -129,8 +129,8 @@ class Iterator {
   }
 
   friend bool operator==(const Iterator& lhs, const Iterator& rhs) noexcept {
-    // std::tie turns out to be really slow sometimes, significantly eating into
-    // range-for cycle time when comparing the iterator to end().
+    // Comparison via std::tie is very slow in debug builds, eating into
+    // range-for cycle time.
     return lhs.position_ == rhs.position_ && lhs.data_ == rhs.data_ &&
            lhs.base_ == rhs.base_;
   }

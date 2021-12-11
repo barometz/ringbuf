@@ -17,6 +17,9 @@ std::ostream& operator<<(std::ostream& os, system_clock::duration d) {
 }  // namespace std
 
 namespace {
+
+constexpr uint64_t kTestSize = 1 << 24;
+
 std::chrono::system_clock::duration TimeIt(const std::function<void()>& fn) {
   const auto start = std::chrono::system_clock::now();
   fn();
@@ -25,8 +28,8 @@ std::chrono::system_clock::duration TimeIt(const std::function<void()>& fn) {
 }  // namespace
 
 TEST(Speed, PushBackToFull) {
-  baudvine::RingBuf<uint64_t, 1U << 22> standard;
-  baudvine::DequeRingBuf<uint64_t> deque(1U << 22);
+  baudvine::RingBuf<uint64_t, kTestSize> standard;
+  baudvine::DequeRingBuf<uint64_t> deque(kTestSize);
 
   auto standardDuration = TimeIt([&standard] {
     for (uint32_t i = 0; i < standard.capacity(); i++) {
@@ -50,13 +53,13 @@ TEST(Speed, PushBackOverFull) {
   baudvine::DequeRingBuf<uint64_t> deque(3);
 
   auto standardDuration = TimeIt([&standard] {
-    for (uint32_t i = 0; i < 1 << 22; i++) {
+    for (uint32_t i = 0; i < kTestSize; i++) {
       standard.push_back(0);
     }
   });
 
   auto dequeDuration = TimeIt([&deque] {
-    for (uint32_t i = 0; i < 1 << 22; i++) {
+    for (uint32_t i = 0; i < kTestSize; i++) {
       deque.push_back(0);
     }
   });
@@ -67,8 +70,8 @@ TEST(Speed, PushBackOverFull) {
 }
 
 TEST(Speed, IterateOver) {
-  baudvine::RingBuf<uint64_t, 1U << 22> standard;
-  baudvine::DequeRingBuf<uint64_t> deque(1U << 22);
+  baudvine::RingBuf<uint64_t, kTestSize> standard;
+  baudvine::DequeRingBuf<uint64_t> deque(kTestSize);
 
   for (uint32_t i = 0; i < standard.capacity(); i++) {
     standard.push_back(i);
