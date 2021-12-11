@@ -29,7 +29,7 @@ std::chrono::system_clock::duration TimeIt(const std::function<void()>& fn) {
 
 TEST(Speed, PushBackToFull) {
   baudvine::RingBuf<uint64_t, kTestSize> standard;
-  baudvine::DequeRingBuf<uint64_t> deque(kTestSize);
+  baudvine::DequeRingBuf<uint64_t, kTestSize> deque;
 
   auto standardDuration = TimeIt([&standard] {
     for (uint32_t i = 0; i < standard.capacity(); i++) {
@@ -50,7 +50,7 @@ TEST(Speed, PushBackToFull) {
 
 TEST(Speed, PushBackOverFull) {
   baudvine::RingBuf<uint64_t, 3> standard;
-  baudvine::DequeRingBuf<uint64_t> deque(3);
+  baudvine::DequeRingBuf<uint64_t, 3> deque;
 
   auto standardDuration = TimeIt([&standard] {
     for (uint32_t i = 0; i < kTestSize; i++) {
@@ -71,7 +71,7 @@ TEST(Speed, PushBackOverFull) {
 
 TEST(Speed, IterateOver) {
   baudvine::RingBuf<uint64_t, kTestSize> standard;
-  baudvine::DequeRingBuf<uint64_t> deque(kTestSize);
+  baudvine::DequeRingBuf<uint64_t, kTestSize> deque;
 
   for (uint32_t i = 0; i < standard.capacity(); i++) {
     standard.push_back(i);

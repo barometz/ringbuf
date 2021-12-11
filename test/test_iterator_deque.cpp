@@ -7,8 +7,8 @@
 #include <type_traits>
 
 namespace {
-baudvine::DequeRingBuf<int> GetBuf() {
-  baudvine::DequeRingBuf<int> result(3);
+baudvine::DequeRingBuf<int, 3> GetBuf() {
+  baudvine::DequeRingBuf<int, 3> result;
   result.push_back(10);
   result.push_back(20);
   return result;
@@ -38,7 +38,7 @@ TEST(IteratorDyn, DerefToValueType) {
 }
 
 TEST(IteratorDyn, ArrowDeref) {
-  baudvine::DequeRingBuf<std::string> buf(1);
+  baudvine::DequeRingBuf<std::string, 1> buf;
   buf.push_back("hello");
   EXPECT_EQ(buf.begin()->size(), (*buf.begin()).size());
 }
@@ -55,12 +55,12 @@ TEST(IteratorDyn, PostfixIncrement) {
 // And a little extra:
 
 TEST(IteratorDyn, Zero) {
-  baudvine::DequeRingBuf<int> underTest(0);
+  baudvine::DequeRingBuf<int, 0> underTest;
   EXPECT_EQ(underTest.begin(), underTest.end());
 }
 
 TEST(IteratorDyn, RangeFor) {
-  baudvine::DequeRingBuf<int> underTest(4);
+  baudvine::DequeRingBuf<int, 4> underTest;
   underTest.push_back(41);
   underTest.push_back(40);
   underTest.push_back(39);
