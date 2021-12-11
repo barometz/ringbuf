@@ -1,4 +1,4 @@
-name: clang-format check
+name: Code style check
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
 
     steps:
