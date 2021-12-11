@@ -18,7 +18,7 @@ std::ostream& operator<<(std::ostream& os, system_clock::duration d) {
 
 namespace {
 
-constexpr uint64_t kTestSize = 1 << 24;
+constexpr uint64_t kTestSize = 1 << 25;
 
 std::chrono::system_clock::duration TimeIt(const std::function<void()>& fn) {
   const auto start = std::chrono::system_clock::now();

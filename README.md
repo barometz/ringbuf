@@ -21,19 +21,12 @@ standard library.
 dynamically allocated array, adding new elements to the end, and popping
 elements off the front when more space is needed.
 
-## TODO
-What can't it do? Well:
-
-- Reverse iterators.
-- There are separate tests for the deque and non-deque iterators.
-
-## NOT TODO
-What won't it do? Most of these will be because of the "Readable" goal. A
-typical implementation of std::vector doesn't adhere to this, and if you've ever
-tried reading those you know what I mean.
-
-- Don't want to bother with optional features based on C++ version. Strictly C++11.
-- No debug-only runtime checks.
+## Using
+See [test/examples.cpp](test/examples.cpp) for usage examples. The high-level
+pitch is this: you can use it as an STL container, except it wraps like a ring
+buffer. You get iterators, `front()`, `back()`, `push_back()`, `pop_front()`,
+`emplace_back()`, range-for, all\* the things you expect from a standard library
+container.
 
 ## Building
 The project is header-only, so you only have to copy
@@ -51,12 +44,38 @@ build/test/ringbuf-test
 
 Or use your editor or IDE with CMake integration of choice.
 
-## Using
-See [test/examples.cpp](test/examples.cpp) for usage examples. The high-level
-pitch is this: you can use it as an STL container, except it wraps like a ring
-buffer. You get iterators, `front()`, `back()`, `push_back()`, `pop_front()`,
-`emplace_back()`, range-for, all\* the things you expect from a standard library
-container.
+## TODO
+What can't it do? Well:
+
+- Reverse iterators.
+- There are separate tests for the deque and non-deque iterators.
+- Iterator performance could probably be improved by doing less math.
+
+## NOT TODO
+What won't it do? Most of these will be because of the "Readable" goal. A
+typical implementation of std::vector doesn't adhere to this, and if you've ever
+tried reading those you know what I mean.
+
+- Don't want to bother with optional features based on C++ version. Strictly C++11.
+- No debug-only runtime checks.
+
+## Performance
+
+The tests in [test/test_speed.cpp](test/test_speed.cpp) perform a number of
+comparisons between `RingBuf` and `DequeRingBuf`. Some typical (but completely
+unscientific) results:
+
+Release build with Clang 11.1, on an Intel Core i5-7600 @ 3.5 GHz:
+| Name | Description | RingBuf (ms) | DequeRingBuf (ms) |
+|------|-------------|------------------:|------------:|
+| PushBackToFull | `push_back` until the buffer is filled to capacity (2<sup>25</sup> elements) | 98 | 189 |
+| PushBackOverFull | `push_back` 2<sup>25</sup> times on a buffer with capacity 3 | 66 | 89 |
+| IterateOver | range-for over a buffer with 2<sup>25</sup> elements | 20 | 19 |
+
+PushBackToFull is *completely* unfair because `std::deque` has to allocate
+memory much more frequently, but the equal-allocation case is covered by
+PushBackOverFull. In a debug build, the results are roughly proportional (~10x),
+although `baudvine::RingBuf` does comparatively worse in IterateOver.
 
 ## License
 I chose the [MIT license](LICENSE) for this project, because I have a bad habit
