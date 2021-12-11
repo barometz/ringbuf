@@ -35,8 +35,8 @@ class DequeRingBuf {
   using difference_type = typename iterator::difference_type;
   using size_type = std::size_t;
 
-  constexpr DequeRingBuf() noexcept = default;
-  constexpr DequeRingBuf(size_type capacity) noexcept : capacity_(capacity) {}
+  constexpr DequeRingBuf() = default;
+  constexpr DequeRingBuf(size_type capacity) : capacity_(capacity) {}
 
   reference front() { return data_.front(); }
   reference back() { return data_.back(); }
