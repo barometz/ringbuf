@@ -113,8 +113,8 @@ TYPED_TEST_P(Container, Empty) {
 }
 
 TYPED_TEST_P(Container, Swap) {
-  auto a = TypeParam{};
-  auto b = TypeParam{};
+  TypeParam a;
+  TypeParam b;
 
   a.push_back(2010);
   a.push_back(3030);
@@ -131,6 +131,20 @@ TYPED_TEST_P(Container, Swap) {
   EXPECT_EQ(b, a2);
 }
 
+TYPED_TEST_P(Container, BeginEnd) {
+  TypeParam underTest;
+
+  underTest.push_back(4);
+  underTest.push_back(3);
+  EXPECT_EQ(std::next(underTest.begin(), 2), underTest.end());
+
+  underTest.push_back(2);
+  EXPECT_EQ(std::next(underTest.begin(), 3), underTest.end());
+
+  underTest.push_back(1);
+  EXPECT_EQ(std::next(underTest.begin(), 3), underTest.end());
+}
+
 REGISTER_TYPED_TEST_SUITE_P(Container,
                             CopyCtor,
                             MoveCtor,
@@ -140,7 +154,8 @@ REGISTER_TYPED_TEST_SUITE_P(Container,
                             Size,
                             MaxSize,
                             Empty,
-                            Swap);
+                            Swap,
+                            BeginEnd);
 using Containers =
     ::testing::Types<baudvine::RingBuf<int, 3>, baudvine::DequeRingBuf<int, 3>>;
 INSTANTIATE_TYPED_TEST_SUITE_P(My, Container, Containers);
