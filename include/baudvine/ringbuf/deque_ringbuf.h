@@ -24,7 +24,7 @@ namespace baudvine {
 
 // A ring buffer based on std::deque. Inefficient, but compact and easily
 // verifiable.
-template <typename Elem, size_t Capacity>
+template <typename Elem, std::size_t Capacity>
 class DequeRingBuf {
  public:
   using value_type = Elem;
