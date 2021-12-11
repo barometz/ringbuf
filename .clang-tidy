@@ -1,0 +1,2 @@
+Checks: 'clang-analyzer-*,concurrency-*,hicpp-*,modernize-*,performance-*,portability-*,readability-*,-modernize-use-trailing-return-type'
+HeaderFilterRegex: 'baudvine/ringbuf'
