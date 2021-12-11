@@ -53,9 +53,8 @@ class DequeRingBuf {
 
   bool empty() const { return data_.empty(); }
   size_type size() const { return data_.size(); }
-  size_type max_size() const { return data_.max_size(); }
-  size_type capacity() const { return Capacity; }
-  void shrink_to_fit() { return data_.shrink_to_fit(); }
+  constexpr size_type max_size() const { return capacity(); }
+  constexpr size_type capacity() const { return Capacity; }
 
   void clear() { return data_.clear(); }
 
