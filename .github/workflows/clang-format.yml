@@ -1,0 +1,17 @@
+name: Code style check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: clang-format check
+      run: find include test -name "*.cpp" -or -name "*.h" | xargs clang-format -n -Werror

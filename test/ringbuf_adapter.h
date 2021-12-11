@@ -36,14 +36,14 @@ class RingBufAdapter {
     }
   }
 
-#define DISPATCH(call)         \
-  do {                         \
-    switch (variant_) {        \
-      case (Variant::Standard):  \
-        return static_.call;   \
-      case (Variant::Deque): \
-        return dynamic_.call;  \
-    }                          \
+#define DISPATCH(call)          \
+  do {                          \
+    switch (variant_) {         \
+      case (Variant::Standard): \
+        return static_.call;    \
+      case (Variant::Deque):    \
+        return dynamic_.call;   \
+    }                           \
   } while (false)
 
   Elem& front() { DISPATCH(front()); }
