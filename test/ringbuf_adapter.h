@@ -25,16 +25,7 @@ inline std::ostream& operator<<(std::ostream& os, Variant variant) {
 template <typename Elem, std::size_t Capacity>
 class RingBufAdapter {
  public:
-  RingBufAdapter(Variant variant) : variant_(variant) {
-    switch (variant) {
-      case Variant::Standard:
-        static_ = baudvine::RingBuf<Elem, Capacity>();
-        break;
-      case Variant::Deque:
-        dynamic_ = baudvine::DequeRingBuf<Elem>(Capacity);
-        break;
-    }
-  }
+  RingBufAdapter(Variant variant) : variant_(variant) {}
 
 #define DISPATCH(call)          \
   do {                          \
@@ -109,5 +100,5 @@ class RingBufAdapter {
   // This would be less annoying with std::variant, but the build should also
   // run with C++11.
   baudvine::RingBuf<Elem, Capacity> static_{};
-  baudvine::DequeRingBuf<Elem> dynamic_{};
+  baudvine::DequeRingBuf<Elem, Capacity> dynamic_{};
 };

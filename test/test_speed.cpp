@@ -5,17 +5,21 @@
 
 #include <chrono>
 
-// Speed comparison between deque and standard. Standard should at least be as
-// fast as deque.
+// Speed comparison between deque and standard. Standard should generally be at
+// least as fast as deque, but in practice we're not the only process so there's
+// going to be some noise.
 namespace std {
 namespace chrono {
 std::ostream& operator<<(std::ostream& os, system_clock::duration d) {
-  return os << duration_cast<milliseconds>(d).count() << " ms";
+  return os << duration_cast<microseconds>(d).count() << " µs";
 }
 }  // namespace chrono
 }  // namespace std
 
 namespace {
+
+constexpr uint64_t kTestSize = 1 << 25;
+
 std::chrono::system_clock::duration TimeIt(const std::function<void()>& fn) {
   const auto start = std::chrono::system_clock::now();
   fn();
@@ -24,69 +28,75 @@ std::chrono::system_clock::duration TimeIt(const std::function<void()>& fn) {
 }  // namespace
 
 TEST(Speed, PushBackToFull) {
-  baudvine::RingBuf<std::string, 1U << 17> standard;
-  baudvine::DequeRingBuf<std::string> deque(1U << 17);
+  baudvine::RingBuf<uint64_t, kTestSize> standard;
+  baudvine::DequeRingBuf<uint64_t, kTestSize> deque;
 
   auto standardDuration = TimeIt([&standard] {
-    for (uint32_t i = 0; i < 1 << 17; i++) {
-      standard.push_back("this is a moderately long string");
+    for (uint32_t i = 0; i < standard.capacity(); i++) {
+      standard.push_back(0);
     }
   });
 
   auto dequeDuration = TimeIt([&deque] {
-    for (uint32_t i = 0; i < 1 << 17; i++) {
-      deque.push_back("this is a moderately long string");
-    }
-  });
-
-  EXPECT_LE(standardDuration, dequeDuration);
-}
-
-TEST(Speed, PushBackOverFull) {
-  baudvine::RingBuf<std::string, 2> standard;
-  baudvine::DequeRingBuf<std::string> deque(2);
-
-  auto standardDuration = TimeIt([&standard] {
-    for (uint32_t i = 0; i < 1 << 17; i++) {
-      standard.push_back("this is a moderately long string");
-    }
-  });
-
-  auto dequeDuration = TimeIt([&deque] {
-    for (uint32_t i = 0; i < 1 << 17; i++) {
-      deque.push_back("this is a moderately long string");
-    }
-  });
-
-  EXPECT_LE(standardDuration, dequeDuration);
-}
-
-TEST(Speed, IterateOver) {
-  baudvine::RingBuf<std::string, 1U << 19> standard;
-  baudvine::DequeRingBuf<std::string> deque(1U << 19);
-
-  for (uint32_t i = 0; i < 1U << 19; i++) {
-    standard.push_back("this is a moderately long string");
-  }
-
-  for (uint32_t i = 0; i < 1U << 19; i++) {
-    deque.push_back("this is a moderately long string");
-  }
-
-  auto standardDuration = TimeIt([&standard] {
-    for (auto& x : standard) {
-      // A release build optimizes these loops out entirely. Add a
-      // chrono::system_clock::now() to stop that, but it'll slow things way
-      // down.
-      std::ignore = x;
-    }
-  });
-
-  auto dequeDuration = TimeIt([&deque] {
-    for (auto& x : deque) {
-      std::ignore = x;
+    for (uint32_t i = 0; i < deque.capacity(); i++) {
+      deque.push_back(0);
     }
   });
 
   EXPECT_LT(standardDuration, dequeDuration);
+  std::cout << "RingBuf:      " << standardDuration << std::endl;
+  std::cout << "DequeRingBuf: " << dequeDuration << std::endl;
+}
+
+TEST(Speed, PushBackOverFull) {
+  baudvine::RingBuf<uint64_t, 3> standard;
+  baudvine::DequeRingBuf<uint64_t, 3> deque;
+
+  auto standardDuration = TimeIt([&standard] {
+    for (uint32_t i = 0; i < kTestSize; i++) {
+      standard.push_back(0);
+    }
+  });
+
+  auto dequeDuration = TimeIt([&deque] {
+    for (uint32_t i = 0; i < kTestSize; i++) {
+      deque.push_back(0);
+    }
+  });
+
+  EXPECT_LT(standardDuration, dequeDuration);
+  std::cout << "RingBuf:      " << standardDuration << std::endl;
+  std::cout << "DequeRingBuf: " << dequeDuration << std::endl;
+}
+
+TEST(Speed, IterateOver) {
+  baudvine::RingBuf<uint64_t, kTestSize> standard;
+  baudvine::DequeRingBuf<uint64_t, kTestSize> deque;
+
+  for (uint32_t i = 0; i < standard.capacity(); i++) {
+    standard.push_back(i);
+  }
+
+  for (uint32_t i = 0; i < deque.capacity(); i++) {
+    deque.push_back(i);
+  }
+
+  // Do a little math so the compiler doesn't optimize the test away in a
+  // release build.
+  uint64_t acc{};
+  auto standardDuration = TimeIt([&standard, &acc] {
+    for (auto& x : standard) {
+      acc += x;
+    }
+  });
+
+  auto dequeDuration = TimeIt([&deque, &acc] {
+    for (auto& x : deque) {
+      acc += x;
+    }
+  });
+
+  EXPECT_LT(standardDuration, dequeDuration);
+  std::cout << "RingBuf:      " << standardDuration << std::endl;
+  std::cout << "DequeRingBuf: " << dequeDuration << std::endl;
 }

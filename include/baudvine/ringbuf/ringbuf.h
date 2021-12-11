@@ -29,11 +29,10 @@ namespace detail {
 
 template <std::size_t Capacity>
 constexpr std::size_t RingWrap(std::size_t position) {
-  return position % Capacity;
-}
-template <>
-constexpr std::size_t RingWrap<0>(std::size_t /*position*/) {
-  return 0;
+  // Precondition: position < 2 * Capacity. This is a bit faster than
+  // `return position % Capacity` (~30% reduction in Speed.PushBackOverFull
+  // test)
+  return (position < Capacity) ? position : position - Capacity;
 }
 
 template <typename Elem, std::size_t Capacity>
@@ -72,8 +71,8 @@ class ConstIterator {
 
   friend bool operator==(const ConstIterator& lhs,
                          const ConstIterator& rhs) noexcept {
-    // std::tie turns out to be really slow sometimes, significantly eating into
-    // range-for cycle time when comparing the iterator to end().
+    // Comparison via std::tie is very slow in debug builds, eating into
+    // range-for cycle time.
     return lhs.position_ == rhs.position_ && lhs.data_ == rhs.data_ &&
            lhs.base_ == rhs.base_;
   }
@@ -129,8 +128,8 @@ class Iterator {
   }
 
   friend bool operator==(const Iterator& lhs, const Iterator& rhs) noexcept {
-    // std::tie turns out to be really slow sometimes, significantly eating into
-    // range-for cycle time when comparing the iterator to end().
+    // Comparison via std::tie is very slow in debug builds, eating into
+    // range-for cycle time.
     return lhs.position_ == rhs.position_ && lhs.data_ == rhs.data_ &&
            lhs.base_ == rhs.base_;
   }

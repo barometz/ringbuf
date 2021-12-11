@@ -24,7 +24,7 @@ namespace baudvine {
 
 // A ring buffer based on std::deque. Inefficient, but compact and easily
 // verifiable.
-template <typename Elem>
+template <typename Elem, size_t Capacity>
 class DequeRingBuf {
  public:
   using value_type = Elem;
@@ -36,7 +36,6 @@ class DequeRingBuf {
   using size_type = std::size_t;
 
   DequeRingBuf() = default;
-  DequeRingBuf(size_type capacity) : capacity_(capacity) {}
 
   reference front() { return data_.front(); }
   reference back() { return data_.back(); }
@@ -55,7 +54,7 @@ class DequeRingBuf {
   bool empty() const { return data_.empty(); }
   size_type size() const { return data_.size(); }
   size_type max_size() const { return data_.max_size(); }
-  size_type capacity() const { return capacity_; }
+  size_type capacity() const { return Capacity; }
   void shrink_to_fit() { return data_.shrink_to_fit(); }
 
   void clear() { return data_.clear(); }
@@ -77,13 +76,6 @@ class DequeRingBuf {
   }
 
   void pop_front() { data_.pop_front(); }
-
-  void set_capacity(size_type capacity) {
-    capacity_ = capacity;
-    while (size() > capacity_) {
-      pop_front();
-    }
-  }
 
   void swap(DequeRingBuf& other) noexcept { return std::swap(*this, other); }
 
@@ -108,7 +100,6 @@ class DequeRingBuf {
 
  private:
   std::deque<value_type> data_{};
-  size_type capacity_{};
 };
 
 }  // namespace baudvine
