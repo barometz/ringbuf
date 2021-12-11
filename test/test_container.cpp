@@ -1,67 +1,70 @@
 // Demonstrate that RingBuf matches
 // https://en.cppreference.com/w/cpp/named_req/Container
 
-#include "ringbuf_adapter.h"
+#include "baudvine/ringbuf/deque_ringbuf.h"
+#include "baudvine/ringbuf/ringbuf.h"
 
 #include <gtest/gtest.h>
 
-class Container : public testing::TestWithParam<Variant> {
- public:
-  template <typename Elem, size_t Capacity>
-  RingBufAdapter<Elem, Capacity> MakeAdapter() {
-    return RingBufAdapter<Elem, Capacity>(GetParam());
-  }
+template <typename RingBuf>
+class Container : public testing::Test {
 };
 
-TEST_P(Container, CopyCtor) {
-  auto original = MakeAdapter<std::string, 2>();
-  original.push_back("zero");
-  original.push_back("one");
-  original.push_back("two");
+TYPED_TEST_SUITE_P(Container);
 
-  RingBufAdapter<std::string, 2> copy(original);
-  EXPECT_EQ(copy.at(0), "one");
-  EXPECT_EQ(copy.at(1), "two");
+TYPED_TEST_P(Container, CopyCtor) {
+  TypeParam original;
+  original.push_back(0);
+  original.push_back(1);
+  original.push_back(2);
+  original.push_back(3);
+
+  TypeParam copy(original);
+  EXPECT_EQ(copy.at(0), 1);
+  EXPECT_EQ(copy.at(1), 2);
 }
 
-TEST_P(Container, MoveCtor) {
-  auto original = MakeAdapter<std::string, 2>();
-  original.push_back("zero");
-  original.push_back("one");
-  original.push_back("two");
+TYPED_TEST_P(Container, MoveCtor) {
+  TypeParam original;
+  original.push_back(0);
+  original.push_back(1);
+  original.push_back(2);
+  original.push_back(3);
 
-  RingBufAdapter<std::string, 2> moved(original);
-  EXPECT_EQ(moved.at(0), "one");
-  EXPECT_EQ(moved.at(1), "two");
+  TypeParam moved(std::move(original));
+  EXPECT_EQ(moved.at(0), 1);
+  EXPECT_EQ(moved.at(1), 2);
 }
 
-TEST_P(Container, Assignment) {
-  auto original = MakeAdapter<std::string, 2>();
-  original.push_back("zero");
-  original.push_back("one");
-  original.push_back("two");
+TYPED_TEST_P(Container, Assignment) {
+  TypeParam original;
+  original.push_back(0);
+  original.push_back(1);
+  original.push_back(2);
+  original.push_back(3);
 
-  auto copy = MakeAdapter<std::string, 2>();
+  TypeParam copy;
   copy = original;
-  EXPECT_EQ(copy.at(0), "one");
-  EXPECT_EQ(copy.at(1), "two");
+  EXPECT_EQ(copy.at(0), 1);
+  EXPECT_EQ(copy.at(1), 2);
 }
 
-TEST_P(Container, MoveAssignment) {
-  auto original = MakeAdapter<std::string, 2>();
-  original.push_back("zero");
-  original.push_back("one");
-  original.push_back("two");
+TYPED_TEST_P(Container, MoveAssignment) {
+  TypeParam original;
+  original.push_back(0);
+  original.push_back(1);
+  original.push_back(2);
+  original.push_back(3);
 
-  auto copy = MakeAdapter<std::string, 2>();
+  TypeParam copy;
   copy = std::move(original);
-  EXPECT_EQ(copy.at(0), "one");
-  EXPECT_EQ(copy.at(1), "two");
+  EXPECT_EQ(copy.at(0), 1);
+  EXPECT_EQ(copy.at(1), 2);
 }
 
-TEST_P(Container, Equality) {
-  auto a = MakeAdapter<int, 3>();
-  auto b = MakeAdapter<int, 3>();
+TYPED_TEST_P(Container, Equality) {
+  TypeParam a;
+  TypeParam b;
   EXPECT_EQ(a, b);
 
   a.push_back(2010);
@@ -76,43 +79,43 @@ TEST_P(Container, Equality) {
   EXPECT_NE(a, b);
 }
 
-TEST_P(Container, Size) {
-  auto underTest = MakeAdapter<float, 3>();
+TYPED_TEST_P(Container, Size) {
+  TypeParam underTest;
   EXPECT_EQ(underTest.size(), 0);
 
-  underTest.push_back(0.4F);
+  underTest.push_back(4);
   EXPECT_EQ(underTest.size(), 1);
 
-  underTest.push_back(0.0F);
-  underTest.push_back(2.4e9F);
-  underTest.push_back(5.0e9F);
+  underTest.push_back(0);
+  underTest.push_back(24);
+  underTest.push_back(500);
   EXPECT_EQ(underTest.size(), 3);
 }
 
-TEST_P(Container, MaxSize) {
-  auto underTest = MakeAdapter<float, 3>();
+TYPED_TEST_P(Container, MaxSize) {
+  TypeParam underTest;
   EXPECT_GE(underTest.max_size(), 3);
 }
 
-TEST_P(Container, Empty) {
-  auto underTest = MakeAdapter<double, 2>();
+TYPED_TEST_P(Container, Empty) {
+  TypeParam underTest;
   EXPECT_TRUE(underTest.empty());
   underTest.push_back(0);
   EXPECT_FALSE(underTest.empty());
-  underTest.push_back(1.0);
+  underTest.push_back(1);
   EXPECT_FALSE(underTest.empty());
-  underTest.push_back(2.0);
+  underTest.push_back(2);
   EXPECT_FALSE(underTest.empty());
 
   baudvine::RingBuf<double, 0> alwaysEmpty;
   EXPECT_TRUE(alwaysEmpty.empty());
-  underTest.push_back(0.1);
+  underTest.push_back(10);
   EXPECT_TRUE(alwaysEmpty.empty());
 }
 
-TEST_P(Container, Swap) {
-  auto a = MakeAdapter<int, 3>();
-  auto b = MakeAdapter<int, 3>();
+TYPED_TEST_P(Container, Swap) {
+  auto a = TypeParam{};
+  auto b = TypeParam{};
 
   a.push_back(2010);
   a.push_back(3030);
@@ -129,6 +132,6 @@ TEST_P(Container, Swap) {
   EXPECT_EQ(b, a2);
 }
 
-INSTANTIATE_TEST_SUITE_P(Container,
-                         Container,
-                         testing::Values(Variant::Standard, Variant::Deque));
+REGISTER_TYPED_TEST_SUITE_P(Container, CopyCtor, MoveCtor, Assignment, MoveAssignment, Equality, Size, MaxSize, Empty, Swap);
+using Containers = ::testing::Types<baudvine::RingBuf<int, 3>, baudvine::DequeRingBuf<int, 3>>;
+INSTANTIATE_TYPED_TEST_SUITE_P(My, Container, Containers);
