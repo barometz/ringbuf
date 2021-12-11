@@ -160,10 +160,7 @@ class RingBuf {
   using alloc = std::allocator<value_type>;
   using alloc_traits = std::allocator_traits<alloc>;
 
-  RingBuf()
-      : data_(alloc_traits::allocate(alloc_, Capacity)),
-        next_(data_),
-        end_(data_ + Capacity){};
+  RingBuf() : data_(alloc_traits::allocate(alloc_, Capacity)){};
   ~RingBuf() {
     while (!empty()) {
       pop_front();
@@ -190,8 +187,6 @@ class RingBuf {
   RingBuf& operator=(RingBuf&& other) noexcept {
     std::swap(alloc_, other.alloc_);
     std::swap(data_, other.data_);
-    std::swap(next_, other.next_);
-    std::swap(end_, other.end_);
     std::swap(base_, other.base_);
     std::swap(size_, other.size_);
     return *this;
@@ -261,7 +256,8 @@ class RingBuf {
       pop_front();
     }
 
-    alloc_traits::construct(alloc_, next_, std::forward<Args>(args)...);
+    alloc_traits::construct(alloc_, &data_[GetNext()],
+                            std::forward<Args>(args)...);
     Progress();
   }
 
@@ -329,18 +325,13 @@ class RingBuf {
  private:
   alloc alloc_{};
   pointer data_{nullptr};
-  pointer next_{nullptr};
-  pointer end_{nullptr};
   size_type base_{0U};
   size_type size_{0U};
 
+  size_type GetNext() { return detail::RingWrap<Capacity>(base_ + size_); }
+
   // Move things around after growing.
   void Progress() {
-    next_++;
-    if (next_ == end_) {
-      next_ -= Capacity;
-    }
-
     // The base only moves when we're full.
     if (size_ == Capacity) {
       base_ = detail::RingWrap<Capacity>(base_ + 1);
