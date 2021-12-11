@@ -115,8 +115,8 @@ TEST_P(RingBuf, FrontBack) {
 class RefCounter {
  public:
   RefCounter() { counter_++; }
-  RefCounter(const RefCounter&) { counter_++; }
-  RefCounter(RefCounter&&) { counter_++; }
+  RefCounter(const RefCounter& /*other*/) { counter_++; }
+  RefCounter(RefCounter&& /*other*/) noexcept { counter_++; }
   ~RefCounter() { counter_--; }
 
   static int counter_;

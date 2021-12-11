@@ -16,7 +16,7 @@ std::ostream& operator<<(std::ostream& os, system_clock::duration d) {
 }  // namespace std
 
 namespace {
-std::chrono::system_clock::duration TimeIt(std::function<void()> fn) {
+std::chrono::system_clock::duration TimeIt(const std::function<void()>& fn) {
   const auto start = std::chrono::system_clock::now();
   fn();
   return std::chrono::system_clock::now() - start;

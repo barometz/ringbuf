@@ -35,7 +35,7 @@ class DequeRingBuf {
   using difference_type = typename iterator::difference_type;
   using size_type = std::size_t;
 
-  DequeRingBuf() {}
+  DequeRingBuf() = default;
   DequeRingBuf(size_type capacity) : capacity_(capacity) {}
 
   reference front() { return data_.front(); }
@@ -85,7 +85,7 @@ class DequeRingBuf {
     }
   }
 
-  void swap(DequeRingBuf& other) { return std::swap(*this, other); }
+  void swap(DequeRingBuf& other) noexcept { return std::swap(*this, other); }
 
   friend bool operator<(const DequeRingBuf& lhs, const DequeRingBuf& rhs) {
     return lhs.data_ < rhs.data_;
