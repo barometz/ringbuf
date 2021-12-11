@@ -23,7 +23,7 @@ jobs:
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
     - name: Run clang-tidy
-      run: clang-tidy -p ${{github.workspace}}/build --export-fixes=clang-fixes.yaml tests/*.cpp
+      run: clang-tidy -p ${{github.workspace}}/build --export-fixes=clang-fixes.yaml test/*.cpp
 
     - name: Process clang-tidy warnings
       uses: asarium/clang-tidy-action@v1
