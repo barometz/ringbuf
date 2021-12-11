@@ -7,8 +7,7 @@
 #include <gtest/gtest.h>
 
 template <typename RingBuf>
-class Container : public testing::Test {
-};
+class Container : public testing::Test {};
 
 TYPED_TEST_SUITE_P(Container);
 
@@ -132,6 +131,16 @@ TYPED_TEST_P(Container, Swap) {
   EXPECT_EQ(b, a2);
 }
 
-REGISTER_TYPED_TEST_SUITE_P(Container, CopyCtor, MoveCtor, Assignment, MoveAssignment, Equality, Size, MaxSize, Empty, Swap);
-using Containers = ::testing::Types<baudvine::RingBuf<int, 3>, baudvine::DequeRingBuf<int, 3>>;
+REGISTER_TYPED_TEST_SUITE_P(Container,
+                            CopyCtor,
+                            MoveCtor,
+                            Assignment,
+                            MoveAssignment,
+                            Equality,
+                            Size,
+                            MaxSize,
+                            Empty,
+                            Swap);
+using Containers =
+    ::testing::Types<baudvine::RingBuf<int, 3>, baudvine::DequeRingBuf<int, 3>>;
 INSTANTIATE_TYPED_TEST_SUITE_P(My, Container, Containers);

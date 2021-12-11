@@ -30,7 +30,8 @@ namespace detail {
 template <std::size_t Capacity>
 constexpr std::size_t RingWrap(std::size_t position) {
   // Precondition: position < 2 * Capacity. This is a bit faster than
-  // `return position % Capacity` (~30% reduction in Speed.PushBackOverFull test)
+  // `return position % Capacity` (~30% reduction in Speed.PushBackOverFull
+  // test)
   return (position < Capacity) ? position : position - Capacity;
 }
 
