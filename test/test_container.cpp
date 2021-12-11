@@ -80,12 +80,12 @@ TEST_P(Container, Size) {
   auto underTest = MakeAdapter<float, 3>();
   EXPECT_EQ(underTest.size(), 0);
 
-  underTest.push_back(0.4f);
+  underTest.push_back(0.4F);
   EXPECT_EQ(underTest.size(), 1);
 
-  underTest.push_back(0.0f);
-  underTest.push_back(2.4e9f);
-  underTest.push_back(5.0e9f);
+  underTest.push_back(0.0F);
+  underTest.push_back(2.4e9F);
+  underTest.push_back(5.0e9F);
   EXPECT_EQ(underTest.size(), 3);
 }
 

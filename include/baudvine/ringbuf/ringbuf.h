@@ -45,7 +45,7 @@ class ConstIterator {
   using reference = const Elem&;
   using iterator_category = std::forward_iterator_tag;
 
-  constexpr ConstIterator() noexcept {}
+  constexpr ConstIterator() noexcept = default;
   ConstIterator(pointer data, std::size_t base, std::size_t position) noexcept
       : data_(data), base_(base), position_(position) {}
 
@@ -98,11 +98,11 @@ class Iterator {
   using reference = Elem&;
   using iterator_category = std::forward_iterator_tag;
 
-  Iterator() {}
+  constexpr Iterator() noexcept = default;
   Iterator(pointer data, std::size_t base, size_t position)
       : data_(data), base_(base), position_(position) {}
 
-  operator ConstIterator<value_type, Capacity>() const {
+  explicit operator ConstIterator<value_type, Capacity>() const {
     return ConstIterator<value_type, Capacity>(data_, base_, position_);
   }
 
@@ -173,7 +173,7 @@ class RingBuf {
 
   RingBuf(const RingBuf& other) : RingBuf() { *this = other; }
 
-  RingBuf(RingBuf&& other) { *this = std::move(other); }
+  RingBuf(RingBuf&& other) noexcept { *this = std::move(other); }
 
   RingBuf& operator=(const RingBuf& other) {
     while (!empty()) {
@@ -185,7 +185,7 @@ class RingBuf {
     return *this;
   }
 
-  RingBuf& operator=(RingBuf&& other) {
+  RingBuf& operator=(RingBuf&& other) noexcept {
     std::swap(alloc_, other.alloc_);
     std::swap(data_, other.data_);
     std::swap(base_, other.base_);
@@ -273,7 +273,7 @@ class RingBuf {
     size_--;
   }
 
-  void swap(RingBuf& other) { std::swap(*this, other); }
+  void swap(RingBuf& other) noexcept { std::swap(*this, other); }
 
   friend bool operator<(const RingBuf& lhs, const RingBuf& rhs) {
     if (lhs.size() != rhs.size()) {
