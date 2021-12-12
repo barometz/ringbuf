@@ -337,7 +337,7 @@ class RingBuf {
    * @param index The logical index into the ring buffer.
    * @return A const reference to the element.
    */
-  const_reference operator[](size_type index) const {
+  const_reference operator[](const size_type index) const {
     return data_[detail::RingWrap<Capacity>(ring_offset_ + index)];
   }
   /**
@@ -348,7 +348,7 @@ class RingBuf {
    * @param index The logical index into the ring buffer.
    * @return A reference to the element.
    */
-  reference operator[](size_type index) {
+  reference operator[](const size_type index) {
     return data_[detail::RingWrap<Capacity>(ring_offset_ + index)];
   }
   /**
@@ -359,8 +359,8 @@ class RingBuf {
    * @return A const reference to the element.
    * @exception std::out_of_range The index is out of range.
    */
-  const_reference at(size_type index) const {
-    if (index >= this->size()) {
+  const_reference at(const size_type index) const {
+    if (index >= size()) {
       throw std::out_of_range("RingBuf::at: index >= Size");
     }
     return (*this)[index];
@@ -373,8 +373,8 @@ class RingBuf {
    * @return A reference to the element.
    * @exception std::out_of_range The index is out of range.
    */
-  reference at(size_type index) {
-    if (index >= this->size()) {
+  reference at(const size_type index) {
+    if (index >= size()) {
       throw std::out_of_range("RingBuf::at: index >= Size");
     }
     return (*this)[index];
@@ -383,16 +383,12 @@ class RingBuf {
   /**
    * @return An iterator pointing at the start of the ring buffer.
    */
-  iterator begin() noexcept {
-    return iterator(&this->data_[0], this->ring_offset_, 0);
-  }
+  iterator begin() noexcept { return iterator(&data_[0], ring_offset_, 0); }
   /**
    * @return An iterator pointing at one past the last element of the ring
    * buffer.
    */
-  iterator end() noexcept {
-    return iterator(&this->data_[0], this->ring_offset_, this->size());
-  }
+  iterator end() noexcept { return iterator(&data_[0], ring_offset_, size()); }
   /**
    * @return A const iterator pointing at the start of the ring buffer.
    */
@@ -406,14 +402,14 @@ class RingBuf {
    * @return A const iterator pointing at the start of the ring buffer.
    */
   const_iterator cbegin() const noexcept {
-    return const_iterator(&this->data_[0], this->ring_offset_, 0);
+    return const_iterator(&data_[0], ring_offset_, 0);
   }
   /**
    * @return A const iterator pointing at one past the last element of the ring
    * buffer.
    */
   const_iterator cend() const noexcept {
-    return const_iterator(&this->data_[0], this->ring_offset_, this->size());
+    return const_iterator(&data_[0], ring_offset_, size());
   }
 
   /**
@@ -421,7 +417,7 @@ class RingBuf {
    *
    * @return True if size() == 0, otherwise false.
    */
-  bool empty() const noexcept { return this->size() == 0; }
+  bool empty() const noexcept { return size() == 0; }
   /**
    * @brief Get the current number of elements in the ring buffer.
    *
@@ -472,12 +468,13 @@ class RingBuf {
    */
   template <typename... Args>
   void emplace_back(Args&&... args) {
-    if (Capacity == 0) {
+    if (max_size() == 0) {
       // A buffer of size zero is conceptually sound, so let's support it.
       return;
     }
 
-    if (size_ == Capacity) {
+    // If required, make room first.
+    if (size() == max_size()) {
       pop_front();
     }
 
@@ -489,14 +486,12 @@ class RingBuf {
    * @brief Pop the front, destroying the first element in the ring buffer.
    */
   void pop_front() {
-    if (size_ == 0) {
+    if (size() == 0) {
       return;
     }
 
     alloc_traits::destroy(alloc_, &data_[ring_offset_]);
-
-    ring_offset_ = detail::RingWrap<Capacity>(ring_offset_ + 1);
-    size_--;
+    ShrinkFront();
   }
 
   /**
@@ -590,7 +585,13 @@ class RingBuf {
   // end()).
   size_type size_{0U};
 
-  // Move things around after growing.
+  // Move things after pop_front.
+  void ShrinkFront() {
+    ring_offset_ = detail::RingWrap<Capacity>(ring_offset_ + 1);
+    size_--;
+  }
+
+  // Move things around after push_back.
   void Progress() {
     // next_ moves after each push.
     next_++;
