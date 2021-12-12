@@ -254,7 +254,6 @@ class RingBuf {
    */
   RingBuf()
       : data_(alloc_traits::allocate(alloc_, Capacity)),
-        next_(data_),
         data_end_(data_ + Capacity){};
   /**
    * @brief Destroy the ring buffer object.
@@ -518,7 +517,7 @@ class RingBuf {
       pop_front();
     }
 
-    alloc_traits::construct(alloc_, next_, std::forward<Args>(args)...);
+    alloc_traits::construct(alloc_, &data_[next_], std::forward<Args>(args)...);
     GrowBack();
   }
 
@@ -545,7 +544,7 @@ class RingBuf {
     }
 
     ShrinkBack();
-    alloc_traits::destroy(alloc_, next_);
+    alloc_traits::destroy(alloc_, &data_[next_]);
   }
 
   /**
@@ -629,7 +628,7 @@ class RingBuf {
   // The start of the dynamically allocated backing array.
   pointer data_{nullptr};
   // The next position to write to for push_back().
-  pointer next_{nullptr};
+  size_type next_{0U};
   // One past the last element of the dynamically allocated backing array.
   pointer data_end_{nullptr};
 
@@ -639,20 +638,24 @@ class RingBuf {
   // end()).
   size_type size_{0U};
 
+  constexpr static size_type Decrement(const size_type index) {
+    return index > 0 ? index - 1 : Capacity - 1;
+  }
+
+  constexpr static size_type Increment(const size_type index) {
+    return index < (Capacity - 1) ? index + 1 : 0;
+  }
+
   // Move things after pop_front.
   void ShrinkFront() {
-    ring_offset_ = detail::RingWrap<Capacity>(ring_offset_ + 1);
+    ring_offset_ = Increment(ring_offset_);
     // Precondition: size != 0 (when it is, pop_front returns early.)
     size_--;
   }
 
   // Move things around before pop_back destroys the last entry.
   void ShrinkBack() {
-    if (next_ == data_) {
-      next_ = data_end_ - 1;
-    } else {
-      next_--;
-    }
+    next_ = Decrement(next_);
     // Precondition: size != 0 (when it is, pop_back returns early.)
     size_--;
   }
@@ -660,11 +663,7 @@ class RingBuf {
   // Move things around before emplace_front constructs its new entry.
   void GrowFront() {
     // Move ring_offset_ down, and possibly around
-    if (ring_offset_ == 0) {
-      ring_offset_ = Capacity - 1;
-    } else {
-      ring_offset_--;
-    }
+    ring_offset_ = Decrement(ring_offset_);
     // Precondition: size != Capacity (when it is, emplace_front pop_backs
     // first.)
     size_++;
@@ -672,10 +671,7 @@ class RingBuf {
 
   // Move things around after emplace_back.
   void GrowBack() {
-    next_++;
-    if (next_ == data_end_) {
-      next_ = data_;
-    }
+    next_ = Increment(next_);
     // Precondition: size != Capacity (when it is, emplace_back pop_fronts
     // first)
     size_++;
