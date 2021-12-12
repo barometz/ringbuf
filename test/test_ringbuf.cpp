@@ -143,7 +143,7 @@ TEST_P(RingBuf, PushFront) {
   underTest.push_front("two");
   EXPECT_EQ(underTest.at(1), "one");
   EXPECT_EQ(underTest.at(0), "two");
-  EXPECT_EQ(underTest.size(), 2);
+  EXPECT_EQ(underTest.size(), 2U);
 }
 
 TEST_P(RingBuf, PushFrontOver) {
