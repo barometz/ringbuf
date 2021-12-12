@@ -14,8 +14,8 @@ jobs:
   build:
     strategy:
       matrix:
-        cxx: [clang++ g++]
-        cxx_version: [11 17 20]
+        cxx: [clang++, g++]
+        cxx_version: [11, 17, 20]
 
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
@@ -49,8 +49,8 @@ jobs:
   build-windows:
     strategy:
       matrix:
-        platform: [Win32 x64]
-        cxx_version: [11 17 20]
+        platform: [Win32, x64]
+        cxx_version: [11, 17, 20]
 
     runs-on: windows-latest
 
