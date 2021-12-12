@@ -36,6 +36,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <cstddef>
 #include <stdexcept>
 #include <tuple>
@@ -503,51 +504,28 @@ class RingBuf {
   void swap(RingBuf& other) noexcept { std::swap(*this, other); }
 
   /**
-   * @brief Elementwise comparison of the ring buffer.
+   * @brief Elementwise lexicographical comparison of two ring buffers.
    *
    * @param lhs The left-hand side in lhs < rhs.
    * @param rhs The right-hand side in lhs < rhs.
    * @returns True if the left-hand side compares as less than the right.
-   * @todo the size equality requirement doesn't seem right, check what vector
-   *       does
    */
   friend bool operator<(const RingBuf& lhs, const RingBuf& rhs) {
-    if (lhs.size() != rhs.size()) {
-      return false;
-    }
-
-    auto end = lhs.cend();
-    auto mismatch = std::mismatch(lhs.cbegin(), end, rhs.cbegin());
-    if (mismatch.first == end) {
-      return false;
-    }
-
-    return *mismatch.first < *mismatch.second;
+    return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(),
+                                        rhs.end());
   }
   /**
-   * @brief Elementwise comparison of the ring buffer.
+   * @brief Elementwise lexicographical comparison of two ring buffers.
    *
    * @param lhs The left-hand side in lhs > rhs.
    * @param rhs The right-hand side in lhs > rhs.
    * @returns True if the left-hand side compares as more than the right.
-   * @todo the size equality requirement doesn't seem right, check what vector
-   *       does
    */
   friend bool operator>(const RingBuf& lhs, const RingBuf& rhs) {
-    if (lhs.size() != rhs.size()) {
-      return false;
-    }
-
-    auto end = lhs.cend();
-    auto mismatch = std::mismatch(lhs.cbegin(), end, rhs.cbegin());
-    if (mismatch.first == end) {
-      return false;
-    }
-
-    return *mismatch.first < *mismatch.second;
+    return rhs < lhs;
   }
   /**
-   * @brief Elementwise comparison of the ring buffer.
+   * @brief Elementwise comparison of two ring buffers.
    *
    * @param lhs The left-hand side in lhs == rhs.
    * @param rhs The right-hand side in lhs == rhs.
@@ -558,12 +536,10 @@ class RingBuf {
       return false;
     }
 
-    auto end = lhs.cend();
-    auto mismatch = std::mismatch(lhs.cbegin(), end, rhs.cbegin());
-    return mismatch.first == end;
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin());
   }
   /**
-   * @brief Elementwise comparison of the ring buffer.
+   * @brief Elementwise comparison of two ring buffers.
    *
    * @param lhs The left-hand side in lhs >= rhs.
    * @param rhs The right-hand side in lhs >= rhs.
@@ -573,7 +549,7 @@ class RingBuf {
     return !(lhs < rhs);
   }
   /**
-   * @brief Elementwise comparison of the ring buffer.
+   * @brief Elementwise comparison of two ring buffers.
    *
    * @param lhs The left-hand side in lhs <= rhs.
    * @param rhs The right-hand side in lhs <= rhs.
@@ -583,7 +559,7 @@ class RingBuf {
     return !(lhs > rhs);
   }
   /**
-   * @brief Elementwise comparison of the ring buffer.
+   * @brief Elementwise comparison of two ring buffers.
    *
    * @param lhs The left-hand side in lhs != rhs.
    * @param rhs The right-hand side in lhs != rhs.

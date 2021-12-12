@@ -112,6 +112,29 @@ TEST_P(RingBuf, FrontBack) {
   EXPECT_EQ(underTest.back(), 1);
 }
 
+TEST_P(RingBuf, Comparison) {
+  auto a = MakeAdapter<int, 3>();
+  auto b = MakeAdapter<int, 3>();
+  auto c = MakeAdapter<int, 3>();
+
+  EXPECT_EQ(a, b);
+  EXPECT_EQ(a, c);
+
+  a.push_back(1);
+  EXPECT_NE(a, b);
+  b.push_back(1);
+  EXPECT_EQ(a, b);
+  c.push_back(2);
+  EXPECT_LT(a, c);
+
+  a.push_back(2);
+  a.push_back(3);
+  c.push_back(1);
+  c.push_back(2);
+  c.push_back(3);
+  EXPECT_EQ(a, c);
+}
+
 class RefCounter {
  public:
   RefCounter() { counter_++; }
