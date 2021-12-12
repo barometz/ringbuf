@@ -31,6 +31,16 @@ TEST(Speed, PushBackToFull) {
   baudvine::RingBuf<uint64_t, kTestSize> standard;
   baudvine::DequeRingBuf<uint64_t, kTestSize> deque;
 
+  // Preload everything once so all the memory is definitely allocated
+  for (uint32_t i = 0; i < standard.max_size(); i++) {
+    standard.push_back(0);
+  }
+  standard.clear();
+  for (uint32_t i = 0; i < deque.max_size(); i++) {
+    deque.push_back(0);
+  }
+  deque.clear();
+
   auto standardDuration = TimeIt([&standard] {
     for (uint32_t i = 0; i < standard.max_size(); i++) {
       standard.push_back(0);

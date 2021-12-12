@@ -1,5 +1,6 @@
 #include "ringbuf_adapter.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -133,6 +134,67 @@ TEST_P(RingBuf, Comparison) {
   c.push_back(2);
   c.push_back(3);
   EXPECT_EQ(a, c);
+}
+
+TEST_P(RingBuf, PushFront) {
+  auto underTest = MakeAdapter<std::string, 3>();
+  underTest.push_front("one");
+  EXPECT_EQ(underTest.at(0), "one");
+  underTest.push_front("two");
+  EXPECT_EQ(underTest.at(1), "one");
+  EXPECT_EQ(underTest.at(0), "two");
+  EXPECT_EQ(underTest.size(), 2);
+}
+
+TEST_P(RingBuf, PushFrontOver) {
+  auto underTest = MakeAdapter<std::string, 2>();
+  underTest.push_front("one");
+  underTest.push_front("two");
+  underTest.push_front("three");
+
+  EXPECT_EQ(underTest.size(), 2);
+  EXPECT_EQ(underTest.at(0), "three");
+  EXPECT_EQ(underTest.at(1), "two");
+
+  underTest.push_front("five");
+  underTest.push_front("six");
+  underTest.push_front("seven");
+  EXPECT_EQ(underTest.size(), 2);
+  EXPECT_EQ(underTest.at(0), "seven");
+  EXPECT_EQ(underTest.at(1), "six");
+}
+
+TEST_P(RingBuf, PopBack) {
+  auto underTest = MakeAdapter<int, 3>();
+  underTest.push_back(41);
+  underTest.pop_back();
+  EXPECT_TRUE(underTest.empty());
+  EXPECT_EQ(underTest.size(), 0);
+
+  for (auto i : {1, 2}) {
+    std::ignore = i;
+    underTest.push_back(42);  // push
+    underTest.push_back(43);  // push
+    underTest.push_back(44);  // push
+    underTest.push_back(45);  // push, 42 rolls off
+    underTest.pop_back();     // pop, 45 rolls off
+
+    EXPECT_EQ(underTest.at(0), 43);
+    EXPECT_EQ(underTest.size(), 2);
+  }
+}
+
+TEST_P(RingBuf, DoubleEnded) {
+  auto underTest = MakeAdapter<int, 3>();
+  underTest.push_front(1);
+  underTest.push_back(2);
+  underTest.push_front(3);
+  underTest.push_back(4);
+  underTest.push_front(5);
+  underTest.pop_front();
+  underTest.pop_back();
+  ASSERT_EQ(underTest.size(), 1);
+  ASSERT_EQ(underTest[0], 1);
 }
 
 class RefCounter {
