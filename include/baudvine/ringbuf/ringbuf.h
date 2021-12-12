@@ -62,85 +62,6 @@ constexpr std::size_t RingWrap(const std::size_t ring_index) {
 }
 
 /**
- * @brief A const iterator into RingBuf. A const iterator can't be used to
- * modify the value it points to.
- *
- * @tparam Elem The element type this iterator points to.
- * @tparam Capacity The size of the backing array, and maximum size of the ring
- *         buffer.
- */
-template <typename Elem, std::size_t Capacity>
-class ConstIterator {
- public:
-  using difference_type = std::ptrdiff_t;
-  using value_type = Elem;
-  using pointer = const Elem*;
-  using reference = const Elem&;
-  using iterator_category = std::forward_iterator_tag;
-
-  constexpr ConstIterator() noexcept = default;
-  /**
-   * @brief Construct a new const iterator object.
-   *
-   * @param data Pointer to the start of the RingBuf's backing array.
-   * @param ring_offset Physical index of the start of the ring buffer.
-   * @param ring_index Logical index in the ring buffer: when the iterator is at
-   *                   @c data + @c ring_offset, @c ring_index is 0.
-   */
-  ConstIterator(pointer data,
-                const std::size_t ring_offset,
-                const std::size_t ring_index) noexcept
-      : data_(data), ring_offset_(ring_offset), ring_index_(ring_index) {}
-
-  reference operator*() const noexcept {
-    return data_[RingWrap<Capacity>(ring_offset_ + ring_index_)];
-  }
-
-  pointer operator->() const noexcept { return &**this; }
-
-  ConstIterator operator++(int) noexcept {
-    ConstIterator copy(*this);
-    operator++();
-    return copy;
-  }
-
-  ConstIterator& operator++() noexcept {
-    ++ring_index_;
-    return *this;
-  }
-
-  friend bool operator<(const ConstIterator& lhs,
-                        const ConstIterator& rhs) noexcept {
-    // Comparison via std::tie uses std::tuple::operator<, which compares its
-    // elements lexicographically.
-    return std::tie(lhs.data_, lhs.ring_offset_, lhs.ring_index_) <
-           std::tie(rhs.data_, rhs.ring_offset_, rhs.ring_index_);
-  }
-
-  friend bool operator==(const ConstIterator& lhs,
-                         const ConstIterator& rhs) noexcept {
-    // Comparison via std::tie is very slow in debug builds, eating into
-    // range-for cycle time.
-    return lhs.ring_index_ == rhs.ring_index_ && lhs.data_ == rhs.data_ &&
-           lhs.ring_offset_ == rhs.ring_offset_;
-  }
-
-  friend bool operator!=(const ConstIterator& lhs,
-                         const ConstIterator& rhs) noexcept {
-    return !(lhs == rhs);
-  }
-
- private:
-  pointer data_{};
-  // Keeping both ring_offset_ and ring_index_ around is algorithmically
-  // redundant (you could add them once and then increment the sum in
-  // operator++), but the unchanging ring_offset_ appears to help the compiler
-  // optimize RingWrap calls.
-  std::size_t ring_offset_{};
-  std::size_t ring_index_{};
-};
-
-/**
  * @brief An iterator into RingBuf.
  *
  * @tparam Elem The element type this iterator points to.
@@ -175,9 +96,9 @@ class Iterator {
    *
    * @returns A const iterator pointing to the same place.
    */
-  explicit operator ConstIterator<value_type, Capacity>() const {
-    return ConstIterator<value_type, Capacity>(data_, ring_offset_,
-                                               ring_index_);
+  explicit operator Iterator<const value_type, Capacity>() const {
+    return Iterator<const value_type, Capacity>(data_, ring_offset_,
+                                                ring_index_);
   }
 
   reference operator*() const noexcept {
@@ -242,7 +163,7 @@ class RingBuf {
   using pointer = Elem*;
   using const_reference = const Elem&;
   using iterator = detail::Iterator<Elem, Capacity>;
-  using const_iterator = detail::ConstIterator<Elem, Capacity>;
+  using const_iterator = detail::Iterator<const Elem, Capacity>;
   using difference_type = typename iterator::difference_type;
   using size_type = std::size_t;
   using alloc = std::allocator<value_type>;
