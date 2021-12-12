@@ -220,6 +220,13 @@ class Iterator {
 
 }  // namespace detail
 
+/**
+ * @brief The ring buffer itself.
+ *
+ * @tparam Elem The type of elements contained by the ring buffer.
+ * @tparam Capacity The maximum size of the ring buffer, and the fixed size of
+ *         the backing array.
+ */
 template <typename Elem, size_t Capacity>
 class RingBuf {
  public:
@@ -234,30 +241,59 @@ class RingBuf {
   using alloc = std::allocator<value_type>;
   using alloc_traits = std::allocator_traits<alloc>;
 
+  /**
+   * @brief Construct a new ring buffer object, and allocate the required
+   * memory.
+   */
   RingBuf() : data_(alloc_traits::allocate(alloc_, Capacity)){};
+  /**
+   * @brief Destroy the ring buffer object.
+   *
+   * Destroys the active elements via clear() and deallocates the backing array.
+   */
   ~RingBuf() {
-    while (!empty()) {
-      pop_front();
-    }
-    if (data_) {
-      alloc_traits::deallocate(alloc_, data_, Capacity);
-    }
+    clear();
+    alloc_traits::deallocate(alloc_, data_, Capacity);
   }
-
+  /**
+   * @brief Construct a new RingBuf object out of another, using elementwise
+   * copy assignment.
+   *
+   * @param other The RingBuf to copy values from.
+   * @todo maybe allow other (smaller) sizes as input?
+   */
   RingBuf(const RingBuf& other) : RingBuf() { *this = other; }
-
+  /**
+   * @brief Construct a new RingBuf object out of another, using bulk move
+   * assignment.
+   *
+   * @param other The RingBuf to move the data out of.
+   */
   RingBuf(RingBuf&& other) noexcept { *this = std::move(other); }
 
+  /**
+   * @brief Copy a RingBuf into this one.
+   *
+   * First clears this RingBuf, and then copies @c other element by element.
+   *
+   * @param other The RingBuf to copy from.
+   * @return This RingBuf.
+   */
   RingBuf& operator=(const RingBuf& other) {
-    while (!empty()) {
-      pop_front();
-    }
+    clear();
     for (const auto& value : other) {
       push_back(value);
     }
     return *this;
   }
-
+  /**
+   * @brief Move a RingBuf into this one.
+   *
+   * The backing storage is swapped, so no elementwise moves are performed.
+   *
+   * @param other The RingBuf to copy from.
+   * @return This RingBuf.
+   */
   RingBuf& operator=(RingBuf&& other) noexcept {
     std::swap(alloc_, other.alloc_);
     std::swap(data_, other.data_);
@@ -266,23 +302,65 @@ class RingBuf {
     return *this;
   }
 
+  /**
+   * @brief Return the first element in the ring buffer.
+   *
+   * @return The first element in the ring buffer.
+   * @exception std::out_of_range The buffer is empty.
+   */
   reference front() { return at(0); }
+  /**
+   * @brief Return the last element in the ring buffer.
+   *
+   * @return The last element in the ring buffer.
+   * @exception std::out_of_range The buffer is empty.
+   */
   reference back() { return at(size() - 1); }
 
+  /**
+   * @brief Retrieve an element from the ring buffer without range checking.
+   *
+   * The behaviour is undefined when @c index is outside [0, size()).
+   *
+   * @param index The logical index into the ring buffer.
+   * @return A const reference to the element.
+   */
   const_reference operator[](size_type index) const {
     return data_[detail::RingWrap<Capacity>(base_ + index)];
   }
+  /**
+   * @brief Retrieve an element from the ring buffer without range checking.
+   *
+   * The behaviour is undefined when @c index is outside [0, size()).
+   *
+   * @param index The logical index into the ring buffer.
+   * @return A reference to the element.
+   */
   reference operator[](size_type index) {
     return data_[detail::RingWrap<Capacity>(base_ + index)];
   }
-
+  /**
+   * @brief Retrieve an element from the ring buffer with range checking.
+   *
+   * @param index The logical index into the ring buffer. Must be in range
+   *              [0, size()).
+   * @return A const reference to the element.
+   * @exception std::out_of_range The index is out of range.
+   */
   const_reference at(size_type index) const {
     if (index >= this->size()) {
       throw std::out_of_range("RingBuf::at: index >= Size");
     }
     return (*this)[index];
   }
-
+  /**
+   * @brief Retrieve an element from the ring buffer with range checking.
+   *
+   * @param index The logical index into the ring buffer. Must be in range
+   *              [0, size()).
+   * @return A reference to the element.
+   * @exception std::out_of_range The index is out of range.
+   */
   reference at(size_type index) {
     if (index >= this->size()) {
       throw std::out_of_range("RingBuf::at: index >= Size");
@@ -290,35 +368,103 @@ class RingBuf {
     return (*this)[index];
   }
 
+  /**
+   * @return An iterator pointing at the start of the ring buffer.
+   */
   iterator begin() noexcept {
     return iterator(&this->data_[0], this->base_, 0);
   }
+  /**
+   * @return An iterator pointing at one past the last element of the ring
+   * buffer.
+   */
   iterator end() noexcept {
     return iterator(&this->data_[0], this->base_, this->size());
   }
+  /**
+   * @return A const iterator pointing at the start of the ring buffer.
+   */
   const_iterator begin() const noexcept { return cbegin(); }
+  /**
+   * @return A const iterator pointing at one past the last element of the ring
+   * buffer.
+   */
   const_iterator end() const noexcept { return cend(); }
+  /**
+   * @return A const iterator pointing at the start of the ring buffer.
+   */
   const_iterator cbegin() const noexcept {
     return const_iterator(&this->data_[0], this->base_, 0);
   }
+  /**
+   * @return A const iterator pointing at one past the last element of the ring
+   * buffer.
+   */
   const_iterator cend() const noexcept {
     return const_iterator(&this->data_[0], this->base_, this->size());
   }
 
+  /**
+   * @brief Check if the ring buffer is empty.
+   *
+   * @return True if size() == 0, otherwise false.
+   */
   bool empty() const noexcept { return this->size() == 0; }
+  /**
+   * @brief Get the current number of elements in the ring buffer.
+   *
+   * @return The number of elements.
+   */
   size_type size() const noexcept { return size_; }
+  /**
+   * @brief Get the maximum number of elements in this ring buffer.
+   *
+   * @return Capacity.
+   */
   constexpr size_type max_size() const noexcept { return Capacity; }
+  /**
+   * @brief
+   *
+   * @return constexpr size_type
+   * @todo remove this, max_size is enough
+   */
   constexpr size_type capacity() const noexcept { return Capacity; }
 
+  /**
+   * @brief Remove all elements from the ring buffer, destroying each one
+   * starting at the front.
+   *
+   * After clear(), size() == 0.
+   */
   void clear() {
+    // It might be fractionally more efficient to iterate through begin..end and
+    // allocator::destroy each one, but this is a lot nicer to read.
     while (!empty()) {
       pop_front();
     }
   }
 
+  /**
+   * @brief Push a new element into the ring buffer, popping the front if
+   * necessary.
+   *
+   * @param value The value to copy into the ring buffer.
+   */
   void push_back(const_reference value) { return emplace_back(value); }
+  /**
+   * @brief Push a new element into the ring buffer, popping the front if
+   * necessary.
+   *
+   * @param value The value to move into the ring buffer.
+   */
   void push_back(value_type&& value) { return emplace_back(std::move(value)); }
-
+  /**
+   * @brief Construct a new element in-place at the end of the ring buffer,
+   * popping the front if necessary.
+   *
+   * @tparam Args Arguments to the element constructor.
+   * @param args Arguments to the element constructor.
+   */
   template <typename... Args>
   void emplace_back(Args&&... args) {
     if (Capacity == 0) {
@@ -335,6 +481,9 @@ class RingBuf {
     Progress();
   }
 
+  /**
+   * @brief Pop the front, destroying the first element in the ring buffer.
+   */
   void pop_front() {
     if (size_ == 0) {
       return;
@@ -346,8 +495,22 @@ class RingBuf {
     size_--;
   }
 
+  /**
+   * @brief Swap this ring buffer with another using std::swap.
+   *
+   * @param other The RingBuf to swap with.
+   */
   void swap(RingBuf& other) noexcept { std::swap(*this, other); }
 
+  /**
+   * @brief Elementwise comparison of the ring buffer.
+   *
+   * @param lhs The left-hand side in lhs < rhs.
+   * @param rhs The right-hand side in lhs < rhs.
+   * @returns True if the left-hand side compares as less than the right.
+   * @todo the size equality requirement doesn't seem right, check what vector
+   *       does
+   */
   friend bool operator<(const RingBuf& lhs, const RingBuf& rhs) {
     if (lhs.size() != rhs.size()) {
       return false;
@@ -361,7 +524,15 @@ class RingBuf {
 
     return *mismatch.first < *mismatch.second;
   }
-
+  /**
+   * @brief Elementwise comparison of the ring buffer.
+   *
+   * @param lhs The left-hand side in lhs > rhs.
+   * @param rhs The right-hand side in lhs > rhs.
+   * @returns True if the left-hand side compares as more than the right.
+   * @todo the size equality requirement doesn't seem right, check what vector
+   *       does
+   */
   friend bool operator>(const RingBuf& lhs, const RingBuf& rhs) {
     if (lhs.size() != rhs.size()) {
       return false;
@@ -375,7 +546,13 @@ class RingBuf {
 
     return *mismatch.first < *mismatch.second;
   }
-
+  /**
+   * @brief Elementwise comparison of the ring buffer.
+   *
+   * @param lhs The left-hand side in lhs == rhs.
+   * @param rhs The right-hand side in lhs == rhs.
+   * @returns True if @c lhs is equal to @c rhs.
+   */
   friend bool operator==(const RingBuf& lhs, const RingBuf& rhs) {
     if (lhs.size() != rhs.size()) {
       return false;
@@ -385,13 +562,33 @@ class RingBuf {
     auto mismatch = std::mismatch(lhs.cbegin(), end, rhs.cbegin());
     return mismatch.first == end;
   }
-
+  /**
+   * @brief Elementwise comparison of the ring buffer.
+   *
+   * @param lhs The left-hand side in lhs >= rhs.
+   * @param rhs The right-hand side in lhs >= rhs.
+   * @returns True if @c lhs is greater than or equal to @c rhs.
+   */
   friend bool operator>=(const RingBuf& lhs, const RingBuf& rhs) {
     return !(lhs < rhs);
   }
+  /**
+   * @brief Elementwise comparison of the ring buffer.
+   *
+   * @param lhs The left-hand side in lhs <= rhs.
+   * @param rhs The right-hand side in lhs <= rhs.
+   * @returns True if @c lhs is less than or equal to @c rhs.
+   */
   friend bool operator<=(const RingBuf& lhs, const RingBuf& rhs) {
     return !(lhs > rhs);
   }
+  /**
+   * @brief Elementwise comparison of the ring buffer.
+   *
+   * @param lhs The left-hand side in lhs != rhs.
+   * @param rhs The right-hand side in lhs != rhs.
+   * @returns True if @c lhs is not equal to @c rhs.
+   */
   friend bool operator!=(const RingBuf& lhs, const RingBuf& rhs) {
     return !(lhs == rhs);
   }
