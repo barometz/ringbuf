@@ -18,6 +18,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/**
+ * @file ringbuf.h
+ *
+ * A ring buffer for C++11, with an STL-compatible interface.
+ *
+ * The comments frequently refer to "physical" and "logical" indices. This is
+ * meant to make explicit the distinction between:
+ *
+ * - The backing array of RingBuf, which is always of size Capacity and is
+ *   allocated once during RingBuf construction. Physical indices are relative
+ *   to the start of this array.
+ * - The conceptual ring buffer, which moves around in the backing array and has
+ *   a variable length. Logical indices are relative to its start ("base"), and
+ *   base + index may exceed Capacity (before wrapping).
+ */
+
 #pragma once
 
 #include <cstddef>
@@ -27,14 +43,30 @@
 namespace baudvine {
 namespace detail {
 
+/**
+ * @brief Wrap a physical position into an array of size Capacity.
+ *
+ * Precondition: position < 2 * Capacity.
+ *
+ * @tparam Capacity The backing array size.
+ * @param position The physical index into the backing array.
+ * @returns The position wrapped to [0..Capacity).
+ */
 template <std::size_t Capacity>
-constexpr std::size_t RingWrap(std::size_t position) {
-  // Precondition: position < 2 * Capacity. This is a bit faster than
-  // `return position % Capacity` (~30% reduction in Speed.PushBackOverFull
-  // test)
+constexpr std::size_t RingWrap(const std::size_t position) {
+  // This is a bit faster than `return position % Capacity` (~40% reduction in
+  // Speed.PushBackOverFull test)
   return (position < Capacity) ? position : position - Capacity;
 }
 
+/**
+ * @brief A const iterator into RingBuf. A const iterator can't be used to
+ * modify the value it points to.
+ *
+ * @tparam Elem The element type this iterator points to.
+ * @tparam Capacity The size of the backing array, and maximum size of the ring
+ *         buffer.
+ */
 template <typename Elem, std::size_t Capacity>
 class ConstIterator {
  public:
@@ -45,12 +77,24 @@ class ConstIterator {
   using iterator_category = std::forward_iterator_tag;
 
   constexpr ConstIterator() noexcept = default;
-  ConstIterator(pointer data, std::size_t base, std::size_t position) noexcept
+  /**
+   * @brief Construct a new const iterator object.
+   *
+   * @param data Pointer to the start of the RingBuf's backing array.
+   * @param base Physical index of the start of the ring buffer.
+   * @param position Logical index in the ring buffer: when the iterator is at
+   *                 base, position is 0.
+   */
+  ConstIterator(pointer data,
+                const std::size_t base,
+                const std::size_t position) noexcept
       : data_(data), base_(base), position_(position) {}
 
-  reference operator*() const {
+  reference operator*() const noexcept {
     return data_[RingWrap<Capacity>(base_ + position_)];
   }
+
+  pointer operator->() const noexcept { return &**this; }
 
   ConstIterator operator++(int) noexcept {
     ConstIterator copy(*this);
@@ -65,6 +109,8 @@ class ConstIterator {
 
   friend bool operator<(const ConstIterator& lhs,
                         const ConstIterator& rhs) noexcept {
+    // Comparison via std::tie uses std::tuple::operator<, which compares its
+    // elements lexicographically.
     return std::tie(lhs.data_, lhs.base_, lhs.position_) <
            std::tie(rhs.data_, rhs.base_, rhs.position_);
   }
@@ -84,10 +130,20 @@ class ConstIterator {
 
  private:
   pointer data_{};
+  // Keeping both base_ and position_ around is algorithmically redundant (you
+  // could add them once and then increment the sum in operator++), but the
+  // unchanging base_ appears to help the compiler optimize RingWrap calls.
   std::size_t base_{};
   std::size_t position_{};
 };
 
+/**
+ * @brief An iterator into RingBuf.
+ *
+ * @tparam Elem The element type this iterator points to.
+ * @tparam Capacity The size of the backing array, and maximum size of the ring
+ *         buffer.
+ */
 template <typename Elem, size_t Capacity>
 class Iterator {
  public:
@@ -98,18 +154,31 @@ class Iterator {
   using iterator_category = std::forward_iterator_tag;
 
   constexpr Iterator() noexcept = default;
-  Iterator(pointer data, std::size_t base, size_t position)
+  /**
+   * @brief Construct a new iterator object.
+   *
+   * @param data Pointer to the start of the RingBuf's backing array.
+   * @param base Physical index of the start of the ring buffer.
+   * @param position Logical index in the ring buffer: when the iterator is at
+   *                 base, position is 0.
+   */
+  Iterator(pointer data, const std::size_t base, const size_t position)
       : data_(data), base_(base), position_(position) {}
 
+  /**
+   * @brief Convert an iterator into a const iterator.
+   *
+   * @returns A const iterator pointing to the same place.
+   */
   explicit operator ConstIterator<value_type, Capacity>() const {
     return ConstIterator<value_type, Capacity>(data_, base_, position_);
   }
 
-  reference operator*() const {
+  reference operator*() const noexcept {
     return data_[RingWrap<Capacity>(base_ + position_)];
   }
 
-  pointer operator->() const { return &**this; }
+  pointer operator->() const noexcept { return &**this; }
 
   Iterator operator++(int) noexcept {
     Iterator copy(*this);
@@ -123,6 +192,8 @@ class Iterator {
   }
 
   friend bool operator<(const Iterator& lhs, const Iterator& rhs) noexcept {
+    // Comparison via std::tie uses std::tuple::operator<, which compares its
+    // elements lexicographically.
     return std::tie(lhs.data_, lhs.base_, lhs.position_) <
            std::tie(rhs.data_, rhs.base_, rhs.position_);
   }
@@ -140,6 +211,9 @@ class Iterator {
 
  private:
   pointer data_{};
+  // Keeping both base_ and position_ around is algorithmically redundant (you
+  // could add them once and then increment the sum in operator++), but the
+  // unchanging base_ appears to help the compiler optimize RingWrap calls.
   std::size_t base_{};
   std::size_t position_{};
 };
