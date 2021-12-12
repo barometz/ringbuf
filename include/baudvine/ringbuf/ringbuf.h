@@ -446,6 +446,46 @@ class RingBuf {
   }
 
   /**
+   * @brief Push a new element at the front of the ring buffer, popping the back
+   * if necessary.
+   *
+   * @param value The value to copy into the ring buffer.
+   */
+  void push_front(const_reference value) { return emplace_front(value); }
+  /**
+   * @brief Push a new element at the front of the ring buffer, popping the
+   * front if necessary.
+   *
+   * @param value The value to move into the ring buffer.
+   */
+  void push_front(value_type&& value) {
+    return emplace_front(std::move(value));
+  }
+  /**
+   * @brief Construct a new element in-place before the front of the ring
+   * buffer, popping the back if necessary.
+   *
+   * @tparam Args Arguments to the element constructor.
+   * @param args Arguments to the element constructor.
+   */
+  template <typename... Args>
+  void emplace_front(Args&&... args) {
+    if (max_size() == 0) {
+      // A buffer of size zero is conceptually sound, so let's support it.
+      return;
+    }
+
+    // If required, make room first.
+    if (size() == max_size()) {
+      pop_back();
+    }
+
+    GrowFront();
+    alloc_traits::construct(alloc_, &data_[ring_offset_],
+                            std::forward<Args>(args)...);
+  }
+
+  /**
    * @brief Push a new element into the ring buffer, popping the front if
    * necessary.
    *
@@ -479,11 +519,12 @@ class RingBuf {
     }
 
     alloc_traits::construct(alloc_, next_, std::forward<Args>(args)...);
-    Progress();
+    GrowBack();
   }
 
   /**
-   * @brief Pop the front, destroying the first element in the ring buffer.
+   * @brief Pop an element off the front, destroying the first element in the
+   * ring buffer.
    */
   void pop_front() {
     if (size() == 0) {
@@ -492,6 +533,19 @@ class RingBuf {
 
     alloc_traits::destroy(alloc_, &data_[ring_offset_]);
     ShrinkFront();
+  }
+
+  /**
+   * @brief Pop an element off the back, destroying the last element in the ring
+   * buffer.
+   */
+  void pop_back() {
+    if (size() == 0) {
+      return;
+    }
+
+    ShrinkBack();
+    alloc_traits::destroy(alloc_, next_);
   }
 
   /**
@@ -574,7 +628,7 @@ class RingBuf {
 
   // The start of the dynamically allocated backing array.
   pointer data_{nullptr};
-  // The next ring_index to write to for push_back().
+  // The next position to write to for push_back().
   pointer next_{nullptr};
   // One past the last element of the dynamically allocated backing array.
   pointer data_end_{nullptr};
@@ -588,26 +642,43 @@ class RingBuf {
   // Move things after pop_front.
   void ShrinkFront() {
     ring_offset_ = detail::RingWrap<Capacity>(ring_offset_ + 1);
+    // Precondition: size != 0 (when it is, pop_front returns early.)
     size_--;
   }
 
-  // Move things around after push_back.
-  void Progress() {
-    // next_ moves after each push.
+  // Move things around before pop_back destroys the last entry.
+  void ShrinkBack() {
+    if (next_ == data_) {
+      next_ = data_end_ - 1;
+    } else {
+      next_--;
+    }
+    // Precondition: size != 0 (when it is, pop_back returns early.)
+    size_--;
+  }
+
+  // Move things around before emplace_front constructs its new entry.
+  void GrowFront() {
+    // Move ring_offset_ down, and possibly around
+    if (ring_offset_ == 0) {
+      ring_offset_ = Capacity - 1;
+    } else {
+      ring_offset_--;
+    }
+    // Precondition: size != Capacity (when it is, emplace_front pop_backs
+    // first.)
+    size_++;
+  }
+
+  // Move things around after emplace_back.
+  void GrowBack() {
     next_++;
     if (next_ == data_end_) {
       next_ = data_;
     }
-
-    // ring_offset_ only moves when we're full.
-    if (size_ == Capacity) {
-      ring_offset_ = detail::RingWrap<Capacity>(ring_offset_ + 1);
-    }
-
-    // size_ will never exceed the capacity.
-    if (size_ < Capacity) {
-      size_++;
-    }
+    // Precondition: size != Capacity (when it is, emplace_back pop_fronts
+    // first)
+    size_++;
   }
 };
 }  // namespace baudvine

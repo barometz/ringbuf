@@ -57,6 +57,22 @@ class DequeRingBuf {
 
   void clear() { return data_.clear(); }
 
+  void push_front(const_reference value) { return emplace_front(value); }
+  void push_front(value_type&& value) { return emplace_front(std::move(value)); }
+
+  template <typename... Args>
+  void emplace_front(Args... args) {
+    if (max_size() == 0) {
+      return;
+    }
+
+    if (size() == max_size()) {
+      pop_back();
+    }
+
+    data_.emplace_front(std::forward<Args>(args)...);
+  }
+
   void push_back(const_reference value) { return emplace_back(value); }
   void push_back(value_type&& value) { return emplace_back(std::move(value)); }
 
@@ -73,7 +89,8 @@ class DequeRingBuf {
     data_.emplace_back(std::forward<Args>(args)...);
   }
 
-  void pop_front() { data_.pop_front(); }
+  void pop_front() { return data_.pop_front(); }
+  void pop_back() { return data_.pop_back(); }
 
   void swap(DequeRingBuf& other) noexcept { return std::swap(*this, other); }
 
