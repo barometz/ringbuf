@@ -32,13 +32,13 @@ TEST(Speed, PushBackToFull) {
   baudvine::DequeRingBuf<uint64_t, kTestSize> deque;
 
   auto standardDuration = TimeIt([&standard] {
-    for (uint32_t i = 0; i < standard.capacity(); i++) {
+    for (uint32_t i = 0; i < standard.max_size(); i++) {
       standard.push_back(0);
     }
   });
 
   auto dequeDuration = TimeIt([&deque] {
-    for (uint32_t i = 0; i < deque.capacity(); i++) {
+    for (uint32_t i = 0; i < deque.max_size(); i++) {
       deque.push_back(0);
     }
   });
@@ -73,11 +73,11 @@ TEST(Speed, IterateOver) {
   baudvine::RingBuf<uint64_t, kTestSize> standard;
   baudvine::DequeRingBuf<uint64_t, kTestSize> deque;
 
-  for (uint32_t i = 0; i < standard.capacity(); i++) {
+  for (uint32_t i = 0; i < standard.max_size(); i++) {
     standard.push_back(i);
   }
 
-  for (uint32_t i = 0; i < deque.capacity(); i++) {
+  for (uint32_t i = 0; i < deque.max_size(); i++) {
     deque.push_back(i);
   }
 

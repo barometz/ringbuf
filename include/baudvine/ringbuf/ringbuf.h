@@ -434,13 +434,6 @@ class RingBuf {
    * @return Capacity.
    */
   constexpr size_type max_size() const noexcept { return Capacity; }
-  /**
-   * @brief
-   *
-   * @return constexpr size_type
-   * @todo remove this, max_size is enough
-   */
-  constexpr size_type capacity() const noexcept { return Capacity; }
 
   /**
    * @brief Remove all elements from the ring buffer, destroying each one
