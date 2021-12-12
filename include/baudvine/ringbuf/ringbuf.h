@@ -30,8 +30,9 @@
  *   allocated once during RingBuf construction. Physical indices are relative
  *   to the start of this array.
  * - The conceptual ring buffer, which moves around in the backing array and has
- *   a variable length. Logical indices are relative to its start ("base"), and
- *   base + index may exceed Capacity (before wrapping).
+ *   a variable length. Logical indices are relative to its start
+ *   ("ring_offset"), and ring_offset + index may exceed Capacity (before
+ *   wrapping).
  */
 
 #pragma once
@@ -47,17 +48,17 @@ namespace detail {
 /**
  * @brief Wrap a physical position into an array of size Capacity.
  *
- * Precondition: position < 2 * Capacity.
+ * Precondition: ring_index < 2 * Capacity.
  *
  * @tparam Capacity The backing array size.
- * @param position The physical index into the backing array.
- * @returns The position wrapped to [0..Capacity).
+ * @param ring_index The physical index into the backing array.
+ * @returns The ring_index wrapped to [0..Capacity).
  */
 template <std::size_t Capacity>
-constexpr std::size_t RingWrap(const std::size_t position) {
-  // This is a bit faster than `return position % Capacity` (~40% reduction in
+constexpr std::size_t RingWrap(const std::size_t ring_index) {
+  // This is a bit faster than `return ring_index % Capacity` (~40% reduction in
   // Speed.PushBackOverFull test)
-  return (position < Capacity) ? position : position - Capacity;
+  return (ring_index < Capacity) ? ring_index : ring_index - Capacity;
 }
 
 /**
@@ -82,17 +83,17 @@ class ConstIterator {
    * @brief Construct a new const iterator object.
    *
    * @param data Pointer to the start of the RingBuf's backing array.
-   * @param base Physical index of the start of the ring buffer.
-   * @param position Logical index in the ring buffer: when the iterator is at
-   *                 base, position is 0.
+   * @param ring_offset Physical index of the start of the ring buffer.
+   * @param ring_index Logical index in the ring buffer: when the iterator is at
+   *                   @c data + @c ring_offset, @c ring_index is 0.
    */
   ConstIterator(pointer data,
-                const std::size_t base,
-                const std::size_t position) noexcept
-      : data_(data), base_(base), position_(position) {}
+                const std::size_t ring_offset,
+                const std::size_t ring_index) noexcept
+      : data_(data), ring_offset_(ring_offset), ring_index_(ring_index) {}
 
   reference operator*() const noexcept {
-    return data_[RingWrap<Capacity>(base_ + position_)];
+    return data_[RingWrap<Capacity>(ring_offset_ + ring_index_)];
   }
 
   pointer operator->() const noexcept { return &**this; }
@@ -104,7 +105,7 @@ class ConstIterator {
   }
 
   ConstIterator& operator++() noexcept {
-    ++position_;
+    ++ring_index_;
     return *this;
   }
 
@@ -112,16 +113,16 @@ class ConstIterator {
                         const ConstIterator& rhs) noexcept {
     // Comparison via std::tie uses std::tuple::operator<, which compares its
     // elements lexicographically.
-    return std::tie(lhs.data_, lhs.base_, lhs.position_) <
-           std::tie(rhs.data_, rhs.base_, rhs.position_);
+    return std::tie(lhs.data_, lhs.ring_offset_, lhs.ring_index_) <
+           std::tie(rhs.data_, rhs.ring_offset_, rhs.ring_index_);
   }
 
   friend bool operator==(const ConstIterator& lhs,
                          const ConstIterator& rhs) noexcept {
     // Comparison via std::tie is very slow in debug builds, eating into
     // range-for cycle time.
-    return lhs.position_ == rhs.position_ && lhs.data_ == rhs.data_ &&
-           lhs.base_ == rhs.base_;
+    return lhs.ring_index_ == rhs.ring_index_ && lhs.data_ == rhs.data_ &&
+           lhs.ring_offset_ == rhs.ring_offset_;
   }
 
   friend bool operator!=(const ConstIterator& lhs,
@@ -131,11 +132,12 @@ class ConstIterator {
 
  private:
   pointer data_{};
-  // Keeping both base_ and position_ around is algorithmically redundant (you
-  // could add them once and then increment the sum in operator++), but the
-  // unchanging base_ appears to help the compiler optimize RingWrap calls.
-  std::size_t base_{};
-  std::size_t position_{};
+  // Keeping both ring_offset_ and ring_index_ around is algorithmically
+  // redundant (you could add them once and then increment the sum in
+  // operator++), but the unchanging ring_offset_ appears to help the compiler
+  // optimize RingWrap calls.
+  std::size_t ring_offset_{};
+  std::size_t ring_index_{};
 };
 
 /**
@@ -159,12 +161,14 @@ class Iterator {
    * @brief Construct a new iterator object.
    *
    * @param data Pointer to the start of the RingBuf's backing array.
-   * @param base Physical index of the start of the ring buffer.
-   * @param position Logical index in the ring buffer: when the iterator is at
-   *                 base, position is 0.
+   * @param ring_offset Physical index of the start of the ring buffer.
+   * @param ring_index Logical index in the ring buffer: when the iterator is at
+   *                   ring_offset, ring_index is 0.
    */
-  Iterator(pointer data, const std::size_t base, const size_t position)
-      : data_(data), base_(base), position_(position) {}
+  Iterator(pointer data,
+           const std::size_t ring_offset,
+           const std::size_t ring_index)
+      : data_(data), ring_offset_(ring_offset), ring_index_(ring_index) {}
 
   /**
    * @brief Convert an iterator into a const iterator.
@@ -172,11 +176,12 @@ class Iterator {
    * @returns A const iterator pointing to the same place.
    */
   explicit operator ConstIterator<value_type, Capacity>() const {
-    return ConstIterator<value_type, Capacity>(data_, base_, position_);
+    return ConstIterator<value_type, Capacity>(data_, ring_offset_,
+                                               ring_index_);
   }
 
   reference operator*() const noexcept {
-    return data_[RingWrap<Capacity>(base_ + position_)];
+    return data_[RingWrap<Capacity>(ring_offset_ + ring_index_)];
   }
 
   pointer operator->() const noexcept { return &**this; }
@@ -188,22 +193,22 @@ class Iterator {
   }
 
   Iterator& operator++() noexcept {
-    ++position_;
+    ++ring_index_;
     return *this;
   }
 
   friend bool operator<(const Iterator& lhs, const Iterator& rhs) noexcept {
     // Comparison via std::tie uses std::tuple::operator<, which compares its
     // elements lexicographically.
-    return std::tie(lhs.data_, lhs.base_, lhs.position_) <
-           std::tie(rhs.data_, rhs.base_, rhs.position_);
+    return std::tie(lhs.data_, lhs.ring_offset_, lhs.ring_index_) <
+           std::tie(rhs.data_, rhs.ring_offset_, rhs.ring_index_);
   }
 
   friend bool operator==(const Iterator& lhs, const Iterator& rhs) noexcept {
     // Comparison via std::tie is very slow in debug builds, eating into
     // range-for cycle time.
-    return lhs.position_ == rhs.position_ && lhs.data_ == rhs.data_ &&
-           lhs.base_ == rhs.base_;
+    return lhs.ring_index_ == rhs.ring_index_ && lhs.data_ == rhs.data_ &&
+           lhs.ring_offset_ == rhs.ring_offset_;
   }
 
   friend bool operator!=(const Iterator& lhs, const Iterator& rhs) noexcept {
@@ -212,11 +217,12 @@ class Iterator {
 
  private:
   pointer data_{};
-  // Keeping both base_ and position_ around is algorithmically redundant (you
-  // could add them once and then increment the sum in operator++), but the
-  // unchanging base_ appears to help the compiler optimize RingWrap calls.
-  std::size_t base_{};
-  std::size_t position_{};
+  // Keeping both ring_offset_ and ring_index_ around is algorithmically
+  // redundant (you could add them once and then increment the sum in
+  // operator++), but the unchanging ring_offset_ appears to help the compiler
+  // optimize RingWrap calls.
+  std::size_t ring_offset_{};
+  std::size_t ring_index_{};
 };
 
 }  // namespace detail
@@ -246,7 +252,10 @@ class RingBuf {
    * @brief Construct a new ring buffer object, and allocate the required
    * memory.
    */
-  RingBuf() : data_(alloc_traits::allocate(alloc_, Capacity)){};
+  RingBuf()
+      : data_(alloc_traits::allocate(alloc_, Capacity)),
+        next_(data_),
+        data_end_(data_ + Capacity){};
   /**
    * @brief Destroy the ring buffer object.
    *
@@ -298,7 +307,9 @@ class RingBuf {
   RingBuf& operator=(RingBuf&& other) noexcept {
     std::swap(alloc_, other.alloc_);
     std::swap(data_, other.data_);
-    std::swap(base_, other.base_);
+    std::swap(next_, other.next_);
+    std::swap(data_end_, other.data_end_);
+    std::swap(ring_offset_, other.ring_offset_);
     std::swap(size_, other.size_);
     return *this;
   }
@@ -327,7 +338,7 @@ class RingBuf {
    * @return A const reference to the element.
    */
   const_reference operator[](size_type index) const {
-    return data_[detail::RingWrap<Capacity>(base_ + index)];
+    return data_[detail::RingWrap<Capacity>(ring_offset_ + index)];
   }
   /**
    * @brief Retrieve an element from the ring buffer without range checking.
@@ -338,7 +349,7 @@ class RingBuf {
    * @return A reference to the element.
    */
   reference operator[](size_type index) {
-    return data_[detail::RingWrap<Capacity>(base_ + index)];
+    return data_[detail::RingWrap<Capacity>(ring_offset_ + index)];
   }
   /**
    * @brief Retrieve an element from the ring buffer with range checking.
@@ -373,14 +384,14 @@ class RingBuf {
    * @return An iterator pointing at the start of the ring buffer.
    */
   iterator begin() noexcept {
-    return iterator(&this->data_[0], this->base_, 0);
+    return iterator(&this->data_[0], this->ring_offset_, 0);
   }
   /**
    * @return An iterator pointing at one past the last element of the ring
    * buffer.
    */
   iterator end() noexcept {
-    return iterator(&this->data_[0], this->base_, this->size());
+    return iterator(&this->data_[0], this->ring_offset_, this->size());
   }
   /**
    * @return A const iterator pointing at the start of the ring buffer.
@@ -395,14 +406,14 @@ class RingBuf {
    * @return A const iterator pointing at the start of the ring buffer.
    */
   const_iterator cbegin() const noexcept {
-    return const_iterator(&this->data_[0], this->base_, 0);
+    return const_iterator(&this->data_[0], this->ring_offset_, 0);
   }
   /**
    * @return A const iterator pointing at one past the last element of the ring
    * buffer.
    */
   const_iterator cend() const noexcept {
-    return const_iterator(&this->data_[0], this->base_, this->size());
+    return const_iterator(&this->data_[0], this->ring_offset_, this->size());
   }
 
   /**
@@ -477,8 +488,7 @@ class RingBuf {
       pop_front();
     }
 
-    alloc_traits::construct(alloc_, &data_[GetNext()],
-                            std::forward<Args>(args)...);
+    alloc_traits::construct(alloc_, next_, std::forward<Args>(args)...);
     Progress();
   }
 
@@ -490,9 +500,9 @@ class RingBuf {
       return;
     }
 
-    alloc_traits::destroy(alloc_, &data_[base_]);
+    alloc_traits::destroy(alloc_, &data_[ring_offset_]);
 
-    base_ = detail::RingWrap<Capacity>(base_ + 1);
+    ring_offset_ = detail::RingWrap<Capacity>(ring_offset_ + 1);
     size_--;
   }
 
@@ -570,21 +580,37 @@ class RingBuf {
   }
 
  private:
+  // The allocator is used to allocate memory, and to construct and destroy
+  // elements.
   alloc alloc_{};
-  pointer data_{nullptr};
-  size_type base_{0U};
-  size_type size_{0U};
 
-  size_type GetNext() { return detail::RingWrap<Capacity>(base_ + size_); }
+  // The start of the dynamically allocated backing array.
+  pointer data_{nullptr};
+  // The next ring_index to write to for push_back().
+  pointer next_{nullptr};
+  // One past the last element of the dynamically allocated backing array.
+  pointer data_end_{nullptr};
+
+  // Start of the ring buffer in data_.
+  size_type ring_offset_{0U};
+  // The number of elements in the ring buffer (distance between begin() and
+  // end()).
+  size_type size_{0U};
 
   // Move things around after growing.
   void Progress() {
-    // The base only moves when we're full.
-    if (size_ == Capacity) {
-      base_ = detail::RingWrap<Capacity>(base_ + 1);
+    // next_ moves after each push.
+    next_++;
+    if (next_ == data_end_) {
+      next_ = data_;
     }
 
-    // Size will never exceed the capacity.
+    // ring_offset_ only moves when we're full.
+    if (size_ == Capacity) {
+      ring_offset_ = detail::RingWrap<Capacity>(ring_offset_ + 1);
+    }
+
+    // size_ will never exceed the capacity.
     if (size_ < Capacity) {
       size_++;
     }
