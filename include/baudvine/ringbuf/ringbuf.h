@@ -98,7 +98,7 @@ class Iterator {
    */
   explicit operator Iterator<const value_type, Capacity>() const {
     return Iterator<const value_type, Capacity>(data_, ring_offset_,
-                                               ring_index_);
+                                                ring_index_);
   }
 
   reference operator*() const noexcept {
