@@ -179,7 +179,7 @@ TEST_P(RingBuf, PopBack) {
     underTest.push_back(45);  // push, 42 rolls off
     underTest.pop_back();     // pop, 45 rolls off
 
-    EXPECT_EQ(underTest.at(0), 43U);
+    EXPECT_EQ(underTest.at(0), 43);
     EXPECT_EQ(underTest.size(), 2U);
   }
 }
