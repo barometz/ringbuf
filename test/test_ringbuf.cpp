@@ -18,17 +18,17 @@ TEST_P(RingBuf, Zero) {
   // just doesn't do anything useful. Consistency is king.
   auto underTest = MakeAdapter<int, 0>();
 
-  EXPECT_EQ(underTest.max_size(), 0);
-  EXPECT_EQ(underTest.size(), 0);
+  EXPECT_EQ(underTest.max_size(), 0U);
+  EXPECT_EQ(underTest.size(), 0U);
   EXPECT_NO_THROW(underTest.push_back(53));
-  EXPECT_EQ(underTest.size(), 0);
+  EXPECT_EQ(underTest.size(), 0U);
 }
 
 TEST_P(RingBuf, Capacity) {
-  EXPECT_EQ((MakeAdapter<char, 128>()).max_size(), 128);
-  EXPECT_EQ((MakeAdapter<int, 1>()).max_size(), 1);
-  EXPECT_EQ((MakeAdapter<int, 128>()).max_size(), 128);
-  EXPECT_EQ((MakeAdapter<int, 500>()).max_size(), 500);
+  EXPECT_EQ((MakeAdapter<char, 128>()).max_size(), 128U);
+  EXPECT_EQ((MakeAdapter<int, 1>()).max_size(), 1U);
+  EXPECT_EQ((MakeAdapter<int, 128>()).max_size(), 128U);
+  EXPECT_EQ((MakeAdapter<int, 500>()).max_size(), 500U);
 }
 
 TEST_P(RingBuf, AtEmpty) {
@@ -54,7 +54,7 @@ TEST_P(RingBuf, PushBack) {
   underTest.push_back("two");
   EXPECT_EQ(underTest.at(1), "two");
   EXPECT_EQ(underTest.at(0), "one");
-  EXPECT_EQ(underTest.size(), 2);
+  EXPECT_EQ(underTest.size(), 2U);
 }
 
 TEST_P(RingBuf, PushOver) {
@@ -63,14 +63,14 @@ TEST_P(RingBuf, PushOver) {
   underTest.push_back("two");
   underTest.push_back("three");
 
-  EXPECT_EQ(underTest.size(), 2);
+  EXPECT_EQ(underTest.size(), 2U);
   EXPECT_EQ(underTest.at(0), "two");
   EXPECT_EQ(underTest.at(1), "three");
 
   underTest.push_back("five");
   underTest.push_back("six");
   underTest.push_back("seven");
-  EXPECT_EQ(underTest.size(), 2);
+  EXPECT_EQ(underTest.size(), 2U);
   EXPECT_EQ(underTest.at(0), "six");
   EXPECT_EQ(underTest.at(1), "seven");
 }
@@ -80,7 +80,7 @@ TEST_P(RingBuf, Pop) {
   underTest.push_back(41);
   underTest.pop_front();
   EXPECT_TRUE(underTest.empty());
-  EXPECT_EQ(underTest.size(), 0);
+  EXPECT_EQ(underTest.size(), 0U);
 
   for (auto i : {1, 2}) {
     std::ignore = i;
@@ -91,7 +91,7 @@ TEST_P(RingBuf, Pop) {
     underTest.pop_front();    // pop, 43 rolls off
 
     EXPECT_EQ(underTest.at(0), 44);
-    EXPECT_EQ(underTest.size(), 2);
+    EXPECT_EQ(underTest.size(), 2U);
   }
 }
 
@@ -143,7 +143,7 @@ TEST_P(RingBuf, PushFront) {
   underTest.push_front("two");
   EXPECT_EQ(underTest.at(1), "one");
   EXPECT_EQ(underTest.at(0), "two");
-  EXPECT_EQ(underTest.size(), 2);
+  EXPECT_EQ(underTest.size(), 2U);
 }
 
 TEST_P(RingBuf, PushFrontOver) {
@@ -152,14 +152,14 @@ TEST_P(RingBuf, PushFrontOver) {
   underTest.push_front("two");
   underTest.push_front("three");
 
-  EXPECT_EQ(underTest.size(), 2);
+  EXPECT_EQ(underTest.size(), 2U);
   EXPECT_EQ(underTest.at(0), "three");
   EXPECT_EQ(underTest.at(1), "two");
 
   underTest.push_front("five");
   underTest.push_front("six");
   underTest.push_front("seven");
-  EXPECT_EQ(underTest.size(), 2);
+  EXPECT_EQ(underTest.size(), 2U);
   EXPECT_EQ(underTest.at(0), "seven");
   EXPECT_EQ(underTest.at(1), "six");
 }
@@ -169,7 +169,7 @@ TEST_P(RingBuf, PopBack) {
   underTest.push_back(41);
   underTest.pop_back();
   EXPECT_TRUE(underTest.empty());
-  EXPECT_EQ(underTest.size(), 0);
+  EXPECT_EQ(underTest.size(), 0U);
 
   for (auto i : {1, 2}) {
     std::ignore = i;
@@ -180,7 +180,7 @@ TEST_P(RingBuf, PopBack) {
     underTest.pop_back();     // pop, 45 rolls off
 
     EXPECT_EQ(underTest.at(0), 43);
-    EXPECT_EQ(underTest.size(), 2);
+    EXPECT_EQ(underTest.size(), 2U);
   }
 }
 
@@ -193,7 +193,7 @@ TEST_P(RingBuf, DoubleEnded) {
   underTest.push_front(5);
   underTest.pop_front();
   underTest.pop_back();
-  ASSERT_EQ(underTest.size(), 1);
+  ASSERT_EQ(underTest.size(), 1U);
   ASSERT_EQ(underTest[0], 1);
 }
 
@@ -253,7 +253,7 @@ TEST_P(RingBuf, Clear) {
   underTest.push_back(RefCounter{});
   underTest.push_back(RefCounter{});
   EXPECT_NO_THROW(underTest.clear());
-  EXPECT_EQ(underTest.size(), 0);
+  EXPECT_EQ(underTest.size(), 0U);
 }
 
 INSTANTIATE_TEST_SUITE_P(RingBuf,

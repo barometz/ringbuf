@@ -32,7 +32,7 @@ jobs:
         cmake -B ${{github.workspace}}/build
         -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         -DCMAKE_CXX_COMPILER=${{matrix.cxx}}
-        -DCMAKE_CXX_VERSION=${{matrix.cxx_version}}
+        -DCMAKE_CXX_STANDARD=${{matrix.cxx_version}}
 
     - name: Build
       # Build your program with the given configuration
@@ -61,7 +61,7 @@ jobs:
       run: >
         cmake -B ${{github.workspace}}/build
         -A ${{matrix.platform}}
-        -DCMAKE_CXX_VERSION=${{matrix.cxx_version}}
+        -DCMAKE_CXX_STANDARD=${{matrix.cxx_version}}
         -Dgtest_force_shared_crt=ON
 
     - name: Build
