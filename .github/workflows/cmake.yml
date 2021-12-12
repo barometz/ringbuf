@@ -62,6 +62,7 @@ jobs:
         cmake -B ${{github.workspace}}/build
         -A ${{matrix.platform}}
         -DCMAKE_CXX_VERSION=${{matrix.cxx_version}}
+        -Dgtest_force_shared_crt=ON
 
     - name: Build
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
