@@ -14,4 +14,6 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: clang-format check
-      run: find include test -name "*.cpp" -or -name "*.h" | xargs clang-format -n -Werror
+      run: >
+        find ${{github.workspace}}/include ${{github.workspace}}/test -name "*.cpp" -or -name "*.h"
+        | xargs clang-format -n -Werror
