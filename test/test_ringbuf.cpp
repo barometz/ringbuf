@@ -1,7 +1,7 @@
 #include "ringbuf_adapter.h"
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include <memory>
 
@@ -136,7 +136,6 @@ TEST_P(RingBuf, Comparison) {
   EXPECT_EQ(a, c);
 }
 
-
 TEST_P(RingBuf, PushFront) {
   auto underTest = MakeAdapter<std::string, 3>();
   underTest.push_front("one");
@@ -178,7 +177,7 @@ TEST_P(RingBuf, PopBack) {
     underTest.push_back(43);  // push
     underTest.push_back(44);  // push
     underTest.push_back(45);  // push, 42 rolls off
-    underTest.pop_back();    // pop, 45 rolls off
+    underTest.pop_back();     // pop, 45 rolls off
 
     EXPECT_EQ(underTest.at(0), 43);
     EXPECT_EQ(underTest.size(), 2);

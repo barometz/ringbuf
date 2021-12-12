@@ -35,7 +35,9 @@ class RingBufAdapter {
   const Elem& at(size_t index) const { return DISPATCH(at(index)); }
   void clear() { return DISPATCH(clear()); }
   void push_front(const Elem& value) { return DISPATCH(push_front(value)); }
-  void push_front(Elem&& value) { return DISPATCH(push_front(std::move(value))); }
+  void push_front(Elem&& value) {
+    return DISPATCH(push_front(std::move(value)));
+  }
   template <typename... Args>
   void emplace_front(Args... args) {
     return DISPATCH(emplace_front(std::forward<Args>(args)...));

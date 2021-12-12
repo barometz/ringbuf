@@ -58,7 +58,9 @@ class DequeRingBuf {
   void clear() { return data_.clear(); }
 
   void push_front(const_reference value) { return emplace_front(value); }
-  void push_front(value_type&& value) { return emplace_front(std::move(value)); }
+  void push_front(value_type&& value) {
+    return emplace_front(std::move(value));
+  }
 
   template <typename... Args>
   void emplace_front(Args... args) {
