@@ -49,7 +49,7 @@ What can't it do? Well:
 
 - Reverse iterators.
 - There are separate tests for the deque and non-deque iterators.
-- Iterator performance could probably be improved by doing less math.
+- Comparison between ring buffers of different capacities isn't possible yet.
 
 ## NOT TODO
 What won't it do? Most of these will be because of the "Readable" goal. A

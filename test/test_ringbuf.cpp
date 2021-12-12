@@ -17,17 +17,17 @@ TEST_P(RingBuf, Zero) {
   // just doesn't do anything useful. Consistency is king.
   auto underTest = MakeAdapter<int, 0>();
 
-  EXPECT_EQ(underTest.capacity(), 0);
+  EXPECT_EQ(underTest.max_size(), 0);
   EXPECT_EQ(underTest.size(), 0);
   EXPECT_NO_THROW(underTest.push_back(53));
   EXPECT_EQ(underTest.size(), 0);
 }
 
 TEST_P(RingBuf, Capacity) {
-  EXPECT_EQ((MakeAdapter<char, 128>()).capacity(), 128);
-  EXPECT_EQ((MakeAdapter<int, 1>()).capacity(), 1);
-  EXPECT_EQ((MakeAdapter<int, 128>()).capacity(), 128);
-  EXPECT_EQ((MakeAdapter<int, 500>()).capacity(), 500);
+  EXPECT_EQ((MakeAdapter<char, 128>()).max_size(), 128);
+  EXPECT_EQ((MakeAdapter<int, 1>()).max_size(), 1);
+  EXPECT_EQ((MakeAdapter<int, 128>()).max_size(), 128);
+  EXPECT_EQ((MakeAdapter<int, 500>()).max_size(), 500);
 }
 
 TEST_P(RingBuf, AtEmpty) {
@@ -110,6 +110,29 @@ TEST_P(RingBuf, FrontBack) {
   underTest.pop_front();
   EXPECT_EQ(underTest.front(), 2);
   EXPECT_EQ(underTest.back(), 1);
+}
+
+TEST_P(RingBuf, Comparison) {
+  auto a = MakeAdapter<int, 3>();
+  auto b = MakeAdapter<int, 3>();
+  auto c = MakeAdapter<int, 3>();
+
+  EXPECT_EQ(a, b);
+  EXPECT_EQ(a, c);
+
+  a.push_back(1);
+  EXPECT_NE(a, b);
+  b.push_back(1);
+  EXPECT_EQ(a, b);
+  c.push_back(2);
+  EXPECT_LT(a, c);
+
+  a.push_back(2);
+  a.push_back(3);
+  c.push_back(1);
+  c.push_back(2);
+  c.push_back(3);
+  EXPECT_EQ(a, c);
 }
 
 class RefCounter {

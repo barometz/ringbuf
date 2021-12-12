@@ -52,7 +52,6 @@ class RingBufAdapter {
   }
   void pop_front() { DISPATCH(pop_front()); }
   size_t size() { DISPATCH(size()); }
-  size_t capacity() { DISPATCH(capacity()); }
   size_t max_size() { DISPATCH(max_size()); }
   bool empty() { DISPATCH(empty()); }
 

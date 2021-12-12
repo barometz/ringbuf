@@ -53,8 +53,7 @@ class DequeRingBuf {
 
   bool empty() const { return data_.empty(); }
   size_type size() const { return data_.size(); }
-  constexpr size_type max_size() const { return capacity(); }
-  constexpr size_type capacity() const { return Capacity; }
+  constexpr size_type max_size() const { return Capacity; }
 
   void clear() { return data_.clear(); }
 
@@ -63,11 +62,11 @@ class DequeRingBuf {
 
   template <typename... Args>
   void emplace_back(Args... args) {
-    if (capacity() == 0) {
+    if (max_size() == 0) {
       return;
     }
 
-    if (size() == capacity()) {
+    if (size() == max_size()) {
       pop_front();
     }
 
