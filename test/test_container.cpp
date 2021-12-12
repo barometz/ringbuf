@@ -80,20 +80,20 @@ TYPED_TEST_P(Container, Equality) {
 
 TYPED_TEST_P(Container, Size) {
   TypeParam underTest;
-  EXPECT_EQ(underTest.size(), 0);
+  EXPECT_EQ(underTest.size(), 0U);
 
   underTest.push_back(4);
-  EXPECT_EQ(underTest.size(), 1);
+  EXPECT_EQ(underTest.size(), 1U);
 
   underTest.push_back(0);
   underTest.push_back(24);
   underTest.push_back(500);
-  EXPECT_EQ(underTest.size(), 3);
+  EXPECT_EQ(underTest.size(), 3U);
 }
 
 TYPED_TEST_P(Container, MaxSize) {
   TypeParam underTest;
-  EXPECT_GE(underTest.max_size(), 3);
+  EXPECT_GE(underTest.max_size(), 3U);
 }
 
 TYPED_TEST_P(Container, Empty) {
