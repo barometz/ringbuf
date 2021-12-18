@@ -150,6 +150,8 @@ class Iterator {
   }
 
   template <typename E, std::size_t C, typename OutputIt>
+  // https://github.com/llvm/llvm-project/issues/47430
+  // NOLINTNEXTLINE(readability-redundant-declaration)
   friend OutputIt copy(const Iterator<E, C>& begin,
                        const Iterator<E, C>& end,
                        OutputIt out);
