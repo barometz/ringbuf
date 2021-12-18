@@ -112,7 +112,8 @@ TEST(Speed, IterateOver) {
 }
 
 TEST(Speed, Copy) {
-  // baudvine::copy should be faster than std::copy as std::copy doesn't know that there are at most two contiguous sections.
+  // baudvine::copy should be faster than std::copy as std::copy doesn't know
+  // that there are at most two contiguous sections.
   baudvine::RingBuf<int, kTestSize> underTest;
   std::fill_n(std::back_inserter(underTest), kTestSize, 55);
 
