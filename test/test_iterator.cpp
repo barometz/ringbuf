@@ -108,4 +108,22 @@ TEST(IteratorSta, Copy) {
   copy.clear();
   baudvine::copy(underTest.begin(), underTest.end(), std::back_inserter(copy));
   EXPECT_THAT(copy, testing::ElementsAre("5"));
+
+  underTest.pop_back();
+  copy.clear();
+  baudvine::copy(underTest.begin(), underTest.end(), std::back_inserter(copy));
+  EXPECT_THAT(copy, testing::ElementsAre());
+}
+
+TEST(IteratorSta, CopyAdl) {
+  // Check for argument-dependent lookup of baudvine::copy. This test only uses
+  // iterators from the baudvine namespace to suppress std::copy.
+
+  baudvine::RingBuf<int, 3> a;
+  baudvine::RingBuf<int, 4> b;
+  std::fill_n(std::back_inserter(b), b.max_size(), 0);
+
+  a.push_back(4);
+  copy(a.begin(), a.end(), b.begin());
+  EXPECT_THAT(b, testing::ElementsAre(4, 0, 0, 0));
 }

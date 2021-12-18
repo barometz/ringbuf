@@ -110,3 +110,25 @@ TEST(Speed, IterateOver) {
   std::cout << "RingBuf:      " << standardDuration << std::endl;
   std::cout << "DequeRingBuf: " << dequeDuration << std::endl;
 }
+
+TEST(Speed, Copy) {
+  // baudvine::copy should be faster than std::copy as std::copy doesn't know that there are at most two contiguous sections.
+  baudvine::RingBuf<int, kTestSize> underTest;
+  std::fill_n(std::back_inserter(underTest), kTestSize, 55);
+
+  std::vector<int> copy;
+  copy.reserve(kTestSize);
+  std::fill_n(std::back_inserter(copy), kTestSize, 44);
+
+  auto customTime = TimeIt([&underTest, &copy] {
+    baudvine::copy(underTest.begin(), underTest.end(), copy.begin());
+  });
+
+  auto standardTime = TimeIt([&underTest, &copy] {
+    std::copy(underTest.begin(), underTest.end(), copy.begin());
+  });
+
+  EXPECT_LT(customTime, standardTime);
+  std::cout << "baudvine::copy: " << customTime << std::endl;
+  std::cout << "std::copy:      " << standardTime << std::endl;
+}
