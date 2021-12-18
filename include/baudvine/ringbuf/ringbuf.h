@@ -137,50 +137,10 @@ class Iterator {
     return !(lhs == rhs);
   }
 
-  /**
-   * @brief Copy the elements in the range [@c begin, @c end) to a destination
-   * range starting at @c out.
-   *
-   * @tparam OutputIt The output iterator type.
-   * @param begin Start of the source range.
-   * @param end End of the source range, one past the last element to copy.
-   * @param out Start of the destination range.
-   * @return OutputIt One past the last copied element in the destination range.
-   *
-   * note: I feel like this should be a friend instead of static, but haven't
-   * been able to get it to compile as a friend without moving the definition
-   * out of the class definition.
-   */
-  template <typename OutputIt>
-  static OutputIt copy(const Iterator& begin,
-                       const Iterator& end,
-                       OutputIt out) {
-    assert(begin <= end);
-
-    // The length of the contiguous section to copy that starts at `begin`.
-    ptrdiff_t beginLength;
-    // The length of the contiguous section to copy that ends at `end`, or 0 if
-    // [begin, end) is contiguous.
-    ptrdiff_t endLength;
-    
-    if (begin == end) {
-      // Empty range.
-      beginLength = 0;
-      endLength = 0;
-    } else if (&*end > &*begin) {
-      // Fully contiguous range.
-      beginLength = &*end - &*begin;
-      endLength = 0;
-    } else {
-      // Copy in two sections.
-      beginLength = &begin.data_[Capacity] - &*begin;
-      endLength = &*end - end.data_;
-    }
-
-    out = std::copy(&*begin, &*begin + beginLength, out);
-    out = std::copy(end.data_, end.data_ + endLength, out);
-    return out;
-  }
+  template <typename E, std::size_t C, typename OutputIt>
+  friend OutputIt copy(const Iterator<E, C>& begin,
+                       const Iterator<E, C>& end,
+                       OutputIt out);
 
  private:
   pointer data_{};
@@ -191,6 +151,49 @@ class Iterator {
   std::size_t ring_offset_{};
   std::size_t ring_index_{};
 };
+
+/**
+ * @brief Copy the elements in the range [@c begin, @c end) to a destination
+ * range starting at @c out.
+ *
+ * @tparam Elem The element type of the source iterators.
+ * @tparam Capacity The capacity of the source iterator's originating buffer.
+ * @tparam OutputIt The output iterator type.
+ * @param begin Start of the source range.
+ * @param end End of the source range, one past the last element to copy.
+ * @param out Start of the destination range.
+ * @return OutputIt One past the last copied element in the destination range.
+ */
+template <typename Elem, std::size_t Capacity, typename OutputIt>
+OutputIt copy(const Iterator<Elem, Capacity>& begin,
+              const Iterator<Elem, Capacity>& end,
+              OutputIt out) {
+  assert(begin <= end);
+
+  // The length of the contiguous section to copy that starts at `begin`.
+  ptrdiff_t beginLength;
+  // The length of the contiguous section to copy that ends at `end`, or 0 if
+  // [begin, end) is contiguous.
+  ptrdiff_t endLength;
+
+  if (begin == end) {
+    // Empty range.
+    beginLength = 0;
+    endLength = 0;
+  } else if (&*end > &*begin) {
+    // Fully contiguous range.
+    beginLength = &*end - &*begin;
+    endLength = 0;
+  } else {
+    // Copy in two sections.
+    beginLength = &begin.data_[Capacity] - &*begin;
+    endLength = &*end - end.data_;
+  }
+
+  out = std::copy(&*begin, &*begin + beginLength, out);
+  out = std::copy(end.data_, end.data_ + endLength, out);
+  return out;
+}
 
 }  // namespace detail
 
@@ -645,11 +648,6 @@ class RingBuf {
   }
 };
 
-template <typename Elem, std::size_t Capacity, typename OutputIt>
-OutputIt copy(const detail::Iterator<Elem, Capacity>& begin,
-              const detail::Iterator<Elem, Capacity>& end,
-              OutputIt out) {
-  return detail::Iterator<Elem, Capacity>::copy(begin, end, out);
-}
+using detail::copy;
 
 }  // namespace baudvine
