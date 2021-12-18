@@ -55,3 +55,22 @@ TEST(Example, RangeFor) {
     expected--;
   }
 }
+
+TEST(Example, Copy) {
+  // std::copy is slowish with RingBuf - it has to step through the iterators
+  // one by one as it doesn't know there are at worst two contiguous sections.
+  // Enter baudvine::copy(), which does.
+
+  baudvine::RingBuf<int, 3> buffer;
+  std::vector<int> vec(4);
+
+  buffer.push_back(4);
+  buffer.push_back(5);
+  buffer.push_back(6);
+  buffer.push_back(7);
+
+  baudvine::copy(buffer.begin(), buffer.end(), vec.begin());
+  // or more concisely thanks to ADL:
+  copy(buffer.begin(), buffer.end(), vec.begin());
+  EXPECT_THAT(vec, testing::ElementsAre(5, 6, 7, 0));
+}

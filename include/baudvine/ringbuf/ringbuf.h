@@ -38,6 +38,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <stdexcept>
 #include <tuple>
@@ -125,6 +126,18 @@ class Iterator {
            std::tie(rhs.data_, rhs.ring_offset_, rhs.ring_index_);
   }
 
+  friend bool operator>(const Iterator& lhs, const Iterator& rhs) noexcept {
+    return rhs < lhs;
+  }
+
+  friend bool operator<=(const Iterator& lhs, const Iterator& rhs) noexcept {
+    return !(rhs < lhs);
+  }
+
+  friend bool operator>=(const Iterator& lhs, const Iterator& rhs) noexcept {
+    return !(lhs < rhs);
+  }
+
   friend bool operator==(const Iterator& lhs, const Iterator& rhs) noexcept {
     // Comparison via std::tie is very slow in debug builds, eating into
     // range-for cycle time.
@@ -136,6 +149,13 @@ class Iterator {
     return !(lhs == rhs);
   }
 
+  template <typename E, std::size_t C, typename OutputIt>
+  // https://github.com/llvm/llvm-project/issues/47430
+  // NOLINTNEXTLINE(readability-redundant-declaration)
+  friend OutputIt copy(const Iterator<E, C>& begin,
+                       const Iterator<E, C>& end,
+                       OutputIt out);
+
  private:
   pointer data_{};
   // Keeping both ring_offset_ and ring_index_ around is algorithmically
@@ -145,6 +165,38 @@ class Iterator {
   std::size_t ring_offset_{};
   std::size_t ring_index_{};
 };
+
+/**
+ * @brief Copy the elements in the range [@c begin, @c end) to a destination
+ * range starting at @c out.
+ *
+ * @tparam Elem The element type of the source iterators.
+ * @tparam Capacity The capacity of the source iterator's originating buffer.
+ * @tparam OutputIt The output iterator type.
+ * @param begin Start of the source range.
+ * @param end End of the source range, one past the last element to copy.
+ * @param out Start of the destination range.
+ * @return OutputIt One past the last copied element in the destination range.
+ */
+template <typename Elem, std::size_t Capacity, typename OutputIt>
+OutputIt copy(const Iterator<Elem, Capacity>& begin,
+              const Iterator<Elem, Capacity>& end,
+              OutputIt out) {
+  assert(begin <= end);
+
+  if (begin == end) {
+    // Empty range, pass
+  } else if (&*end > &*begin) {
+    // Fully contiguous range.
+    out = std::copy(&*begin, &*end, out);
+  } else {
+    // Copy in two sections.
+    out = std::copy(&*begin, &begin.data_[Capacity], out);
+    out = std::copy(end.data_, &*end, out);
+  }
+
+  return out;
+}
 
 }  // namespace detail
 
@@ -598,4 +650,7 @@ class RingBuf {
     size_++;
   }
 };
+
+using detail::copy;
+
 }  // namespace baudvine
