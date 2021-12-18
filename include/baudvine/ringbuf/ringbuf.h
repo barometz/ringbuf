@@ -38,6 +38,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <stdexcept>
 #include <tuple>
@@ -60,6 +61,14 @@ constexpr std::size_t RingWrap(const std::size_t ring_index) {
   // Speed.PushBackOverFull test)
   return (ring_index < Capacity) ? ring_index : ring_index - Capacity;
 }
+
+template <typename Elem, size_t Capacity>
+class Iterator;
+
+template <typename E, std::size_t C, typename OutputIt>
+OutputIt copy(const Iterator<E, C>& begin,
+              const Iterator<E, C>& end,
+              OutputIt out);
 
 /**
  * @brief An iterator into RingBuf.
@@ -136,6 +145,21 @@ class Iterator {
     return !(lhs == rhs);
   }
 
+  /**
+   * @brief Copy the elements in the range [@c begin, @c end) to a destination
+   * range starting at @c out.
+   *
+   * @tparam OutputIt The output iterator type.
+   * @param begin Start of the source range.
+   * @param end End of the source range, one past the last element to copy.
+   * @param out Start of the destination range.
+   * @return OutputIt One past the last copied element in the destination range.
+   */
+  template <typename E, std::size_t C, typename OutputIt>
+  friend OutputIt copy(const Iterator<E, C>& begin,
+                       const Iterator<E, C>& end,
+                       OutputIt out);
+
  private:
   pointer data_{};
   // Keeping both ring_offset_ and ring_index_ around is algorithmically
@@ -145,6 +169,36 @@ class Iterator {
   std::size_t ring_offset_{};
   std::size_t ring_index_{};
 };
+
+/**
+ * @brief Copy the elements in the range [@c begin, @c end) to a destination
+ * range starting at @c out.
+ *
+ * @tparam OutputIt The output iterator type.
+ * @param begin Start of the source range.
+ * @param end End of the source range, one past the last element to copy.
+ * @param out Start of the destination range.
+ * @return OutputIt One past the last copied element in the destination range.
+ */
+template <typename E, std::size_t C, typename OutputIt>
+OutputIt copy(const Iterator<E, C>& begin,
+              const Iterator<E, C>& end,
+              OutputIt out) {
+  // TODO: calculate length efficiently
+  const auto length = std::distance(begin, end);
+  // TODO: assert or no?
+  assert(length >= 0);
+  const auto range1 = std::min<decltype(length)>(
+      length, C - (begin.ring_offset_ + begin.ring_index_));
+  const auto beginptr = &*begin;
+  out = std::copy(&beginptr[0], &beginptr[range1], out);
+  if (range1 == length) {
+    return out;
+  }
+  const auto endptr = &*end;
+  out = std::copy(end.data_, endptr, out);
+  return out;
+}
 
 }  // namespace detail
 
@@ -598,4 +652,12 @@ class RingBuf {
     size_++;
   }
 };
+
+template <typename Elem, std::size_t Capacity, typename OutputIt>
+OutputIt copy(const detail::Iterator<Elem, Capacity>& begin,
+              const detail::Iterator<Elem, Capacity>& end,
+              OutputIt out) {
+  return detail::copy(begin, end, out);
+}
+
 }  // namespace baudvine
