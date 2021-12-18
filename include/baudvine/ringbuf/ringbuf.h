@@ -170,28 +170,17 @@ OutputIt copy(const Iterator<Elem, Capacity>& begin,
               OutputIt out) {
   assert(begin <= end);
 
-  // The length of the contiguous section to copy that starts at `begin`.
-  ptrdiff_t beginLength;
-  // The length of the contiguous section to copy that ends at `end`, or 0 if
-  // [begin, end) is contiguous.
-  ptrdiff_t endLength;
-
   if (begin == end) {
-    // Empty range.
-    beginLength = 0;
-    endLength = 0;
+    // Empty range, pass
   } else if (&*end > &*begin) {
     // Fully contiguous range.
-    beginLength = &*end - &*begin;
-    endLength = 0;
+    out = std::copy(&*begin, &*end, out);
   } else {
     // Copy in two sections.
-    beginLength = &begin.data_[Capacity] - &*begin;
-    endLength = &*end - end.data_;
+    out = std::copy(&*begin, &begin.data_[Capacity], out);
+    out = std::copy(end.data_, &*end, out);
   }
 
-  out = std::copy(&*begin, &*begin + beginLength, out);
-  out = std::copy(end.data_, end.data_ + endLength, out);
   return out;
 }
 
