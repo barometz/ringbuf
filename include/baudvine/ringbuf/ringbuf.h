@@ -155,19 +155,30 @@ class Iterator {
   static OutputIt copy(const Iterator& begin,
                        const Iterator& end,
                        OutputIt out) {
-    // TODO: calculate length efficiently
-    const auto length = std::distance(begin, end);
-    // TODO: assert or no?
-    assert(length >= 0);
-    const auto range1 = std::min<decltype(length)>(
-        length, Capacity - (begin.ring_offset_ + begin.ring_index_));
-    const auto beginptr = &*begin;
-    out = std::copy(&beginptr[0], &beginptr[range1], out);
-    if (range1 == length) {
-      return out;
+    assert(begin <= end);
+
+    // The length of the contiguous section to copy that starts at `begin`.
+    ptrdiff_t beginLength;
+    // The length of the contiguous section to copy that ends at `end`, or 0 if
+    // [begin, end) is contiguous.
+    ptrdiff_t endLength;
+    
+    if (begin == end) {
+      // Empty range.
+      beginLength = 0;
+      endLength = 0;
+    } else if (&*end > &*begin) {
+      // Fully contiguous range.
+      beginLength = &*end - &*begin;
+      endLength = 0;
+    } else {
+      // Copy in two sections.
+      beginLength = &begin.data_[Capacity] - &*begin;
+      endLength = &*end - end.data_;
     }
-    const auto endptr = &*end;
-    out = std::copy(end.data_, endptr, out);
+
+    out = std::copy(&*begin, &*begin + beginLength, out);
+    out = std::copy(end.data_, end.data_ + endLength, out);
     return out;
   }
 

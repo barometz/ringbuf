@@ -102,4 +102,10 @@ TEST(IteratorSta, Copy) {
   copy.clear();
   baudvine::copy(underTest.begin(), underTest.end(), std::back_inserter(copy));
   EXPECT_THAT(copy, testing::ElementsAre("4", "5", "6"));
+
+  underTest.pop_front();
+  underTest.pop_back();
+  copy.clear();
+  baudvine::copy(underTest.begin(), underTest.end(), std::back_inserter(copy));
+  EXPECT_THAT(copy, testing::ElementsAre("5"));
 }

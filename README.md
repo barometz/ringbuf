@@ -57,7 +57,7 @@ typical implementation of std::vector doesn't adhere to this, and if you've ever
 tried reading those you know what I mean.
 
 - Don't want to bother with optional features based on C++ version. Strictly C++11.
-- No debug-only runtime checks.
+- No debug-only runtime checks, other than the occasional `assert`.
 
 ## Performance
 
