@@ -126,6 +126,18 @@ class Iterator {
            std::tie(rhs.data_, rhs.ring_offset_, rhs.ring_index_);
   }
 
+  friend bool operator>(const Iterator& lhs, const Iterator& rhs) noexcept {
+    return rhs < lhs;
+  }
+
+  friend bool operator<=(const Iterator& lhs, const Iterator& rhs) noexcept {
+    return !(rhs < lhs);
+  }
+
+  friend bool operator>=(const Iterator& lhs, const Iterator& rhs) noexcept {
+    return !(lhs < rhs);
+  }
+
   friend bool operator==(const Iterator& lhs, const Iterator& rhs) noexcept {
     // Comparison via std::tie is very slow in debug builds, eating into
     // range-for cycle time.
