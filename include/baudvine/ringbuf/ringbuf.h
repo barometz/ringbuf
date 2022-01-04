@@ -40,6 +40,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <iterator>
 #include <stdexcept>
 #include <tuple>
 
@@ -76,7 +77,7 @@ class Iterator {
   using value_type = Elem;
   using pointer = Elem*;
   using reference = Elem&;
-  using iterator_category = std::forward_iterator_tag;
+  using iterator_category = std::bidirectional_iterator_tag;
 
   constexpr Iterator() noexcept = default;
   /**
@@ -116,6 +117,17 @@ class Iterator {
 
   Iterator& operator++() noexcept {
     ++ring_index_;
+    return *this;
+  }
+
+  Iterator operator--(int) noexcept {
+    Iterator copy(*this);
+    operator--();
+    return copy;
+  }
+
+  Iterator& operator--() noexcept {
+    --ring_index_;
     return *this;
   }
 

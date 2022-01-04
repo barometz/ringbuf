@@ -1,9 +1,15 @@
 #pragma once
 
+#include "config.h"
+
+#ifdef BAUDVINE_HAVE_VARIANT
+#define BAUDVINE_HAVE_RINGBUF_ADAPTER
+
 #include <baudvine/ringbuf/deque_ringbuf.h>
 #include <baudvine/ringbuf/ringbuf.h>
 
 #include <ostream>
+#include <variant>
 
 enum class Variant {
   Standard,
@@ -20,10 +26,19 @@ inline std::ostream& operator<<(std::ostream& os, Variant variant) {
 template <typename Elem, std::size_t Capacity>
 class RingBufAdapter {
  public:
-  RingBufAdapter(Variant variant) : variant_(variant) {}
+  RingBufAdapter(Variant variant) {
+    switch (variant) {
+      case Variant::Standard:
+        ringbuf_.template emplace<baudvine::RingBuf<Elem, Capacity>>();
+        break;
+      case Variant::Deque:
+        ringbuf_.template emplace<baudvine::DequeRingBuf<Elem, Capacity>>();
+        break;
+    }
+  }
 
 #define DISPATCH(call) \
-  variant_ == Variant::Standard ? static_.call : dynamic_.call
+  std::visit([&](auto&& b) -> decltype(auto) { return b.call; }, ringbuf_)
 
   Elem& front() { return DISPATCH(front()); }
   Elem& back() { return DISPATCH(back()); }
@@ -55,32 +70,25 @@ class RingBufAdapter {
   bool empty() { return DISPATCH(empty()); }
 
   friend bool operator<(const RingBufAdapter& lhs, const RingBufAdapter& rhs) {
-    return lhs.variant_ == Variant::Standard ? lhs.static_ < rhs.static_
-                                             : lhs.dynamic_ < rhs.dynamic_;
+    return lhs.ringbuf_ < rhs.ringbuf_;
   }
 
   friend bool operator==(const RingBufAdapter& lhs, const RingBufAdapter& rhs) {
-    return lhs.variant_ == Variant::Standard ? lhs.static_ == rhs.static_
-                                             : lhs.dynamic_ == rhs.dynamic_;
+    return lhs.ringbuf_ == rhs.ringbuf_;
   }
 
   friend bool operator!=(const RingBufAdapter& lhs, const RingBufAdapter& rhs) {
-    return lhs.variant_ == Variant::Standard ? lhs.static_ != rhs.static_
-                                             : lhs.dynamic_ != rhs.dynamic_;
+    return lhs.ringbuf_ != rhs.ringbuf_;
   }
 
-  void swap(RingBufAdapter& other) {
-    return variant_ == Variant::Standard ? static_.swap(other.static_)
-                                         : dynamic_.swap(other.dynamic_);
-  }
+  void swap(RingBufAdapter& other) { return ringbuf_.swap(other.ringbuf_); }
 
 #undef DISPATCH
 
  private:
-  Variant variant_;
-
-  // This would be less annoying with std::variant, but the build should also
-  // run with C++11.
-  baudvine::RingBuf<Elem, Capacity> static_{};
-  baudvine::DequeRingBuf<Elem, Capacity> dynamic_{};
+  std::variant<baudvine::RingBuf<Elem, Capacity>,
+               baudvine::DequeRingBuf<Elem, Capacity>>
+      ringbuf_;
 };
+
+#endif  // BAUDVINE_HAVE_VARIANT
