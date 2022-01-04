@@ -51,8 +51,9 @@ jobs:
       matrix:
         platform: [Win32, x64]
         cxx_version: [11, 20]
+        runs-on: [windows-latest, windows-2022]
 
-    runs-on: windows-2022
+    runs-on: ${{matrix.runs-on}}
 
     steps:
     - uses: actions/checkout@v2
