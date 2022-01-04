@@ -234,6 +234,8 @@ class RingBuf {
   using alloc = std::allocator<value_type>;
   using alloc_traits = std::allocator_traits<alloc>;
 
+  using self = RingBuf<Elem, Capacity>;
+
   /**
    * @brief Construct a new ring buffer object, and allocate the required
    * memory.
@@ -380,25 +382,27 @@ class RingBuf {
   /**
    * @return A const iterator pointing at the start of the ring buffer.
    */
-  const_iterator begin() const noexcept { return cbegin(); }
-  /**
-   * @return A const iterator pointing at one past the last element of the ring
-   * buffer.
-   */
-  const_iterator end() const noexcept { return cend(); }
-  /**
-   * @return A const iterator pointing at the start of the ring buffer.
-   */
-  const_iterator cbegin() const noexcept {
+  const_iterator begin() const noexcept {
     return const_iterator(&data_[0], ring_offset_, 0);
   }
   /**
    * @return A const iterator pointing at one past the last element of the ring
    * buffer.
    */
-  const_iterator cend() const noexcept {
+  const_iterator end() const noexcept {
     return const_iterator(&data_[0], ring_offset_, size());
   }
+  /**
+   * @return A const iterator pointing at the start of the ring buffer.
+   */
+  const_iterator cbegin() const noexcept {
+    const_cast<self const&>(*this).begin();
+  }
+  /**
+   * @return A const iterator pointing at one past the last element of the ring
+   * buffer.
+   */
+  const_iterator cend() const noexcept { const_cast<self const&>(*this).end(); }
 
   /**
    * @brief Check if the ring buffer is empty.

@@ -89,6 +89,7 @@ What can't it do? Well:
   The tests for Container aren't as well organized as they could be either.
 - Needs more ~~cowbell~~ `noexcept`
 - Moved-from RingBuf instances can't be reused.
+- The iterator is not std::random_access_iterator, which is a slightly dubious but plausible fit.
 
 ### NOT TODO
 What won't it do?
