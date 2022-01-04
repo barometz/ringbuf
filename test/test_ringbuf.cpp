@@ -5,6 +5,8 @@
 
 #include <memory>
 
+#ifdef BAUDVINE_HAVE_RINGBUF_ADAPTER
+
 class RingBuf : public testing::TestWithParam<Variant> {
  public:
   template <typename Elem, size_t Capacity>
@@ -259,3 +261,5 @@ TEST_P(RingBuf, Clear) {
 INSTANTIATE_TEST_SUITE_P(RingBuf,
                          RingBuf,
                          testing::Values(Variant::Standard, Variant::Deque));
+
+#endif  // BAUDVINE_HAVE_RINGBUF_ADAPTER

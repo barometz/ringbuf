@@ -40,7 +40,7 @@ class RingBufAdapter {
 #define DISPATCH(call) \
   std::visit([&](auto&& b) -> decltype(auto) { return b.call; }, ringbuf_)
 
-  Elem& front() { return std::visit([](auto&& b) -> decltype(auto) { return b.front(); }, ringbuf_); }
+  Elem& front() { return DISPATCH(front()); }
   Elem& back() { return DISPATCH(back()); }
   Elem& operator[](size_t index) { return DISPATCH(operator[](index)); }
   const Elem& operator[](size_t index) const {
@@ -81,14 +81,14 @@ class RingBufAdapter {
     return lhs.ringbuf_ != rhs.ringbuf_;
   }
 
-  void swap(RingBufAdapter& other) {
-    return ringbuf_.swap(other.ringbuf_);
-  }
+  void swap(RingBufAdapter& other) { return ringbuf_.swap(other.ringbuf_); }
 
 #undef DISPATCH
 
  private:
-  std::variant<baudvine::RingBuf<Elem, Capacity>, baudvine::DequeRingBuf<Elem, Capacity>> ringbuf_;
+  std::variant<baudvine::RingBuf<Elem, Capacity>,
+               baudvine::DequeRingBuf<Elem, Capacity>>
+      ringbuf_;
 };
 
-#endif // BAUDVINE_HAVE_VARIANT
+#endif  // BAUDVINE_HAVE_VARIANT
