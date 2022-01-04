@@ -3,24 +3,13 @@
 
 #include "baudvine/ringbuf/deque_ringbuf.h"
 #include "baudvine/ringbuf/ringbuf.h"
-#include "config.h"
 
 #include <gtest/gtest.h>
-
-#ifdef BAUDVINE_HAVE_RANGES
-#include <ranges>
-#endif
 
 template <typename RingBuf>
 class Container : public testing::Test {};
 
 TYPED_TEST_SUITE_P(Container);
-
-#ifdef BAUDVINE_HAVE_RANGES
-TYPED_TEST_P(Container, IsRandomAccessRange) {
-  EXPECT_TRUE(std::ranges::random_access_range<TypeParam>);
-}
-#endif
 
 TYPED_TEST_P(Container, CopyCtor) {
   TypeParam original;
@@ -157,9 +146,6 @@ TYPED_TEST_P(Container, BeginEnd) {
 }
 
 REGISTER_TYPED_TEST_SUITE_P(Container,
-#ifdef BAUDVINE_HAVE_RANGES
-                            IsRandomAccessRange,
-#endif
                             CopyCtor,
                             MoveCtor,
                             Assignment,
