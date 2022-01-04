@@ -40,11 +40,9 @@
 // to 11.2 (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100900)
 #if __has_include(<bits/c++config.h>)
 #include <bits/c++config.h>
-#if __GLIBCXX__ >= 20210708L
-#define BAUDVINE_HAVE_RANGES 1
-#endif  // __GLIBCXX__
+#define BAUDVINE_HAVE_RANGES (__GLIBCXX__ >= 20210708L)
 #endif  // <bits/c++config.h>
-#elif __cpp_lib_ranges >= 201911L
-#define BAUDVINE_HAVE_RANGES 1
+#else
+#define BAUDVINE_HAVE_RANGES (__cpp_lib_ranges >= 201911L)
 #endif  // __clang__
-#endif  // BAUDVINE_HABE_CXX20
+#endif  // BAUDVINE_HAVE_CXX20
