@@ -35,7 +35,16 @@
 #ifdef BAUDVINE_HAVE_CXX20
 #include <version>
 
-#if __cpp_lib_ranges >= 201911L
+#if defined(__clang__) && __clang_major__ <= 13
+// Clang 13 has some issues with <ranges> in gcc's standard library prior
+// to 11.2 (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100900)
+#if __has_include(<bits/c++config.h>)
+#include <bits/c++config.h>
+#if __GLIBCXX__ >= 20210708L
 #define BAUDVINE_HAVE_RANGES 1
-#endif
-#endif
+#endif  // __GLIBCXX__
+#endif  // <bits/c++config.h>
+#elif __cpp_lib_ranges >= 201911L
+#define BAUDVINE_HAVE_RANGES 1
+#endif  // __clang__
+#endif  // BAUDVINE_HABE_CXX20

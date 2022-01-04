@@ -17,8 +17,7 @@ class Container : public testing::Test {};
 TYPED_TEST_SUITE_P(Container);
 
 #ifdef BAUDVINE_HAVE_RANGES
-TYPED_TEST_P(Container, IsRandomAccessRange)
-{
+TYPED_TEST_P(Container, IsRandomAccessRange) {
   EXPECT_TRUE(std::ranges::random_access_range<TypeParam>);
 }
 #endif
