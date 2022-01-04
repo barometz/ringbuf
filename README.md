@@ -80,7 +80,6 @@ Or use your editor or IDE with CMake integration of choice.
 What can't it do? Well:
 
 - Support for user-defined/provided allocators.
-
   It already uses `std::allocator` so it shouldn't require any big changes, just
   small and careful ones.
 - Reverse iterators.
@@ -89,6 +88,7 @@ What can't it do? Well:
   [SequenceContainer](https://en.cppreference.com/w/cpp/named_req/SequenceContainer).
   The tests for Container aren't as well organized as they could be either.
 - Needs more ~~cowbell~~ `noexcept`
+- Moved-from RingBuf instances can't be reused.
 
 ### NOT TODO
 What won't it do?

@@ -4,6 +4,7 @@ add_executable(ringbuf-test)
 file(GLOB test_files "test_*.cpp")
 target_sources(ringbuf-test PRIVATE
   examples.cpp
+  instance_counter.cpp
   ${test_files}
   )
 

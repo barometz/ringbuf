@@ -1,3 +1,4 @@
+#include "instance_counter.h"
 #include "ringbuf_adapter.h"
 
 #include <gmock/gmock.h>
@@ -199,61 +200,49 @@ TEST_P(RingBuf, DoubleEnded) {
   ASSERT_EQ(underTest[0], 1);
 }
 
-class RefCounter {
- public:
-  RefCounter() { counter_++; }
-  RefCounter(const RefCounter& /*other*/) { counter_++; }
-  RefCounter(RefCounter&& /*other*/) noexcept { counter_++; }
-  ~RefCounter() { counter_--; }
-
-  static int counter_;
-};
-
-int RefCounter::counter_ = 0;
-
 TEST_P(RingBuf, LifeTime) {
   {
-    auto underTest = MakeAdapter<RefCounter, 3>();
-    EXPECT_EQ(RefCounter::counter_, 0);
+    auto underTest = MakeAdapter<InstanceCounter, 3>();
+    EXPECT_EQ(InstanceCounter::GetCounter(), 0);
   }
-  EXPECT_EQ(RefCounter::counter_, 0);
+  EXPECT_EQ(InstanceCounter::GetCounter(), 0);
 
   {  // push/pop
-    auto underTest = MakeAdapter<RefCounter, 2>();
-    underTest.push_back(RefCounter{});
-    underTest.push_back(RefCounter{});
-    EXPECT_EQ(RefCounter::counter_, 2);
-    underTest.push_back(RefCounter{});
-    EXPECT_EQ(RefCounter::counter_, 2);
+    auto underTest = MakeAdapter<InstanceCounter, 2>();
+    underTest.push_back(InstanceCounter{});
+    underTest.push_back(InstanceCounter{});
+    EXPECT_EQ(InstanceCounter::GetCounter(), 2);
+    underTest.push_back(InstanceCounter{});
+    EXPECT_EQ(InstanceCounter::GetCounter(), 2);
     underTest.pop_front();
-    EXPECT_EQ(RefCounter::counter_, 1);
+    EXPECT_EQ(InstanceCounter::GetCounter(), 1);
   }
-  EXPECT_EQ(RefCounter::counter_, 0);
+  EXPECT_EQ(InstanceCounter::GetCounter(), 0);
 
   {  // copy
-    auto underTest = MakeAdapter<RefCounter, 2>();
-    underTest.push_back(RefCounter{});
-    underTest.push_back(RefCounter{});
+    auto underTest = MakeAdapter<InstanceCounter, 2>();
+    underTest.push_back(InstanceCounter{});
+    underTest.push_back(InstanceCounter{});
     auto copy = underTest;
-    EXPECT_EQ(RefCounter::counter_, 4);
+    EXPECT_EQ(InstanceCounter::GetCounter(), 4);
   }
-  EXPECT_EQ(RefCounter::counter_, 0);
+  EXPECT_EQ(InstanceCounter::GetCounter(), 0);
 
   {  // move
-    auto underTest = MakeAdapter<RefCounter, 2>();
-    underTest.push_back(RefCounter{});
-    underTest.push_back(RefCounter{});
+    auto underTest = MakeAdapter<InstanceCounter, 2>();
+    underTest.push_back(InstanceCounter{});
+    underTest.push_back(InstanceCounter{});
     auto copy = std::move(underTest);
-    EXPECT_EQ(RefCounter::counter_, 2);
+    EXPECT_EQ(InstanceCounter::GetCounter(), 2);
   }
-  EXPECT_EQ(RefCounter::counter_, 0);
+  EXPECT_EQ(InstanceCounter::GetCounter(), 0);
 }
 
 TEST_P(RingBuf, Clear) {
-  auto underTest = MakeAdapter<RefCounter, 3>();
+  auto underTest = MakeAdapter<InstanceCounter, 3>();
   EXPECT_NO_THROW(underTest.clear());
-  underTest.push_back(RefCounter{});
-  underTest.push_back(RefCounter{});
+  underTest.push_back(InstanceCounter{});
+  underTest.push_back(InstanceCounter{});
   EXPECT_NO_THROW(underTest.clear());
   EXPECT_EQ(underTest.size(), 0U);
 }

@@ -98,7 +98,7 @@ class Iterator {
    *
    * @returns A const iterator pointing to the same place.
    */
-  explicit operator Iterator<const value_type, Capacity>() const {
+  operator Iterator<const value_type, Capacity>() const {
     return Iterator<const value_type, Capacity>(data_, ring_offset_,
                                                 ring_index_);
   }
@@ -260,6 +260,9 @@ class RingBuf {
   /**
    * @brief Construct a new RingBuf object out of another, using bulk move
    * assignment.
+   *
+   * Note that other is not in a valid state after this and should not be used
+   * again.
    *
    * @param other The RingBuf to move the data out of.
    */
