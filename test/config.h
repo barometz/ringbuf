@@ -31,3 +31,11 @@
 #ifdef BAUDVINE_HAVE_CXX17
 #define BAUDVINE_HAVE_VARIANT 1
 #endif
+
+#ifdef BAUDVINE_HAVE_CXX20
+#include <version>
+
+#if __cpp_lib_ranges >= 201911L
+#define BAUDVINE_HAVE_RANGES 1
+#endif
+#endif
