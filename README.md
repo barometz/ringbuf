@@ -1,4 +1,16 @@
 # baudvine/ringbuf
+
+- [Overview](#overview)
+- [The present](#the-present)
+    - [Using](#using)
+    - [Building](#building)
+- [The Future](#the-future)
+    - [TODO](#todo)
+    - [NOT TODO](#not-todo)
+    - [MAYBE TODO](#maybe-todo)
+- [Performance](#performance)
+- [License](#license)
+
 ## Overview
 This is a header-only
 [ring/circular buffer](https://en.wikipedia.org/wiki/Circular_buffer)
@@ -21,14 +33,16 @@ standard library.
 dynamically allocated array, adding new elements to the end, and popping
 elements off the front when more space is needed.
 
-## Using
+## The present
+
+### Using
 See [test/examples.cpp](test/examples.cpp) for usage examples. The high-level
 pitch is this: you can use it as an STL container, except it wraps like a ring
 buffer. You get iterators, `front()`, `back()`, `push_back()`, `pop_front()`,
 `emplace_back()`, range-for, all\* the things you expect from a standard library
 container.
 
-## Building
+### Building
 The project is header-only, so you only have to copy
 `include/baudvine/ringbuf/ringbuf.h` into your project. You should also be able
 to include it as a CMake subproject, but that's untested.
@@ -44,20 +58,32 @@ build/test/ringbuf-test
 
 Or use your editor or IDE with CMake integration of choice.
 
-## TODO
+## The Future
+
+### TODO
 What can't it do? Well:
 
-- Reverse iterators.
-- There are separate tests for the deque and non-deque iterators.
-- Comparison between ring buffers of different capacities isn't possible yet.
+- Support for user-defined/provided allocators.
 
-## NOT TODO
-What won't it do? Most of these will be because of the "Readable" goal. A
-typical implementation of std::vector doesn't adhere to this, and if you've ever
-tried reading those you know what I mean.
+  It already uses `std::allocator` so it shouldn't require any big changes, just
+  small and careful ones.
+- Reverse iterators.
+- Generic tests for the iterators of the different implementations.
+
+### NOT TODO
+What won't it do?
 
 - Don't want to bother with optional features based on C++ version. Strictly C++11.
-- No debug-only runtime checks, other than the occasional `assert`.
+- Runtime checks are limited to the occasional `assert`.
+
+### MAYBE TODO
+
+- It's meant to be C++11-compatible without a lot of optional chunks for newer
+  standards, but maybe we can show that it *does* match the relevant C++20
+  iterator concepts.
+- An implementation with mutable capacity (drop the template parameter, add a
+  ctor parameter and a `set_capacity` member) would be slightly slower and
+  slightly nicer to use.
 
 ## Performance
 
