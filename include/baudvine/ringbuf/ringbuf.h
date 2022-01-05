@@ -43,6 +43,7 @@
 #include <iterator>
 #include <stdexcept>
 #include <tuple>
+#include <type_traits>
 
 namespace baudvine {
 namespace detail {
@@ -74,7 +75,7 @@ template <typename Elem, size_t Capacity>
 class Iterator {
  public:
   using difference_type = std::ptrdiff_t;
-  using value_type = Elem;
+  using value_type = typename std::remove_const<Elem>::type;
   using pointer = Elem*;
   using reference = Elem&;
   using iterator_category = std::bidirectional_iterator_tag;
@@ -98,7 +99,7 @@ class Iterator {
    *
    * @returns A const iterator pointing to the same place.
    */
-  explicit operator Iterator<const value_type, Capacity>() const {
+  operator Iterator<const value_type, Capacity>() const {
     return Iterator<const value_type, Capacity>(data_, ring_offset_,
                                                 ring_index_);
   }
@@ -233,6 +234,8 @@ class RingBuf {
   using alloc = std::allocator<value_type>;
   using alloc_traits = std::allocator_traits<alloc>;
 
+  using self = RingBuf<Elem, Capacity>;
+
   /**
    * @brief Construct a new ring buffer object, and allocate the required
    * memory.
@@ -260,6 +263,9 @@ class RingBuf {
   /**
    * @brief Construct a new RingBuf object out of another, using bulk move
    * assignment.
+   *
+   * Note that other is not in a valid state after this and should not be used
+   * again.
    *
    * @param other The RingBuf to move the data out of.
    */
@@ -376,24 +382,28 @@ class RingBuf {
   /**
    * @return A const iterator pointing at the start of the ring buffer.
    */
-  const_iterator begin() const noexcept { return cbegin(); }
-  /**
-   * @return A const iterator pointing at one past the last element of the ring
-   * buffer.
-   */
-  const_iterator end() const noexcept { return cend(); }
-  /**
-   * @return A const iterator pointing at the start of the ring buffer.
-   */
-  const_iterator cbegin() const noexcept {
+  const_iterator begin() const noexcept {
     return const_iterator(&data_[0], ring_offset_, 0);
   }
   /**
    * @return A const iterator pointing at one past the last element of the ring
    * buffer.
    */
-  const_iterator cend() const noexcept {
+  const_iterator end() const noexcept {
     return const_iterator(&data_[0], ring_offset_, size());
+  }
+  /**
+   * @return A const iterator pointing at the start of the ring buffer.
+   */
+  const_iterator cbegin() const noexcept {
+    return const_cast<self const&>(*this).begin();
+  }
+  /**
+   * @return A const iterator pointing at one past the last element of the ring
+   * buffer.
+   */
+  const_iterator cend() const noexcept {
+    return const_cast<self const&>(*this).end();
   }
 
   /**
