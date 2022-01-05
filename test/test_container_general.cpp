@@ -1,8 +1,7 @@
-// C++20 container.requirements.general
-
 #include "baudvine/ringbuf/deque_ringbuf.h"
 #include "baudvine/ringbuf/ringbuf.h"
 #include "instance_counter.h"
+#include "ringbuf_adapter.h"
 
 #include <gmock/gmock-matchers.h>
 #include <gtest/gtest.h>
@@ -11,22 +10,9 @@
 #include <type_traits>
 #include <vector>
 
-template <typename T, typename Elem, size_t Capacity>
-// Adapt any ringbuf type T<U, S> to T<Elem, Capacity>. This way the test can be
-// parametrized with T<int, 2> but individual tests can change the element type
-// and count if necessary.
-class RingBufAdapter;
-
-template <typename Elem, size_t Capacity, typename Elem1, size_t Capacity1>
-class RingBufAdapter<baudvine::RingBuf<Elem1, Capacity1>, Elem, Capacity>
-    : public baudvine::RingBuf<Elem, Capacity> {};
-
-template <typename Elem, size_t Capacity, typename Elem1, size_t Capacity1>
-class RingBufAdapter<baudvine::DequeRingBuf<Elem1, Capacity1>, Elem, Capacity>
-    : public baudvine::DequeRingBuf<Elem, Capacity> {};
-
 #define EXPECT_TYPE_EQ(T1, T2) EXPECT_TRUE((std::is_same<T1, T2>::value))
 
+// C++20 container.requirements.general
 template <typename RingBuf>
 class ContainerReqsGeneral : public testing::Test {
  public:

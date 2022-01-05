@@ -6,20 +6,19 @@
 
 #include <memory>
 
-#ifdef BAUDVINE_HAVE_RINGBUF_ADAPTER
+// Functional tests that don't derive directly from the C++ container spec.
+template <typename T>
+class RingBuf : public testing::Test {};
 
-class RingBuf : public testing::TestWithParam<Variant> {
- public:
-  template <typename Elem, size_t Capacity>
-  RingBufAdapter<Elem, Capacity> MakeAdapter() {
-    return RingBufAdapter<Elem, Capacity>(GetParam());
-  }
-};
+using RingBufs =
+    testing::Types<baudvine::RingBuf<int, 2>, baudvine::DequeRingBuf<int, 2>>;
+// NOLINTNEXTLINE - clang-tidy complains about missing variadic args
+TYPED_TEST_SUITE(RingBuf, RingBufs);
 
-TEST_P(RingBuf, Zero) {
+TYPED_TEST(RingBuf, Zero) {
   // The edge case of a size zero buffer can still essentially work, it
   // just doesn't do anything useful. Consistency is king.
-  auto underTest = MakeAdapter<int, 0>();
+  auto underTest = RingBufAdapter<TypeParam, int, 0>();
 
   EXPECT_EQ(underTest.max_size(), 0U);
   EXPECT_EQ(underTest.size(), 0U);
@@ -27,31 +26,31 @@ TEST_P(RingBuf, Zero) {
   EXPECT_EQ(underTest.size(), 0U);
 }
 
-TEST_P(RingBuf, Capacity) {
-  EXPECT_EQ((MakeAdapter<char, 128>()).max_size(), 128U);
-  EXPECT_EQ((MakeAdapter<int, 1>()).max_size(), 1U);
-  EXPECT_EQ((MakeAdapter<int, 128>()).max_size(), 128U);
-  EXPECT_EQ((MakeAdapter<int, 500>()).max_size(), 500U);
+TYPED_TEST(RingBuf, Capacity) {
+  EXPECT_EQ((RingBufAdapter<TypeParam, char, 128>()).max_size(), 128U);
+  EXPECT_EQ((RingBufAdapter<TypeParam, int, 1>()).max_size(), 1U);
+  EXPECT_EQ((RingBufAdapter<TypeParam, int, 128>()).max_size(), 128U);
+  EXPECT_EQ((RingBufAdapter<TypeParam, int, 500>()).max_size(), 500U);
 }
 
-TEST_P(RingBuf, AtEmpty) {
-  auto underTest = MakeAdapter<int, 4>();
+TYPED_TEST(RingBuf, AtEmpty) {
+  auto underTest = RingBufAdapter<TypeParam, int, 4>();
 
   EXPECT_THROW(underTest.at(0), std::out_of_range);
   EXPECT_THROW(underTest.at(1), std::out_of_range);
   EXPECT_THROW(underTest.at(4), std::out_of_range);
 }
 
-TEST_P(RingBuf, AtConstEmpty) {
-  const auto underTest = MakeAdapter<int, 4>();
+TYPED_TEST(RingBuf, AtConstEmpty) {
+  const auto underTest = RingBufAdapter<TypeParam, int, 4>();
 
   EXPECT_THROW(underTest.at(0), std::out_of_range);
   EXPECT_THROW(underTest.at(1), std::out_of_range);
   EXPECT_THROW(underTest.at(4), std::out_of_range);
 }
 
-TEST_P(RingBuf, PushBack) {
-  auto underTest = MakeAdapter<std::string, 3>();
+TYPED_TEST(RingBuf, PushBack) {
+  auto underTest = RingBufAdapter<TypeParam, std::string, 3>();
   underTest.push_back("one");
   EXPECT_EQ(underTest.at(0), "one");
   underTest.push_back("two");
@@ -60,8 +59,8 @@ TEST_P(RingBuf, PushBack) {
   EXPECT_EQ(underTest.size(), 2U);
 }
 
-TEST_P(RingBuf, PushOver) {
-  auto underTest = MakeAdapter<std::string, 2>();
+TYPED_TEST(RingBuf, PushOver) {
+  auto underTest = RingBufAdapter<TypeParam, std::string, 2>();
   underTest.push_back("one");
   underTest.push_back("two");
   underTest.push_back("three");
@@ -78,8 +77,8 @@ TEST_P(RingBuf, PushOver) {
   EXPECT_EQ(underTest.at(1), "seven");
 }
 
-TEST_P(RingBuf, Pop) {
-  auto underTest = MakeAdapter<int, 3>();
+TYPED_TEST(RingBuf, Pop) {
+  auto underTest = RingBufAdapter<TypeParam, int, 3>();
   underTest.push_back(41);
   underTest.pop_front();
   EXPECT_TRUE(underTest.empty());
@@ -98,8 +97,8 @@ TEST_P(RingBuf, Pop) {
   }
 }
 
-TEST_P(RingBuf, FrontBack) {
-  auto underTest = MakeAdapter<int, 3>();
+TYPED_TEST(RingBuf, FrontBack) {
+  auto underTest = RingBufAdapter<TypeParam, int, 3>();
 
   underTest.push_back(4);
   underTest.push_back(3);
@@ -116,10 +115,10 @@ TEST_P(RingBuf, FrontBack) {
   EXPECT_EQ(underTest.back(), 1);
 }
 
-TEST_P(RingBuf, Comparison) {
-  auto a = MakeAdapter<int, 3>();
-  auto b = MakeAdapter<int, 3>();
-  auto c = MakeAdapter<int, 3>();
+TYPED_TEST(RingBuf, Comparison) {
+  auto a = RingBufAdapter<TypeParam, int, 3>();
+  auto b = RingBufAdapter<TypeParam, int, 3>();
+  auto c = RingBufAdapter<TypeParam, int, 3>();
 
   EXPECT_EQ(a, b);
   EXPECT_EQ(a, c);
@@ -139,8 +138,8 @@ TEST_P(RingBuf, Comparison) {
   EXPECT_EQ(a, c);
 }
 
-TEST_P(RingBuf, PushFront) {
-  auto underTest = MakeAdapter<std::string, 3>();
+TYPED_TEST(RingBuf, PushFront) {
+  auto underTest = RingBufAdapter<TypeParam, std::string, 3>();
   underTest.push_front("one");
   EXPECT_EQ(underTest.at(0), "one");
   underTest.push_front("two");
@@ -149,8 +148,8 @@ TEST_P(RingBuf, PushFront) {
   EXPECT_EQ(underTest.size(), 2U);
 }
 
-TEST_P(RingBuf, PushFrontOver) {
-  auto underTest = MakeAdapter<std::string, 2>();
+TYPED_TEST(RingBuf, PushFrontOver) {
+  auto underTest = RingBufAdapter<TypeParam, std::string, 2>();
   underTest.push_front("one");
   underTest.push_front("two");
   underTest.push_front("three");
@@ -167,8 +166,8 @@ TEST_P(RingBuf, PushFrontOver) {
   EXPECT_EQ(underTest.at(1), "six");
 }
 
-TEST_P(RingBuf, PopBack) {
-  auto underTest = MakeAdapter<int, 3>();
+TYPED_TEST(RingBuf, PopBack) {
+  auto underTest = RingBufAdapter<TypeParam, int, 3>();
   underTest.push_back(41);
   underTest.pop_back();
   EXPECT_TRUE(underTest.empty());
@@ -187,8 +186,8 @@ TEST_P(RingBuf, PopBack) {
   }
 }
 
-TEST_P(RingBuf, DoubleEnded) {
-  auto underTest = MakeAdapter<int, 3>();
+TYPED_TEST(RingBuf, DoubleEnded) {
+  auto underTest = RingBufAdapter<TypeParam, int, 3>();
   underTest.push_front(1);
   underTest.push_back(2);
   underTest.push_front(3);
@@ -200,15 +199,15 @@ TEST_P(RingBuf, DoubleEnded) {
   ASSERT_EQ(underTest[0], 1);
 }
 
-TEST_P(RingBuf, LifeTime) {
+TYPED_TEST(RingBuf, LifeTime) {
   {
-    auto underTest = MakeAdapter<InstanceCounter, 3>();
+    auto underTest = RingBufAdapter<TypeParam, InstanceCounter, 3>();
     EXPECT_EQ(InstanceCounter::GetCounter(), 0);
   }
   EXPECT_EQ(InstanceCounter::GetCounter(), 0);
 
   {  // push/pop
-    auto underTest = MakeAdapter<InstanceCounter, 2>();
+    auto underTest = RingBufAdapter<TypeParam, InstanceCounter, 2>();
     underTest.push_back(InstanceCounter{});
     underTest.push_back(InstanceCounter{});
     EXPECT_EQ(InstanceCounter::GetCounter(), 2);
@@ -220,7 +219,7 @@ TEST_P(RingBuf, LifeTime) {
   EXPECT_EQ(InstanceCounter::GetCounter(), 0);
 
   {  // copy
-    auto underTest = MakeAdapter<InstanceCounter, 2>();
+    auto underTest = RingBufAdapter<TypeParam, InstanceCounter, 2>();
     underTest.push_back(InstanceCounter{});
     underTest.push_back(InstanceCounter{});
     auto copy = underTest;
@@ -229,7 +228,7 @@ TEST_P(RingBuf, LifeTime) {
   EXPECT_EQ(InstanceCounter::GetCounter(), 0);
 
   {  // move
-    auto underTest = MakeAdapter<InstanceCounter, 2>();
+    auto underTest = RingBufAdapter<TypeParam, InstanceCounter, 2>();
     underTest.push_back(InstanceCounter{});
     underTest.push_back(InstanceCounter{});
     auto copy = std::move(underTest);
@@ -238,17 +237,11 @@ TEST_P(RingBuf, LifeTime) {
   EXPECT_EQ(InstanceCounter::GetCounter(), 0);
 }
 
-TEST_P(RingBuf, Clear) {
-  auto underTest = MakeAdapter<InstanceCounter, 3>();
+TYPED_TEST(RingBuf, Clear) {
+  auto underTest = RingBufAdapter<TypeParam, InstanceCounter, 3>();
   EXPECT_NO_THROW(underTest.clear());
   underTest.push_back(InstanceCounter{});
   underTest.push_back(InstanceCounter{});
   EXPECT_NO_THROW(underTest.clear());
   EXPECT_EQ(underTest.size(), 0U);
 }
-
-INSTANTIATE_TEST_SUITE_P(RingBuf,
-                         RingBuf,
-                         testing::Values(Variant::Standard, Variant::Deque));
-
-#endif  // BAUDVINE_HAVE_RINGBUF_ADAPTER
