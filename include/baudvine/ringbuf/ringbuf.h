@@ -396,13 +396,15 @@ class RingBuf {
    * @return A const iterator pointing at the start of the ring buffer.
    */
   const_iterator cbegin() const noexcept {
-    const_cast<self const&>(*this).begin();
+    return const_cast<self const&>(*this).begin();
   }
   /**
    * @return A const iterator pointing at one past the last element of the ring
    * buffer.
    */
-  const_iterator cend() const noexcept { const_cast<self const&>(*this).end(); }
+  const_iterator cend() const noexcept {
+    return const_cast<self const&>(*this).end();
+  }
 
   /**
    * @brief Check if the ring buffer is empty.

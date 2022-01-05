@@ -1,4 +1,4 @@
-// C++21 container.requirements.general
+// C++20 container.requirements.general
 
 #include "baudvine/ringbuf/ringbuf.h"
 #include "instance_counter.h"
@@ -12,86 +12,95 @@
 
 #define EXPECT_TYPE_EQ(T1, T2) EXPECT_TRUE((std::is_same<T1, T2>::value))
 
-TEST(ContainerReqsGeneral, Typedefs) {
-  using RingBuf = baudvine::RingBuf<int, 0>;
+class ContainerReqsGeneral : public testing::Test {
+ public:
+  void SetUp() override {
+    a.clear();
+    a.push_back(1);
+    a.push_back(2);
+    a.push_back(3);
+    b.clear();
+    b.push_back(3);
+    b.push_back(4);
+    b.push_back(5);
+    r.clear();
+    r.push_back(5);
+    r.push_back(6);
+    r.push_back(7);
+  }
 
-  EXPECT_TYPE_EQ(RingBuf::value_type, int);
-  EXPECT_TYPE_EQ(RingBuf::reference, int&);
-  EXPECT_TYPE_EQ(RingBuf::const_reference, const int&);
+  using X = baudvine::RingBuf<int, 2>;
+  X a{};
+  X b{};
+  X r{};
+  X&& rv = std::move(r);
+};
 
-  using iterator = RingBuf::iterator;
+TEST_F(ContainerReqsGeneral, TypeAliases) {
+  EXPECT_TYPE_EQ(X::value_type, int);
+  EXPECT_TYPE_EQ(X::reference, int&);
+  EXPECT_TYPE_EQ(X::const_reference, const int&);
+
+  using iterator = X::iterator;
   EXPECT_TYPE_EQ(iterator::value_type, int);
 
-  using const_iterator = RingBuf::const_iterator;
+  using const_iterator = X::const_iterator;
   EXPECT_TRUE((std::is_convertible<iterator, const_iterator>::value));
   EXPECT_TYPE_EQ(const_iterator::value_type, int);
 
-  using difference_type = RingBuf::difference_type;
+  using difference_type = X::difference_type;
   EXPECT_TRUE(std::is_signed<difference_type>::value);
   EXPECT_TYPE_EQ(difference_type, iterator::difference_type);
   EXPECT_TYPE_EQ(difference_type, const_iterator::difference_type);
 
-  using size_type = RingBuf::size_type;
+  using size_type = X::size_type;
   EXPECT_TRUE(std::is_unsigned<size_type>::value);
   EXPECT_TRUE(std::numeric_limits<size_type>::max() >=
               std::numeric_limits<difference_type>::max());
 }
 
-TEST(ContainerReqsGeneral, DefaultCtor) {
-  baudvine::RingBuf<int, 3> defaultInitialized;
-  EXPECT_TRUE(defaultInitialized.empty());
-
-  // Value-init:
-  EXPECT_TRUE((baudvine::RingBuf<int, 3>()).empty());
+TEST_F(ContainerReqsGeneral, DefaultInitialized) {
+  X u;
+  EXPECT_TRUE(u.empty());
 }
 
-TEST(ContainerReqsGeneral, Copy) {
-  baudvine::RingBuf<int, 3> a;
-  a.push_back(1);
-  a.push_back(2);
-
-  EXPECT_EQ((baudvine::RingBuf<int, 3>(a)), a);
-
-  baudvine::RingBuf<int, 3> directInit(a);
-  EXPECT_EQ(directInit, a);
-
-  baudvine::RingBuf<int, 3> copyInit = a;
-  EXPECT_EQ(copyInit, a);
+TEST_F(ContainerReqsGeneral, ValueInitialized) {
+  EXPECT_TRUE(X().empty());
 }
 
-TEST(ContainerReqsGeneral, Move) {
-  baudvine::RingBuf<int, 3> a;
-  a.push_back(1);
-  a.push_back(2);
-
-  {
-    baudvine::RingBuf<int, 3> copy = a;
-    baudvine::RingBuf<int, 3> directInit(std::move(copy));
-    EXPECT_EQ(directInit, a);
-  }
-
-  {
-    baudvine::RingBuf<int, 3> copy = a;
-    // Still called copy-initialization, oddly.
-    baudvine::RingBuf<int, 3> copyInit = std::move(copy);
-    EXPECT_EQ(copyInit, a);
-  }
-
-  {
-    using RingBuf = baudvine::RingBuf<int, 3>;
-    RingBuf copy = a;
-    RingBuf moveAssignment;
-
-    EXPECT_TYPE_EQ(decltype(moveAssignment = std::move(copy)), RingBuf&);
-    moveAssignment = std::move(copy);
-    // TODO: "All existing elements of [moveAssignment] are either move assigned
-    // to or destroyed", which doesn't quite match the implementation. Probably
-    // deal with that together with allocator support.
-    EXPECT_EQ(moveAssignment, a);
-  }
+TEST_F(ContainerReqsGeneral, DirectInitUnnamed) {
+  EXPECT_THAT(X(a), testing::ContainerEq(a));
 }
 
-TEST(ContainerReqsGeneral, Destructor) {
+TEST_F(ContainerReqsGeneral, DirectInit) {
+  X u(a);
+  EXPECT_THAT(u, testing::ContainerEq(a));
+}
+
+TEST_F(ContainerReqsGeneral, CopyInit) {
+  X u = a;
+  EXPECT_THAT(u, testing::ContainerEq(a));
+}
+
+TEST_F(ContainerReqsGeneral, DirectInitMove) {
+  X u(rv);
+  EXPECT_THAT(u, testing::ContainerEq(r));
+}
+
+TEST_F(ContainerReqsGeneral, CopyInitMove) {
+  X u = rv;
+  EXPECT_THAT(u, testing::ContainerEq(r));
+}
+
+TEST_F(ContainerReqsGeneral, MoveAssignment) {
+  a = rv;
+  // TODO: "All existing elements of [moveAssignment] are either move assigned
+  // to or destroyed", which doesn't quite match the implementation. Probably
+  // deal with that together with allocator support.
+  EXPECT_THAT(a, testing::ContainerEq(r));
+}
+
+TEST_F(ContainerReqsGeneral, Destructor) {
   {
     baudvine::RingBuf<InstanceCounter, 3> a;
     a.push_back({});
@@ -102,86 +111,78 @@ TEST(ContainerReqsGeneral, Destructor) {
   EXPECT_EQ(InstanceCounter::GetCounter(), 0);
 }
 
-TEST(ContainerReqsGeneral, BeginEnd) {
-  baudvine::RingBuf<int, 3> a;
-  using iterator = baudvine::RingBuf<int, 3>::iterator;
-  EXPECT_TYPE_EQ(decltype(a.begin()), iterator);
-  EXPECT_TYPE_EQ(decltype(a.end()), iterator);
+TEST_F(ContainerReqsGeneral, BeginEnd) {
+  X a;  // new instance for empty case
+  EXPECT_TYPE_EQ(decltype(a.begin()), X::iterator);
+  EXPECT_TYPE_EQ(decltype(a.end()), X::iterator);
   EXPECT_EQ(a.begin(), a.end());
 
-  const auto constA = a;
-  using const_iterator = baudvine::RingBuf<int, 3>::const_iterator;
-  EXPECT_TYPE_EQ(decltype(constA.begin()), const_iterator);
-  EXPECT_TYPE_EQ(decltype(constA.end()), const_iterator);
+  const X constA;
+  EXPECT_TYPE_EQ(decltype(constA.begin()), X::const_iterator);
+  EXPECT_TYPE_EQ(decltype(constA.end()), X::const_iterator);
   EXPECT_EQ(constA.begin(), constA.end());
 }
 
-TEST(ContainerReqsGeneral, CbeginCend) {
-  const baudvine::RingBuf<int, 3> a;
-  using const_iterator = baudvine::RingBuf<int, 3>::const_iterator;
-  EXPECT_TYPE_EQ(decltype(a.begin()), const_iterator);
-  EXPECT_TYPE_EQ(decltype(a.end()), const_iterator);
-  EXPECT_EQ(a.begin(), a.end());
+TEST_F(ContainerReqsGeneral, CbeginCend) {
+  X a;  // new instance for empty case
+  EXPECT_TYPE_EQ(decltype(a.cbegin()), X::const_iterator);
+  EXPECT_TYPE_EQ(decltype(a.cend()), X::const_iterator);
+
+  EXPECT_EQ(a.cbegin(), a.cend());
 }
 
-TEST(ContainerReqsGeneral, Equality) {
+TEST_F(ContainerReqsGeneral, Equality) {
   baudvine::RingBuf<int, 2> a;
   a.push_back(1);
   a.push_back(2);
   a.push_back(3);
   baudvine::RingBuf<int, 2> b;
-  b.push_back(2);
-  b.push_back(3);
 
   EXPECT_TRUE((std::is_convertible<decltype(a == b), bool>::value));
+  EXPECT_FALSE(a == b);
+  b.push_back(2);
+  EXPECT_FALSE(a == b);
+  b.push_back(3);
   EXPECT_TRUE(a == b);
 }
 
-TEST(ContainerReqsGeneral, InEquality) {
+TEST_F(ContainerReqsGeneral, Inequality) {
   baudvine::RingBuf<int, 2> a;
   a.push_back(1);
   a.push_back(2);
   baudvine::RingBuf<int, 2> b;
-  b.push_back(2);
-  b.push_back(3);
 
   EXPECT_TRUE((std::is_convertible<decltype(a != b), bool>::value));
-  EXPECT_EQ(!(a == b), (a != b));
+  EXPECT_TRUE(a != b);
+  b.push_back(1);
+  b.push_back(2);
+  EXPECT_FALSE(a != b);
+  b.push_back(3);
   EXPECT_TRUE(a != b);
 }
 
-TEST(ContainerReqsGeneral, Swap) {
-  baudvine::RingBuf<int, 2> a;
-  a.push_back(1);
-  a.push_back(2);
-  baudvine::RingBuf<int, 2> b;
-  b.push_back(2);
-  b.push_back(3);
-
+TEST_F(ContainerReqsGeneral, Swap) {
   EXPECT_TRUE(std::is_void<decltype(a.swap(b))>::value);
 
   auto ax = a;
   auto bx = b;
 
-  ax.swap(bx);
-  EXPECT_EQ(ax, b);
-  EXPECT_EQ(bx, a);
+  a.swap(b);
+  EXPECT_THAT(a, testing::Not(testing::ContainerEq(ax)));
+  EXPECT_THAT(b, testing::Not(testing::ContainerEq(bx)));
+  EXPECT_THAT(a, testing::ContainerEq(bx));
+  EXPECT_THAT(b, testing::ContainerEq(ax));
 }
 
-TEST(ContainerReqsGeneral, StdSwap) {
-  baudvine::RingBuf<int, 2> a;
-  a.push_back(1);
-  a.push_back(2);
-  baudvine::RingBuf<int, 2> b;
-  b.push_back(2);
-  b.push_back(3);
-
+TEST_F(ContainerReqsGeneral, StdSwap) {
   EXPECT_TRUE(std::is_void<decltype(std::swap(a, b))>::value);
 
   auto ax = a;
   auto bx = b;
-  
-  std::swap(ax, bx);
-  EXPECT_EQ(ax, b);
-  EXPECT_EQ(bx, a);
+
+  std::swap(a, b);
+  EXPECT_THAT(a, testing::Not(testing::ContainerEq(ax)));
+  EXPECT_THAT(b, testing::Not(testing::ContainerEq(bx)));
+  EXPECT_THAT(a, testing::ContainerEq(bx));
+  EXPECT_THAT(b, testing::ContainerEq(ax));
 }
