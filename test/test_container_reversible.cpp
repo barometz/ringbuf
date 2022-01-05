@@ -46,6 +46,8 @@ TYPED_TEST(ContainerReversible, CrbeginCrend) {
                  typename TypeParam::const_reverse_iterator);
   EXPECT_TYPE_EQ(decltype(a.crend()),
                  typename TypeParam::const_reverse_iterator);
-  EXPECT_EQ(a.crbegin(), typename TypeParam::const_reverse_iterator(constA.end()));
-  EXPECT_EQ(a.crend(), typename TypeParam::const_reverse_iterator(constA.begin()));
+  EXPECT_EQ(a.crbegin(),
+            typename TypeParam::const_reverse_iterator(constA.end()));
+  EXPECT_EQ(a.crend(),
+            typename TypeParam::const_reverse_iterator(constA.begin()));
 }
