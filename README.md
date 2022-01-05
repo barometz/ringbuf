@@ -86,7 +86,6 @@ What can't it do? Well:
 - Generic tests for the iterators of the different implementations.
 - Doesn't quite implement
   [SequenceContainer](https://en.cppreference.com/w/cpp/named_req/SequenceContainer).
-  The tests for Container aren't as well organized as they could be either.
 - Needs more ~~cowbell~~ `noexcept`
 - Moved-from RingBuf instances can't be reused.
 - The iterator is not std::random_access_iterator, which is a slightly dubious but plausible fit.
