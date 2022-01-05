@@ -38,6 +38,10 @@ class DequeRingBuf {
   using difference_type = typename iterator::difference_type;
   using size_type = std::size_t;
 
+ private:
+  std::deque<value_type> data_{};
+
+ public:
   DequeRingBuf() = default;
 
   reference front() { return data_.front(); }
@@ -129,9 +133,6 @@ class DequeRingBuf {
   friend bool operator!=(const DequeRingBuf& lhs, const DequeRingBuf& rhs) {
     return lhs.data_ != rhs.data_;
   }
-
- private:
-  std::deque<value_type> data_{};
 };
 
 }  // namespace baudvine

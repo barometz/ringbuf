@@ -466,20 +466,6 @@ class RingBuf {
   constexpr size_type max_size() const noexcept { return Capacity; }
 
   /**
-   * @brief Remove all elements from the ring buffer, destroying each one
-   * starting at the front.
-   *
-   * After clear(), size() == 0.
-   */
-  void clear() noexcept(noexcept(pop_front())) {
-    // It might be fractionally more efficient to iterate through begin..end and
-    // allocator::destroy each one, but this is a lot nicer to read.
-    while (!empty()) {
-      pop_front();
-    }
-  }
-
-  /**
    * @brief Push a new element at the front of the ring buffer, popping the back
    * if necessary.
    *
@@ -582,6 +568,20 @@ class RingBuf {
 
     ShrinkBack();
     alloc_traits::destroy(alloc_, &data_[next_]);
+  }
+
+  /**
+   * @brief Remove all elements from the ring buffer, destroying each one
+   * starting at the front.
+   *
+   * After clear(), size() == 0.
+   */
+  void clear() noexcept(noexcept(pop_front())) {
+    // It might be fractionally more efficient to iterate through begin..end and
+    // allocator::destroy each one, but this is a lot nicer to read.
+    while (!empty()) {
+      pop_front();
+    }
   }
 
   /**
