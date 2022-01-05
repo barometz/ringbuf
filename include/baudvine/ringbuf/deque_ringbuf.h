@@ -32,6 +32,9 @@ class DequeRingBuf {
   using const_reference = const Elem&;
   using iterator = typename std::deque<value_type>::iterator;
   using const_iterator = typename std::deque<value_type>::const_iterator;
+  using reverse_iterator = typename std::deque<value_type>::reverse_iterator;
+  using const_reverse_iterator =
+      typename std::deque<value_type>::const_reverse_iterator;
   using difference_type = typename iterator::difference_type;
   using size_type = std::size_t;
 
@@ -50,6 +53,12 @@ class DequeRingBuf {
   const_iterator end() const { return data_.end(); }
   const_iterator cbegin() const { return data_.cbegin(); }
   const_iterator cend() const { return data_.cend(); }
+  reverse_iterator rbegin() { return data_.rbegin(); }
+  reverse_iterator rend() { return data_.rend(); }
+  const_reverse_iterator rbegin() const { return data_.rbegin(); }
+  const_reverse_iterator rend() const { return data_.rend(); }
+  const_reverse_iterator crbegin() const { return data_.crbegin(); }
+  const_reverse_iterator crend() const { return data_.crend(); }
 
   bool empty() const { return data_.empty(); }
   size_type size() const { return data_.size(); }

@@ -229,6 +229,8 @@ class RingBuf {
   using const_reference = const Elem&;
   using iterator = detail::Iterator<Elem, Capacity>;
   using const_iterator = detail::Iterator<const Elem, Capacity>;
+  using reverse_iterator = std::reverse_iterator<iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
   using difference_type = typename iterator::difference_type;
   using size_type = std::size_t;
   using alloc = std::allocator<value_type>;
@@ -404,6 +406,44 @@ class RingBuf {
    */
   const_iterator cend() const noexcept {
     return const_cast<self const&>(*this).end();
+  }
+
+  /**
+   * @return A reverse iterator pointing at the last element of the ring buffer.
+   */
+  reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+  /**
+   * @return A reverse iterator pointing at one before the beginning of the ring
+   * buffer.
+   */
+  reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+  /**
+   * @return A const reverse iterator pointing at the last element of the ring
+   * buffer.
+   */
+  const_reverse_iterator rbegin() const noexcept {
+    return const_reverse_iterator(end());
+  }
+  /**
+   * @return A const reverse iterator pointing at one before the first element
+   * of the ring buffer.
+   */
+  const_reverse_iterator rend() const noexcept {
+    return const_reverse_iterator(begin());
+  }
+  /**
+   * @return A const reverse iterator pointing at the last element of the ring
+   * buffer.
+   */
+  const_reverse_iterator crbegin() const noexcept {
+    return const_cast<self const&>(*this).rbegin();
+  }
+  /**
+   * @return A const reverse iterator pointing at one before the first element
+   * of the ring buffer.
+   */
+  const_reverse_iterator crend() const noexcept {
+    return const_cast<self const&>(*this).rend();
   }
 
   /**
