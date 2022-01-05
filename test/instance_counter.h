@@ -11,6 +11,6 @@ class InstanceCounter {
 
   static int GetCounter();
 
-private:
+ private:
   static int counter_;
 };
