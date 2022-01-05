@@ -1,5 +1,6 @@
 // C++20 container.requirements.general
 
+#include "baudvine/ringbuf/deque_ringbuf.h"
 #include "baudvine/ringbuf/ringbuf.h"
 #include "instance_counter.h"
 
@@ -10,8 +11,23 @@
 #include <type_traits>
 #include <vector>
 
+template <typename T, typename Elem, size_t Capacity>
+// Adapt any ringbuf type T<U, S> to T<Elem, Capacity>. This way the test can be
+// parametrized with T<int, 2> but individual tests can change the element type
+// and count if necessary.
+class RingBufAdapter;
+
+template <typename Elem, size_t Capacity, typename Elem1, size_t Capacity1>
+class RingBufAdapter<baudvine::RingBuf<Elem1, Capacity1>, Elem, Capacity>
+    : public baudvine::RingBuf<Elem, Capacity> {};
+
+template <typename Elem, size_t Capacity, typename Elem1, size_t Capacity1>
+class RingBufAdapter<baudvine::DequeRingBuf<Elem1, Capacity1>, Elem, Capacity>
+    : public baudvine::DequeRingBuf<Elem, Capacity> {};
+
 #define EXPECT_TYPE_EQ(T1, T2) EXPECT_TRUE((std::is_same<T1, T2>::value))
 
+template <typename RingBuf>
 class ContainerReqsGeneral : public testing::Test {
  public:
   void SetUp() override {
@@ -29,80 +45,84 @@ class ContainerReqsGeneral : public testing::Test {
     r.push_back(7);
   }
 
-  using X = baudvine::RingBuf<int, 2>;
-  X a{};
-  X b{};
-  X r{};
-  X&& rv = std::move(r);
+  RingBuf a{};
+  RingBuf b{};
+  RingBuf r{};
+  RingBuf&& rv = std::move(r);
 };
 
-TEST_F(ContainerReqsGeneral, TypeAliases) {
-  EXPECT_TYPE_EQ(X::value_type, int);
-  EXPECT_TYPE_EQ(X::reference, int&);
-  EXPECT_TYPE_EQ(X::const_reference, const int&);
+using RingBufs =
+    testing::Types<baudvine::RingBuf<int, 2>, baudvine::DequeRingBuf<int, 2>>;
+// NOLINTNEXTLINE - clang-tidy complains about missing variadic args
+TYPED_TEST_SUITE(ContainerReqsGeneral, RingBufs);
 
-  using iterator = X::iterator;
-  EXPECT_TYPE_EQ(iterator::value_type, int);
+TYPED_TEST(ContainerReqsGeneral, TypeAliases) {
+  EXPECT_TYPE_EQ(typename TypeParam::value_type, int);
+  EXPECT_TYPE_EQ(typename TypeParam::reference, int&);
+  EXPECT_TYPE_EQ(typename TypeParam::const_reference, const int&);
 
-  using const_iterator = X::const_iterator;
+  using iterator = typename TypeParam::iterator;
+  EXPECT_TYPE_EQ(typename iterator::value_type, int);
+
+  using const_iterator = typename TypeParam::const_iterator;
   EXPECT_TRUE((std::is_convertible<iterator, const_iterator>::value));
-  EXPECT_TYPE_EQ(const_iterator::value_type, int);
+  EXPECT_TYPE_EQ(typename const_iterator::value_type, int);
 
-  using difference_type = X::difference_type;
+  using difference_type = typename TypeParam::difference_type;
   EXPECT_TRUE(std::is_signed<difference_type>::value);
-  EXPECT_TYPE_EQ(difference_type, iterator::difference_type);
-  EXPECT_TYPE_EQ(difference_type, const_iterator::difference_type);
+  EXPECT_TYPE_EQ(difference_type, typename iterator::difference_type);
+  EXPECT_TYPE_EQ(difference_type, typename const_iterator::difference_type);
 
-  using size_type = X::size_type;
+  using size_type = typename TypeParam::size_type;
   EXPECT_TRUE(std::is_unsigned<size_type>::value);
   EXPECT_TRUE(std::numeric_limits<size_type>::max() >=
               std::numeric_limits<difference_type>::max());
 }
 
-TEST_F(ContainerReqsGeneral, DefaultInitialized) {
-  X u;
+TYPED_TEST(ContainerReqsGeneral, DefaultInitialized) {
+  TypeParam u;
   EXPECT_TRUE(u.empty());
 }
 
-TEST_F(ContainerReqsGeneral, ValueInitialized) {
-  EXPECT_TRUE(X().empty());
+TYPED_TEST(ContainerReqsGeneral, ValueInitialized) {
+  EXPECT_TRUE(TypeParam().empty());
 }
 
-TEST_F(ContainerReqsGeneral, DirectInitUnnamed) {
-  EXPECT_THAT(X(a), testing::ContainerEq(a));
+TYPED_TEST(ContainerReqsGeneral, DirectInitUnnamed) {
+  EXPECT_THAT(TypeParam(this->a), testing::ContainerEq(this->a));
 }
 
-TEST_F(ContainerReqsGeneral, DirectInit) {
-  X u(a);
-  EXPECT_THAT(u, testing::ContainerEq(a));
+TYPED_TEST(ContainerReqsGeneral, DirectInit) {
+  TypeParam u(this->a);
+  EXPECT_THAT(u, testing::ContainerEq(this->a));
 }
 
-TEST_F(ContainerReqsGeneral, CopyInit) {
-  X u = a;
-  EXPECT_THAT(u, testing::ContainerEq(a));
+TYPED_TEST(ContainerReqsGeneral, CopyInit) {
+  TypeParam u = this->a;
+  EXPECT_THAT(u, testing::ContainerEq(this->a));
 }
 
-TEST_F(ContainerReqsGeneral, DirectInitMove) {
-  X u(rv);
-  EXPECT_THAT(u, testing::ContainerEq(r));
+TYPED_TEST(ContainerReqsGeneral, DirectInitMove) {
+  TypeParam u(this->rv);
+  EXPECT_THAT(u, testing::ContainerEq(this->r));
 }
 
-TEST_F(ContainerReqsGeneral, CopyInitMove) {
-  X u = rv;
-  EXPECT_THAT(u, testing::ContainerEq(r));
+TYPED_TEST(ContainerReqsGeneral, CopyInitMove) {
+  TypeParam u = this->rv;
+  EXPECT_THAT(u, testing::ContainerEq(this->r));
 }
 
-TEST_F(ContainerReqsGeneral, MoveAssignment) {
-  a = rv;
+TYPED_TEST(ContainerReqsGeneral, MoveAssignment) {
+  this->a = this->rv;
   // TODO: "All existing elements of [moveAssignment] are either move assigned
   // to or destroyed", which doesn't quite match the implementation. Probably
   // deal with that together with allocator support.
-  EXPECT_THAT(a, testing::ContainerEq(r));
+  EXPECT_THAT(this->a, testing::ContainerEq(this->r));
 }
 
-TEST_F(ContainerReqsGeneral, Destructor) {
+TYPED_TEST(ContainerReqsGeneral, Destructor) {
   {
-    baudvine::RingBuf<InstanceCounter, 3> a;
+    RingBufAdapter<TypeParam, InstanceCounter, 3> a;
     a.push_back({});
     a.push_back({});
 
@@ -111,27 +131,28 @@ TEST_F(ContainerReqsGeneral, Destructor) {
   EXPECT_EQ(InstanceCounter::GetCounter(), 0);
 }
 
-TEST_F(ContainerReqsGeneral, BeginEnd) {
-  X a;  // new instance for empty case
-  EXPECT_TYPE_EQ(decltype(a.begin()), X::iterator);
-  EXPECT_TYPE_EQ(decltype(a.end()), X::iterator);
+TYPED_TEST(ContainerReqsGeneral, BeginEnd) {
+  TypeParam a;  // new instance for empty case
+  EXPECT_TYPE_EQ(decltype(a.begin()), typename TypeParam::iterator);
+  EXPECT_TYPE_EQ(decltype(a.end()), typename TypeParam::iterator);
   EXPECT_EQ(a.begin(), a.end());
 
-  const X constA;
-  EXPECT_TYPE_EQ(decltype(constA.begin()), X::const_iterator);
-  EXPECT_TYPE_EQ(decltype(constA.end()), X::const_iterator);
+  const TypeParam constA;
+  EXPECT_TYPE_EQ(decltype(constA.begin()), typename TypeParam::const_iterator);
+  EXPECT_TYPE_EQ(decltype(constA.end()), typename TypeParam::const_iterator);
   EXPECT_EQ(constA.begin(), constA.end());
 }
 
-TEST_F(ContainerReqsGeneral, CbeginCend) {
-  EXPECT_TYPE_EQ(decltype(a.cbegin()), X::const_iterator);
-  EXPECT_TYPE_EQ(decltype(a.cend()), X::const_iterator);
+TYPED_TEST(ContainerReqsGeneral, CbeginCend) {
+  EXPECT_TYPE_EQ(decltype(this->a.cbegin()),
+                 typename TypeParam::const_iterator);
+  EXPECT_TYPE_EQ(decltype(this->a.cend()), typename TypeParam::const_iterator);
 
-  a.clear();
-  EXPECT_EQ(a.cbegin(), a.cend());
+  this->a.clear();
+  EXPECT_EQ(this->a.cbegin(), this->a.cend());
 }
 
-TEST_F(ContainerReqsGeneral, Equality) {
+TYPED_TEST(ContainerReqsGeneral, Equality) {
   baudvine::RingBuf<int, 2> a;
   a.push_back(1);
   a.push_back(2);
@@ -146,7 +167,7 @@ TEST_F(ContainerReqsGeneral, Equality) {
   EXPECT_TRUE(a == b);
 }
 
-TEST_F(ContainerReqsGeneral, Inequality) {
+TYPED_TEST(ContainerReqsGeneral, Inequality) {
   baudvine::RingBuf<int, 2> a;
   a.push_back(1);
   a.push_back(2);
@@ -161,66 +182,66 @@ TEST_F(ContainerReqsGeneral, Inequality) {
   EXPECT_TRUE(a != b);
 }
 
-TEST_F(ContainerReqsGeneral, Swap) {
-  EXPECT_TRUE(std::is_void<decltype(a.swap(b))>::value);
+TYPED_TEST(ContainerReqsGeneral, Swap) {
+  EXPECT_TRUE(std::is_void<decltype(this->a.swap(this->b))>::value);
 
-  auto ax = a;
-  auto bx = b;
+  auto ax = this->a;
+  auto bx = this->b;
 
-  a.swap(b);
-  EXPECT_THAT(a, testing::Not(testing::ContainerEq(ax)));
-  EXPECT_THAT(b, testing::Not(testing::ContainerEq(bx)));
-  EXPECT_THAT(a, testing::ContainerEq(bx));
-  EXPECT_THAT(b, testing::ContainerEq(ax));
+  this->a.swap(this->b);
+  EXPECT_THAT(this->a, testing::Not(testing::ContainerEq(ax)));
+  EXPECT_THAT(this->b, testing::Not(testing::ContainerEq(bx)));
+  EXPECT_THAT(this->a, testing::ContainerEq(bx));
+  EXPECT_THAT(this->b, testing::ContainerEq(ax));
 }
 
-TEST_F(ContainerReqsGeneral, StdSwap) {
-  EXPECT_TRUE(std::is_void<decltype(std::swap(a, b))>::value);
+TYPED_TEST(ContainerReqsGeneral, StdSwap) {
+  EXPECT_TRUE(std::is_void<decltype(std::swap(this->a, this->b))>::value);
 
-  auto ax = a;
-  auto bx = b;
+  auto ax = this->a;
+  auto bx = this->b;
 
-  std::swap(a, b);
-  EXPECT_THAT(a, testing::Not(testing::ContainerEq(ax)));
-  EXPECT_THAT(b, testing::Not(testing::ContainerEq(bx)));
-  EXPECT_THAT(a, testing::ContainerEq(bx));
-  EXPECT_THAT(b, testing::ContainerEq(ax));
+  std::swap(this->a, this->b);
+  EXPECT_THAT(this->a, testing::Not(testing::ContainerEq(ax)));
+  EXPECT_THAT(this->b, testing::Not(testing::ContainerEq(bx)));
+  EXPECT_THAT(this->a, testing::ContainerEq(bx));
+  EXPECT_THAT(this->b, testing::ContainerEq(ax));
 }
 
-TEST_F(ContainerReqsGeneral, CopyAssignment) {
-  EXPECT_TYPE_EQ(decltype(r = a), X&);
-  r = a;
-  EXPECT_THAT(r, testing::ContainerEq(a));
+TYPED_TEST(ContainerReqsGeneral, CopyAssignment) {
+  EXPECT_TYPE_EQ(decltype(this->r = this->a), TypeParam&);
+  this->r = this->a;
+  EXPECT_THAT(this->r, testing::ContainerEq(this->a));
 }
 
-TEST_F(ContainerReqsGeneral, Size) {
-  a.clear();
-  EXPECT_EQ(0, std::distance(a.begin(), a.end()));
-  EXPECT_EQ(0, a.size());
-  a.push_back(10);
-  EXPECT_EQ(1, std::distance(a.begin(), a.end()));
-  EXPECT_EQ(1, a.size());
-  a.push_back(20);
-  EXPECT_EQ(2, std::distance(a.begin(), a.end()));
-  EXPECT_EQ(2, a.size());
-  a.push_back(30);
-  EXPECT_EQ(2, std::distance(a.begin(), a.end()));
-  EXPECT_EQ(2, a.size());
+TYPED_TEST(ContainerReqsGeneral, Size) {
+  this->a.clear();
+  EXPECT_EQ(0, std::distance(this->a.begin(), this->a.end()));
+  EXPECT_EQ(0, this->a.size());
+  this->a.push_back(10);
+  EXPECT_EQ(1, std::distance(this->a.begin(), this->a.end()));
+  EXPECT_EQ(1, this->a.size());
+  this->a.push_back(20);
+  EXPECT_EQ(2, std::distance(this->a.begin(), this->a.end()));
+  EXPECT_EQ(2, this->a.size());
+  this->a.push_back(30);
+  EXPECT_EQ(2, std::distance(this->a.begin(), this->a.end()));
+  EXPECT_EQ(2, this->a.size());
 }
 
-TEST_F(ContainerReqsGeneral, MaxSize) {
-  EXPECT_EQ(a.max_size(), 2);
+TYPED_TEST(ContainerReqsGeneral, MaxSize) {
+  EXPECT_EQ(this->a.max_size(), 2);
 }
 
-TEST_F(ContainerReqsGeneral, Empty) {
-  EXPECT_FALSE(a.empty());
-  a.clear();
-  EXPECT_TRUE(a.empty());
+TYPED_TEST(ContainerReqsGeneral, Empty) {
+  EXPECT_FALSE(this->a.empty());
+  this->a.clear();
+  EXPECT_TRUE(this->a.empty());
 }
 
-TEST_F(ContainerReqsGeneral, IteratorComparison) {
-  EXPECT_TRUE(a.begin() == a.cbegin());
-  EXPECT_TRUE(a.cend() == a.end());
-  EXPECT_TRUE(a.cbegin() <= a.end());
-  EXPECT_TRUE(a.end() > a.cbegin());
+TYPED_TEST(ContainerReqsGeneral, IteratorComparison) {
+  EXPECT_TRUE(this->a.begin() == this->a.cbegin());
+  EXPECT_TRUE(this->a.cend() == this->a.end());
+  EXPECT_TRUE(this->a.cbegin() <= this->a.end());
+  EXPECT_TRUE(this->a.end() > this->a.cbegin());
 }
