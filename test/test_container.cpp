@@ -158,4 +158,5 @@ REGISTER_TYPED_TEST_SUITE_P(Container,
                             BeginEnd);
 using Containers =
     ::testing::Types<baudvine::RingBuf<int, 3>, baudvine::DequeRingBuf<int, 3>>;
+// NOLINTNEXTLINE - clang-tidy complains about empty variadic arguments
 INSTANTIATE_TYPED_TEST_SUITE_P(My, Container, Containers);
