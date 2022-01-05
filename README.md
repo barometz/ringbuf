@@ -82,13 +82,13 @@ What can't it do? Well:
 - Support for user-defined/provided allocators.
   It already uses `std::allocator` so it shouldn't require any big changes, just
   small and careful ones.
-- Reverse iterators.
 - Generic tests for the iterators of the different implementations.
 - Doesn't quite implement
   [SequenceContainer](https://en.cppreference.com/w/cpp/named_req/SequenceContainer).
 - Needs more ~~cowbell~~ `noexcept`
 - Moved-from RingBuf instances can't be reused.
 - The iterator is not std::random_access_iterator, which is a slightly dubious but plausible fit.
+- Docs.
 
 ### NOT TODO
 What won't it do?
