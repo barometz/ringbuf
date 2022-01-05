@@ -27,16 +27,16 @@ TYPED_TEST(ContainerReversible, RbeginRend) {
   TypeParam a;
   EXPECT_TYPE_EQ(decltype(a.rbegin()), typename TypeParam::reverse_iterator);
   EXPECT_TYPE_EQ(decltype(a.rend()), typename TypeParam::reverse_iterator);
-  EXPECT_EQ(a.rbegin(), std::reverse_iterator(a.end()));
-  EXPECT_EQ(a.rend(), std::reverse_iterator(a.begin()));
+  EXPECT_EQ(a.rbegin(), typename TypeParam::reverse_iterator(a.end()));
+  EXPECT_EQ(a.rend(), typename TypeParam::reverse_iterator(a.begin()));
 
   const TypeParam b;
   EXPECT_TYPE_EQ(decltype(b.rbegin()),
                  typename TypeParam::const_reverse_iterator);
   EXPECT_TYPE_EQ(decltype(b.rend()),
                  typename TypeParam::const_reverse_iterator);
-  EXPECT_EQ(b.rbegin(), std::reverse_iterator(b.end()));
-  EXPECT_EQ(b.rend(), std::reverse_iterator(b.begin()));
+  EXPECT_EQ(b.rbegin(), typename TypeParam::const_reverse_iterator(b.end()));
+  EXPECT_EQ(b.rend(), typename TypeParam::const_reverse_iterator(b.begin()));
 }
 
 TYPED_TEST(ContainerReversible, CrbeginCrend) {
@@ -46,6 +46,6 @@ TYPED_TEST(ContainerReversible, CrbeginCrend) {
                  typename TypeParam::const_reverse_iterator);
   EXPECT_TYPE_EQ(decltype(a.crend()),
                  typename TypeParam::const_reverse_iterator);
-  EXPECT_EQ(a.crbegin(), std::reverse_iterator(constA.end()));
-  EXPECT_EQ(a.crend(), std::reverse_iterator(constA.begin()));
+  EXPECT_EQ(a.crbegin(), typename TypeParam::const_reverse_iterator(constA.end()));
+  EXPECT_EQ(a.crend(), typename TypeParam::const_reverse_iterator(constA.begin()));
 }
