@@ -245,3 +245,14 @@ TYPED_TEST(RingBuf, Clear) {
   EXPECT_NO_THROW(underTest.clear());
   EXPECT_EQ(underTest.size(), 0U);
 }
+
+TYPED_TEST(RingBuf, InReverse) {
+  TypeParam underTest;
+  underTest.push_back(1);
+  underTest.push_back(2);
+  underTest.push_back(3);
+
+  std::vector<int> copy(2);
+  std::copy(underTest.rbegin(), underTest.rend(), copy.begin());
+  EXPECT_THAT(copy, testing::ElementsAre(3, 2));
+}
