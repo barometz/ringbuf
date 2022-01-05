@@ -77,11 +77,11 @@ class DequeRingBuf {
       return;
     }
 
-    if (size() == max_size()) {
+    data_.emplace_front(std::forward<Args>(args)...);
+
+    if (size() > max_size()) {
       pop_back();
     }
-
-    data_.emplace_front(std::forward<Args>(args)...);
   }
 
   void push_back(const_reference value) { return emplace_back(value); }

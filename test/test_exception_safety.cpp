@@ -61,4 +61,18 @@ TYPED_TEST(ExceptionSafety, EmplaceBack) {
   EXPECT_THAT(underTest, testing::ElementsAre(Thrower(2), Thrower(4)));
 }
 
-// TODO: emplace_front
+TYPED_TEST(ExceptionSafety, EmplaceFront) {
+  RingBufAdapter<TypeParam, Thrower, 2> underTest;
+
+  EXPECT_THROW(underTest.emplace_front(0, true), std::runtime_error);
+  EXPECT_TRUE(underTest.empty());
+
+  underTest.push_front(Thrower(1));
+  underTest.push_front(Thrower(2));
+  EXPECT_THROW(underTest.emplace_front(3, true), std::runtime_error);
+  EXPECT_THAT(underTest, testing::ElementsAre(Thrower(2), Thrower(1)));
+
+  underTest.push_front(Thrower(4));
+  EXPECT_THROW(underTest.emplace_front(5, true), std::runtime_error);
+  EXPECT_THAT(underTest, testing::ElementsAre(Thrower(4), Thrower(2)));
+}

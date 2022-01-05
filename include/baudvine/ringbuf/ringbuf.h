@@ -509,14 +509,14 @@ class RingBuf {
       return;
     }
 
-    // If required, make room first.
+    alloc_traits::construct(alloc_, &data_[Decrement(ring_offset_)],
+                            std::forward<Args>(args)...);
+
+    // If required, make room for next time.
     if (size() == max_size()) {
       pop_back();
     }
-
     GrowFront();
-    alloc_traits::construct(alloc_, &data_[ring_offset_],
-                            std::forward<Args>(args)...);
   }
 
   /**
