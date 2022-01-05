@@ -44,7 +44,7 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       # Speed.* are disabled because some of them are right on the edge, and it
       # depends on system load besides.
-      run: ctest -C ${{env.BUILD_TYPE}} -E Speed
+      run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure -E Speed
 
   build-windows:
     strategy:
@@ -71,4 +71,4 @@ jobs:
       working-directory: ${{github.workspace}}/build
       # Speed.* are disabled because some of them are right on the edge, and it
       # depends on system load besides.
-      run: ctest -C ${{env.BUILD_TYPE}} -E Speed
+      run: ctest -C ${{env.BUILD_TYPE}} --output-on-failure -E Speed
