@@ -239,6 +239,22 @@ TYPED_TEST(ContainerReqsGeneral, Empty) {
   EXPECT_TRUE(this->a.empty());
 }
 
+TYPED_TEST(ContainerReqsGeneral, IteratorMotion) {
+  TypeParam a;
+
+  EXPECT_EQ(a.begin(), a.end());
+
+  a.push_back(4);
+  EXPECT_NE(a.begin(), a.end());
+  EXPECT_EQ(std::next(a.begin(), 1), a.end());
+
+  a.push_back(3);
+  EXPECT_EQ(std::next(a.begin(), 2), a.end());
+
+  a.push_back(2);
+  EXPECT_EQ(std::next(a.begin(), 2), a.end());
+}
+
 TYPED_TEST(ContainerReqsGeneral, IteratorComparison) {
   EXPECT_TRUE(this->a.begin() == this->a.cbegin());
   EXPECT_TRUE(this->a.cend() == this->a.end());
