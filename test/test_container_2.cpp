@@ -124,10 +124,10 @@ TEST_F(ContainerReqsGeneral, BeginEnd) {
 }
 
 TEST_F(ContainerReqsGeneral, CbeginCend) {
-  X a;  // new instance for empty case
   EXPECT_TYPE_EQ(decltype(a.cbegin()), X::const_iterator);
   EXPECT_TYPE_EQ(decltype(a.cend()), X::const_iterator);
 
+  a.clear();
   EXPECT_EQ(a.cbegin(), a.cend());
 }
 
@@ -185,4 +185,42 @@ TEST_F(ContainerReqsGeneral, StdSwap) {
   EXPECT_THAT(b, testing::Not(testing::ContainerEq(bx)));
   EXPECT_THAT(a, testing::ContainerEq(bx));
   EXPECT_THAT(b, testing::ContainerEq(ax));
+}
+
+TEST_F(ContainerReqsGeneral, CopyAssignment) {
+  EXPECT_TYPE_EQ(decltype(r = a), X&);
+  r = a;
+  EXPECT_THAT(r, testing::ContainerEq(a));
+}
+
+TEST_F(ContainerReqsGeneral, Size) {
+  a.clear();
+  EXPECT_EQ(0, std::distance(a.begin(), a.end()));
+  EXPECT_EQ(0, a.size());
+  a.push_back(10);
+  EXPECT_EQ(1, std::distance(a.begin(), a.end()));
+  EXPECT_EQ(1, a.size());
+  a.push_back(20);
+  EXPECT_EQ(2, std::distance(a.begin(), a.end()));
+  EXPECT_EQ(2, a.size());
+  a.push_back(30);
+  EXPECT_EQ(2, std::distance(a.begin(), a.end()));
+  EXPECT_EQ(2, a.size());
+}
+
+TEST_F(ContainerReqsGeneral, MaxSize) {
+  EXPECT_EQ(a.max_size(), 2);
+}
+
+TEST_F(ContainerReqsGeneral, Empty) {
+  EXPECT_FALSE(a.empty());
+  a.clear();
+  EXPECT_TRUE(a.empty());
+}
+
+TEST_F(ContainerReqsGeneral, IteratorComparison) {
+  EXPECT_TRUE(a.begin() == a.cbegin());
+  EXPECT_TRUE(a.cend() == a.end());
+  EXPECT_TRUE(a.cbegin() <= a.end());
+  EXPECT_TRUE(a.end() > a.cbegin());
 }
