@@ -414,6 +414,8 @@ class RingBuf {
     return *this;
   }
 
+  allocator_type get_allocator() const { return alloc_; }
+
   /**
    * @brief Return the first element in the ring buffer.
    *

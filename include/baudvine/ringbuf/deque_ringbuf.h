@@ -19,30 +19,34 @@
 
 #include <cstddef>
 #include <deque>
+#include <type_traits>
 
 namespace baudvine {
 
 // A ring buffer based on std::deque. Inefficient, but compact and easily
 // verifiable.
-template <typename Elem, std::size_t Capacity>
+template <typename Elem, std::size_t Capacity, typename Allocator = std::allocator<Elem>>
 class DequeRingBuf {
  public:
-  using value_type = Elem;
-  using reference = Elem&;
-  using const_reference = const Elem&;
-  using iterator = typename std::deque<value_type>::iterator;
-  using const_iterator = typename std::deque<value_type>::const_iterator;
-  using reverse_iterator = typename std::deque<value_type>::reverse_iterator;
-  using const_reverse_iterator =
-      typename std::deque<value_type>::const_reverse_iterator;
-  using difference_type = typename iterator::difference_type;
-  using size_type = std::size_t;
+  using storage = std::deque<Elem, Allocator>;
+  using allocator_type = typename storage::allocator_type;
+  using value_type = typename storage::value_type;
+  using reference = typename storage::reference;
+  using const_reference = typename storage::const_reference;
+  using iterator = typename storage::iterator;
+  using const_iterator = typename storage::const_iterator;
+  using reverse_iterator = typename storage::reverse_iterator;
+  using const_reverse_iterator = typename storage::const_reverse_iterator;
+  using difference_type = typename storage::difference_type;
+  using size_type = typename storage::size_type;
 
  private:
-  std::deque<value_type> data_{};
+  storage data_{};
 
  public:
   DequeRingBuf() = default;
+
+  allocator_type get_allocator() const { return data_.get_allocator(); }
 
   reference front() { return data_.front(); }
   reference back() { return data_.back(); }
