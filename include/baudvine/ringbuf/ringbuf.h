@@ -61,7 +61,7 @@ template <std::size_t Capacity>
 constexpr std::size_t RingWrap(const std::size_t ring_index) {
   // This is a bit faster than `return ring_index % Capacity` (~40% reduction in
   // Speed.PushBackOverFull test)
-  return (ring_index < Capacity) ? ring_index : ring_index - Capacity;
+  return (ring_index <= Capacity) ? ring_index : ring_index - Capacity - 1;
 }
 
 /**
@@ -204,7 +204,7 @@ OutputIt copy(const Iterator<Elem, Capacity>& begin,
     out = std::copy(&*begin, &*end, out);
   } else {
     // Copy in two sections.
-    out = std::copy(&*begin, &begin.data_[Capacity], out);
+    out = std::copy(&*begin, &begin.data_[Capacity + 1], out);
     out = std::copy(end.data_, &*end, out);
   }
 
@@ -241,10 +241,11 @@ class RingBuf {
   /**
    * @brief Construct a new ring buffer object, and allocate the required
    * memory.
+   *
+   * Allocates Capacity + 1 to allow for strong exception guarantees in
+   * emplace_front/back.
    */
-  RingBuf()
-      : data_(alloc_traits::allocate(alloc_, Capacity)),
-        data_end_(data_ + Capacity){};
+  RingBuf() : data_(alloc_traits::allocate(alloc_, Capacity + 1)){};
   /**
    * @brief Destroy the ring buffer object.
    *
@@ -252,7 +253,7 @@ class RingBuf {
    */
   ~RingBuf() {
     clear();
-    alloc_traits::deallocate(alloc_, data_, Capacity);
+    alloc_traits::deallocate(alloc_, data_, Capacity + 1);
   }
   /**
    * @brief Construct a new RingBuf object out of another, using elementwise
@@ -300,7 +301,6 @@ class RingBuf {
     std::swap(alloc_, other.alloc_);
     std::swap(data_, other.data_);
     std::swap(next_, other.next_);
-    std::swap(data_end_, other.data_end_);
     std::swap(ring_offset_, other.ring_offset_);
     std::swap(size_, other.size_);
     return *this;
@@ -466,20 +466,6 @@ class RingBuf {
   constexpr size_type max_size() const noexcept { return Capacity; }
 
   /**
-   * @brief Remove all elements from the ring buffer, destroying each one
-   * starting at the front.
-   *
-   * After clear(), size() == 0.
-   */
-  void clear() {
-    // It might be fractionally more efficient to iterate through begin..end and
-    // allocator::destroy each one, but this is a lot nicer to read.
-    while (!empty()) {
-      pop_front();
-    }
-  }
-
-  /**
    * @brief Push a new element at the front of the ring buffer, popping the back
    * if necessary.
    *
@@ -509,14 +495,14 @@ class RingBuf {
       return;
     }
 
-    // If required, make room first.
+    alloc_traits::construct(alloc_, &data_[Decrement(ring_offset_)],
+                            std::forward<Args>(args)...);
+
+    // If required, make room for next time.
     if (size() == max_size()) {
       pop_back();
     }
-
     GrowFront();
-    alloc_traits::construct(alloc_, &data_[ring_offset_],
-                            std::forward<Args>(args)...);
   }
 
   /**
@@ -547,12 +533,12 @@ class RingBuf {
       return;
     }
 
-    // If required, make room first.
+    alloc_traits::construct(alloc_, &data_[next_], std::forward<Args>(args)...);
+
+    // If required, make room for next time.
     if (size() == max_size()) {
       pop_front();
     }
-
-    alloc_traits::construct(alloc_, &data_[next_], std::forward<Args>(args)...);
     GrowBack();
   }
 
@@ -560,7 +546,7 @@ class RingBuf {
    * @brief Pop an element off the front, destroying the first element in the
    * ring buffer.
    */
-  void pop_front() {
+  void pop_front() noexcept {
     if (size() == 0) {
       return;
     }
@@ -573,7 +559,7 @@ class RingBuf {
    * @brief Pop an element off the back, destroying the last element in the ring
    * buffer.
    */
-  void pop_back() {
+  void pop_back() noexcept {
     if (size() == 0) {
       return;
     }
@@ -583,11 +569,27 @@ class RingBuf {
   }
 
   /**
+   * @brief Remove all elements from the ring buffer, destroying each one
+   * starting at the front.
+   *
+   * After clear(), size() == 0.
+   */
+  void clear() noexcept(noexcept(pop_front())) {
+    // It might be fractionally more efficient to iterate through begin..end and
+    // allocator::destroy each one, but this is a lot nicer to read.
+    while (!empty()) {
+      pop_front();
+    }
+  }
+
+  /**
    * @brief Swap this ring buffer with another using std::swap.
    *
    * @param other The RingBuf to swap with.
    */
-  void swap(RingBuf& other) noexcept { std::swap(*this, other); }
+  void swap(RingBuf& other) noexcept(noexcept(std::swap(*this, other))) {
+    std::swap(*this, other);
+  }
 
   /**
    * @brief Elementwise lexicographical comparison of two ring buffers.
@@ -664,8 +666,6 @@ class RingBuf {
   pointer data_{nullptr};
   // The next position to write to for push_back().
   size_type next_{0U};
-  // One past the last element of the dynamically allocated backing array.
-  pointer data_end_{nullptr};
 
   // Start of the ring buffer in data_.
   size_type ring_offset_{0U};
@@ -674,29 +674,29 @@ class RingBuf {
   size_type size_{0U};
 
   constexpr static size_type Decrement(const size_type index) {
-    return index > 0 ? index - 1 : Capacity - 1;
+    return index > 0 ? index - 1 : Capacity;
   }
 
   constexpr static size_type Increment(const size_type index) {
-    return index < (Capacity - 1) ? index + 1 : 0;
+    return index < (Capacity) ? index + 1 : 0;
   }
 
   // Move things after pop_front.
-  void ShrinkFront() {
+  void ShrinkFront() noexcept {
     ring_offset_ = Increment(ring_offset_);
     // Precondition: size != 0 (when it is, pop_front returns early.)
     size_--;
   }
 
   // Move things around before pop_back destroys the last entry.
-  void ShrinkBack() {
+  void ShrinkBack() noexcept {
     next_ = Decrement(next_);
     // Precondition: size != 0 (when it is, pop_back returns early.)
     size_--;
   }
 
   // Move things around before emplace_front constructs its new entry.
-  void GrowFront() {
+  void GrowFront() noexcept {
     // Move ring_offset_ down, and possibly around
     ring_offset_ = Decrement(ring_offset_);
     // Precondition: size != Capacity (when it is, emplace_front pop_backs
@@ -705,7 +705,7 @@ class RingBuf {
   }
 
   // Move things around after emplace_back.
-  void GrowBack() {
+  void GrowBack() noexcept {
     next_ = Increment(next_);
     // Precondition: size != Capacity (when it is, emplace_back pop_fronts
     // first)

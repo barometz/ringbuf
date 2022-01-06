@@ -38,6 +38,10 @@ class DequeRingBuf {
   using difference_type = typename iterator::difference_type;
   using size_type = std::size_t;
 
+ private:
+  std::deque<value_type> data_{};
+
+ public:
   DequeRingBuf() = default;
 
   reference front() { return data_.front(); }
@@ -64,7 +68,7 @@ class DequeRingBuf {
   size_type size() const { return data_.size(); }
   constexpr size_type max_size() const { return Capacity; }
 
-  void clear() { return data_.clear(); }
+  void clear() noexcept(noexcept(data_.clear())) { return data_.clear(); }
 
   void push_front(const_reference value) { return emplace_front(value); }
   void push_front(value_type&& value) {
@@ -77,11 +81,11 @@ class DequeRingBuf {
       return;
     }
 
-    if (size() == max_size()) {
+    data_.emplace_front(std::forward<Args>(args)...);
+
+    if (size() > max_size()) {
       pop_back();
     }
-
-    data_.emplace_front(std::forward<Args>(args)...);
   }
 
   void push_back(const_reference value) { return emplace_back(value); }
@@ -93,17 +97,23 @@ class DequeRingBuf {
       return;
     }
 
-    if (size() == max_size()) {
+    data_.emplace_back(std::forward<Args>(args)...);
+
+    if (size() > max_size()) {
       pop_front();
     }
-
-    data_.emplace_back(std::forward<Args>(args)...);
   }
 
-  void pop_front() { return data_.pop_front(); }
-  void pop_back() { return data_.pop_back(); }
+  void pop_front() noexcept(noexcept(data_.pop_front())) {
+    return data_.pop_front();
+  }
+  void pop_back() noexcept(noexcept(data_.pop_back())) {
+    return data_.pop_back();
+  }
 
-  void swap(DequeRingBuf& other) noexcept { return std::swap(*this, other); }
+  void swap(DequeRingBuf& other) noexcept(noexcept(data_.swap(other.data_))) {
+    return data_.swap(other.data_);
+  }
 
   friend bool operator<(const DequeRingBuf& lhs, const DequeRingBuf& rhs) {
     return lhs.data_ < rhs.data_;
@@ -123,9 +133,6 @@ class DequeRingBuf {
   friend bool operator!=(const DequeRingBuf& lhs, const DequeRingBuf& rhs) {
     return lhs.data_ != rhs.data_;
   }
-
- private:
-  std::deque<value_type> data_{};
 };
 
 }  // namespace baudvine
