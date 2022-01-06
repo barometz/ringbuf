@@ -546,8 +546,7 @@ class RingBuf {
    * @brief Pop an element off the front, destroying the first element in the
    * ring buffer.
    */
-  void pop_front() noexcept(
-      noexcept(alloc_traits::destroy(alloc_, &data_[ring_offset_]))) {
+  void pop_front() noexcept {
     if (size() == 0) {
       return;
     }
@@ -560,8 +559,7 @@ class RingBuf {
    * @brief Pop an element off the back, destroying the last element in the ring
    * buffer.
    */
-  void pop_back() noexcept(noexcept(alloc_traits::destroy(alloc_,
-                                                          &data_[next_]))) {
+  void pop_back() noexcept {
     if (size() == 0) {
       return;
     }
