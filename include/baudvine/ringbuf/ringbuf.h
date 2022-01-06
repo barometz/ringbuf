@@ -238,6 +238,86 @@ class RingBuf {
 
   using self = RingBuf<Elem, Capacity>;
 
+ private:
+  // The allocator is used to allocate memory, and to construct and destroy
+  // elements.
+  alloc alloc_{};
+
+  // The start of the dynamically allocated backing array.
+  pointer data_{nullptr};
+  // The next position to write to for push_back().
+  size_type next_{0U};
+
+  // Start of the ring buffer in data_.
+  size_type ring_offset_{0U};
+  // The number of elements in the ring buffer (distance between begin() and
+  // end()).
+  size_type size_{0U};
+
+  constexpr static size_type Decrement(const size_type index) {
+    return index > 0 ? index - 1 : Capacity;
+  }
+
+  constexpr static size_type Increment(const size_type index) {
+    return index < (Capacity) ? index + 1 : 0;
+  }
+
+  void CopyAssign(const RingBuf& other, bool propagate_allocator) {
+    // TODO: copy in bulk when Elem is POD?
+    clear();
+
+    if (propagate_allocator) {
+      alloc_ = other.alloc_;
+    }
+
+    for (const auto& value : other) {
+      push_back(value);
+    }
+  }
+
+  void Swap(RingBuf& other, bool propagate_allocator) noexcept(
+      noexcept(std::swap(alloc_, other.alloc_))) {
+    if (propagate_allocator) {
+      std::swap(alloc_, other.alloc_);
+    }
+    std::swap(data_, other.data_);
+    std::swap(next_, other.next_);
+    std::swap(ring_offset_, other.ring_offset_);
+    std::swap(size_, other.size_);
+  }
+
+  // Move things after pop_front.
+  void ShrinkFront() noexcept {
+    ring_offset_ = Increment(ring_offset_);
+    // Precondition: size != 0 (when it is, pop_front returns early.)
+    size_--;
+  }
+
+  // Move things around before pop_back destroys the last entry.
+  void ShrinkBack() noexcept {
+    next_ = Decrement(next_);
+    // Precondition: size != 0 (when it is, pop_back returns early.)
+    size_--;
+  }
+
+  // Move things around before emplace_front constructs its new entry.
+  void GrowFront() noexcept {
+    // Move ring_offset_ down, and possibly around
+    ring_offset_ = Decrement(ring_offset_);
+    // Precondition: size != Capacity (when it is, emplace_front pop_backs
+    // first.)
+    size_++;
+  }
+
+  // Move things around after emplace_back.
+  void GrowBack() noexcept {
+    next_ = Increment(next_);
+    // Precondition: size != Capacity (when it is, emplace_back pop_fronts
+    // first)
+    size_++;
+  }
+
+ public:
   /**
    * @brief Construct a new ring buffer object with a default-constructed
    * allocator, and allocate the required memory.
@@ -315,7 +395,9 @@ class RingBuf {
    * @param other The RingBuf to copy from.
    * @return This RingBuf.
    */
-  RingBuf& operator=(RingBuf&& other) noexcept {
+  RingBuf& operator=(RingBuf&& other) noexcept(
+      !alloc_traits::propagate_on_container_move_assignment::value ||
+      noexcept(Swap(other, {}))) {
     Swap(other, alloc_traits::propagate_on_container_move_assignment::value);
     return *this;
   }
@@ -601,7 +683,9 @@ class RingBuf {
    *
    * @param other The RingBuf to swap with.
    */
-  void swap(RingBuf& other) noexcept(noexcept(std::swap(*this, other))) {
+  void swap(RingBuf& other) noexcept(
+      !alloc_traits::propagate_on_container_swap::value ||
+      noexcept(Swap(other, {}))) {
     Swap(other, alloc_traits::propagate_on_container_swap::value);
   }
 
@@ -669,84 +753,6 @@ class RingBuf {
    */
   friend bool operator!=(const RingBuf& lhs, const RingBuf& rhs) {
     return !(lhs == rhs);
-  }
-
- private:
-  // The allocator is used to allocate memory, and to construct and destroy
-  // elements.
-  alloc alloc_{};
-
-  // The start of the dynamically allocated backing array.
-  pointer data_{nullptr};
-  // The next position to write to for push_back().
-  size_type next_{0U};
-
-  // Start of the ring buffer in data_.
-  size_type ring_offset_{0U};
-  // The number of elements in the ring buffer (distance between begin() and
-  // end()).
-  size_type size_{0U};
-
-  constexpr static size_type Decrement(const size_type index) {
-    return index > 0 ? index - 1 : Capacity;
-  }
-
-  constexpr static size_type Increment(const size_type index) {
-    return index < (Capacity) ? index + 1 : 0;
-  }
-
-  void CopyAssign(const RingBuf& other, bool propagate_allocator) {
-    // TODO: copy in bulk when Elem is POD?
-    clear();
-
-    if (propagate_allocator) {
-      alloc_ = other.alloc_;
-    }
-
-    for (const auto& value : other) {
-      push_back(value);
-    }
-  }
-
-  void Swap(RingBuf& other, bool propagate_allocator) {
-    if (propagate_allocator) {
-      std::swap(alloc_, other.alloc_);
-    }
-    std::swap(data_, other.data_);
-    std::swap(next_, other.next_);
-    std::swap(ring_offset_, other.ring_offset_);
-    std::swap(size_, other.size_);
-  }
-
-  // Move things after pop_front.
-  void ShrinkFront() noexcept {
-    ring_offset_ = Increment(ring_offset_);
-    // Precondition: size != 0 (when it is, pop_front returns early.)
-    size_--;
-  }
-
-  // Move things around before pop_back destroys the last entry.
-  void ShrinkBack() noexcept {
-    next_ = Decrement(next_);
-    // Precondition: size != 0 (when it is, pop_back returns early.)
-    size_--;
-  }
-
-  // Move things around before emplace_front constructs its new entry.
-  void GrowFront() noexcept {
-    // Move ring_offset_ down, and possibly around
-    ring_offset_ = Decrement(ring_offset_);
-    // Precondition: size != Capacity (when it is, emplace_front pop_backs
-    // first.)
-    size_++;
-  }
-
-  // Move things around after emplace_back.
-  void GrowBack() noexcept {
-    next_ = Increment(next_);
-    // Precondition: size != Capacity (when it is, emplace_back pop_fronts
-    // first)
-    size_++;
   }
 };
 
