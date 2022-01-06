@@ -70,14 +70,20 @@ constexpr std::size_t RingWrap(const std::size_t ring_index) {
  * @tparam Elem The element type this iterator points to.
  * @tparam Capacity The size of the backing array, and maximum size of the ring
  *         buffer.
+ * @tparam Ptr The pointer type, which determines constness.
+ * @tparam ConstPtr The pointer type for const iterators.
+ * @todo A lot of iterator implementations have separate classes for iterator
+ *       and const_iterator, that might end up being tidier.
+ * @todo Alternatively, provide allocator & capacity and derive ptr & constptr
+ *       from allocator traits.
  */
-template <typename Elem, size_t Capacity>
+template <typename Elem, size_t Capacity, typename Ptr, typename ConstPtr>
 class Iterator {
  public:
   using difference_type = std::ptrdiff_t;
-  using value_type = typename std::remove_const<Elem>::type;
-  using pointer = Elem*;
-  using reference = Elem&;
+  using value_type = Elem;
+  using pointer = Ptr;
+  using reference = decltype(*pointer{});
   using iterator_category = std::bidirectional_iterator_tag;
 
   constexpr Iterator() noexcept = default;
@@ -99,9 +105,9 @@ class Iterator {
    *
    * @returns A const iterator pointing to the same place.
    */
-  operator Iterator<const value_type, Capacity>() const {
-    return Iterator<const value_type, Capacity>(data_, ring_offset_,
-                                                ring_index_);
+  operator Iterator<value_type, Capacity, ConstPtr, ConstPtr>() const {
+    return Iterator<value_type, Capacity, ConstPtr, ConstPtr>(data_, ring_offset_,
+                                                    ring_index_);
   }
 
   reference operator*() const noexcept {
@@ -162,11 +168,11 @@ class Iterator {
     return !(lhs == rhs);
   }
 
-  template <typename E, std::size_t C, typename OutputIt>
+  template <typename E, std::size_t C, typename P, typename CP, typename OutputIt>
   // https://github.com/llvm/llvm-project/issues/47430
   // NOLINTNEXTLINE(readability-redundant-declaration)
-  friend OutputIt copy(const Iterator<E, C>& begin,
-                       const Iterator<E, C>& end,
+  friend OutputIt copy(const Iterator<E, C, P, CP>& begin,
+                       const Iterator<E, C, P, CP>& end,
                        OutputIt out);
 
  private:
@@ -191,9 +197,9 @@ class Iterator {
  * @param out Start of the destination range.
  * @return OutputIt One past the last copied element in the destination range.
  */
-template <typename Elem, std::size_t Capacity, typename OutputIt>
-OutputIt copy(const Iterator<Elem, Capacity>& begin,
-              const Iterator<Elem, Capacity>& end,
+template <typename Elem, std::size_t Capacity, typename Ptr, typename ConstPtr, typename OutputIt>
+OutputIt copy(const Iterator<Elem, Capacity, Ptr, ConstPtr>& begin,
+              const Iterator<Elem, Capacity, Ptr, ConstPtr>& end,
               OutputIt out) {
   assert(begin <= end);
 
@@ -223,18 +229,21 @@ OutputIt copy(const Iterator<Elem, Capacity>& begin,
 template <typename Elem, size_t Capacity>
 class RingBuf {
  public:
+  using alloc = std::allocator<Elem>;
+  using alloc_traits = std::allocator_traits<alloc>;
   using value_type = Elem;
-  using reference = Elem&;
-  using pointer = Elem*;
-  using const_reference = const Elem&;
-  using iterator = detail::Iterator<Elem, Capacity>;
-  using const_iterator = detail::Iterator<const Elem, Capacity>;
+
+  using pointer = typename alloc_traits::pointer;
+  using const_pointer = typename alloc_traits::const_pointer;
+  using reference = decltype(*pointer{});
+  using const_reference = decltype(*const_pointer{});
+  using iterator = detail::Iterator<value_type, Capacity, pointer, const_pointer>;
+  using const_iterator = detail::Iterator<value_type, Capacity, const_pointer, const_pointer>;
   using reverse_iterator = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+  // TODO diff type should also be alloc_traits::difference_type
   using difference_type = typename iterator::difference_type;
-  using size_type = std::size_t;
-  using alloc = std::allocator<value_type>;
-  using alloc_traits = std::allocator_traits<alloc>;
+  using size_type = typename alloc_traits::size_type;
 
   using self = RingBuf<Elem, Capacity>;
 
