@@ -239,13 +239,27 @@ class RingBuf {
   using self = RingBuf<Elem, Capacity>;
 
   /**
-   * @brief Construct a new ring buffer object, and allocate the required
-   * memory.
+   * @brief Construct a new ring buffer object with a default-constructed
+   * allocator, and allocate the required memory.
    *
    * Allocates Capacity + 1 to allow for strong exception guarantees in
    * emplace_front/back.
    */
-  RingBuf() : data_(alloc_traits::allocate(alloc_, Capacity + 1)){};
+  RingBuf() : RingBuf(alloc{}){};
+  /**
+   * @brief Construct a new ring buffer object with the provided allocator, and
+   * allocate the required memory.
+   *
+   * Allocates Capacity + 1 to allow for strong exception guarantees in
+   * emplace_front/back.
+   *
+   * @param allocator The allocator to use for the backing storage, and
+   *                  optionally for element construction and destruction.
+   */
+  explicit RingBuf(const alloc& allocator)
+      : alloc_(allocator),
+        data_(alloc_traits::allocate(alloc_, Capacity + 1)) {}
+
   /**
    * @brief Destroy the ring buffer object.
    *
@@ -262,7 +276,11 @@ class RingBuf {
    * @param other The RingBuf to copy values from.
    * @todo maybe allow other (smaller) sizes as input?
    */
-  RingBuf(const RingBuf& other) : RingBuf() { *this = other; }
+  RingBuf(const RingBuf& other)
+      : RingBuf(
+            alloc_traits::select_on_container_copy_construction(other.alloc_)) {
+    *this = other;
+  }
   /**
    * @brief Construct a new RingBuf object out of another, using bulk move
    * assignment.
@@ -272,7 +290,9 @@ class RingBuf {
    *
    * @param other The RingBuf to move the data out of.
    */
-  RingBuf(RingBuf&& other) noexcept { *this = std::move(other); }
+  RingBuf(RingBuf&& other) noexcept : RingBuf(std::move(other.alloc_)) {
+    Swap(other, false);
+  }
 
   /**
    * @brief Copy a RingBuf into this one.
@@ -283,10 +303,8 @@ class RingBuf {
    * @return This RingBuf.
    */
   RingBuf& operator=(const RingBuf& other) {
-    clear();
-    for (const auto& value : other) {
-      push_back(value);
-    }
+    CopyAssign(other,
+               alloc_traits::propagate_on_container_copy_assignment::value);
     return *this;
   }
   /**
@@ -298,11 +316,7 @@ class RingBuf {
    * @return This RingBuf.
    */
   RingBuf& operator=(RingBuf&& other) noexcept {
-    std::swap(alloc_, other.alloc_);
-    std::swap(data_, other.data_);
-    std::swap(next_, other.next_);
-    std::swap(ring_offset_, other.ring_offset_);
-    std::swap(size_, other.size_);
+    Swap(other, alloc_traits::propagate_on_container_move_assignment::value);
     return *this;
   }
 
@@ -588,7 +602,7 @@ class RingBuf {
    * @param other The RingBuf to swap with.
    */
   void swap(RingBuf& other) noexcept(noexcept(std::swap(*this, other))) {
-    std::swap(*this, other);
+    Swap(other, alloc_traits::propagate_on_container_swap::value);
   }
 
   /**
@@ -679,6 +693,29 @@ class RingBuf {
 
   constexpr static size_type Increment(const size_type index) {
     return index < (Capacity) ? index + 1 : 0;
+  }
+
+  void CopyAssign(const RingBuf& other, bool propagate_allocator) {
+    // TODO: copy in bulk when Elem is POD?
+    clear();
+
+    if (propagate_allocator) {
+      alloc_ = other.alloc_;
+    }
+
+    for (const auto& value : other) {
+      push_back(value);
+    }
+  }
+
+  void Swap(RingBuf& other, bool propagate_allocator) {
+    if (propagate_allocator) {
+      std::swap(alloc_, other.alloc_);
+    }
+    std::swap(data_, other.data_);
+    std::swap(next_, other.next_);
+    std::swap(ring_offset_, other.ring_offset_);
+    std::swap(size_, other.size_);
   }
 
   // Move things after pop_front.
