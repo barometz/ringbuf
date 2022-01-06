@@ -69,8 +69,8 @@ constexpr std::size_t RingWrap(const std::size_t ring_index) {
  *
  * @tparam Ptr The pointer type, which determines constness.
  * @tparam AllocTraits The allocator traits for the container, used for
- *                         size/difference_type and const_pointer (for auto
- *                         conversion to const iterator).
+ *                     size/difference_type and const_pointer (for auto
+ *                     conversion to const iterator).
  * @tparam Capacity The size of the backing array, and maximum size of the ring
  *                  buffer.
  */
@@ -102,9 +102,11 @@ class Iterator {
    *
    * @returns A const iterator pointing to the same place.
    */
-  operator Iterator<typename AllocTraits::const_pointer, AllocTraits, Capacity>() const {
-    return Iterator<typename AllocTraits::const_pointer, AllocTraits, Capacity>(data_, ring_offset_,
-                                                    ring_index_);
+  operator Iterator<typename AllocTraits::const_pointer,
+                    AllocTraits,
+                    Capacity>() const {
+    return Iterator<typename AllocTraits::const_pointer, AllocTraits, Capacity>(
+        data_, ring_offset_, ring_index_);
   }
 
   reference operator*() const noexcept {
@@ -194,7 +196,10 @@ class Iterator {
  * @param out Start of the destination range.
  * @return OutputIt One past the last copied element in the destination range.
  */
-template <typename Ptr, typename AllocTraits, std::size_t Capacity, typename OutputIt>
+template <typename Ptr,
+          typename AllocTraits,
+          std::size_t Capacity,
+          typename OutputIt>
 OutputIt copy(const Iterator<Ptr, AllocTraits, Capacity>& begin,
               const Iterator<Ptr, AllocTraits, Capacity>& end,
               OutputIt out) {
@@ -235,7 +240,8 @@ class RingBuf {
   using reference = decltype(*pointer{});
   using const_reference = decltype(*const_pointer{});
   using iterator = detail::Iterator<pointer, alloc_traits, Capacity>;
-  using const_iterator = detail::Iterator<const_pointer, alloc_traits, Capacity>;
+  using const_iterator =
+      detail::Iterator<const_pointer, alloc_traits, Capacity>;
   using reverse_iterator = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
   using difference_type = typename alloc_traits::difference_type;
