@@ -45,6 +45,7 @@ class DequeRingBuf {
 
  public:
   DequeRingBuf() = default;
+  DequeRingBuf(const allocator_type& alloc) : data_(alloc) {}
 
   allocator_type get_allocator() const { return data_.get_allocator(); }
 
