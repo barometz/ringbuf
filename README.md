@@ -88,7 +88,7 @@ What can't it do? Well:
   [SequenceContainer](https://en.cppreference.com/w/cpp/named_req/SequenceContainer).
 - [x] The tests for Container aren't as well organized as they could be either.
 - [x] Needs more ~~cowbell~~ `noexcept`
-- [ ] Moved-from RingBuf instances can't be reused.
+- [x] Moved-from RingBuf instances can't be reused.
 - [ ] The iterator is not std::random_access_iterator, which is a slightly dubious but plausible fit.
 - [ ] Docs.
 

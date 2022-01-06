@@ -228,13 +228,14 @@ OutputIt copy(const Iterator<Ptr, AllocTraits, Capacity>& begin,
  * @tparam Capacity The maximum size of the ring buffer, and the fixed size of
  *         the backing array.
  */
-template <typename Elem, size_t Capacity>
+template <typename Elem,
+          size_t Capacity,
+          typename Allocator = std::allocator<Elem>>
 class RingBuf {
  public:
-  using alloc = std::allocator<Elem>;
-  using alloc_traits = std::allocator_traits<alloc>;
+  using allocator_type = Allocator;
+  using alloc_traits = std::allocator_traits<allocator_type>;
   using value_type = Elem;
-
   using pointer = typename alloc_traits::pointer;
   using const_pointer = typename alloc_traits::const_pointer;
   using reference = decltype(*pointer{});
@@ -252,7 +253,7 @@ class RingBuf {
  private:
   // The allocator is used to allocate memory, and to construct and destroy
   // elements.
-  alloc alloc_{};
+  allocator_type alloc_{};
 
   // The start of the dynamically allocated backing array.
   pointer data_{nullptr};
@@ -336,7 +337,7 @@ class RingBuf {
    * Allocates Capacity + 1 to allow for strong exception guarantees in
    * emplace_front/back.
    */
-  RingBuf() : RingBuf(alloc{}){};
+  RingBuf() : RingBuf(allocator_type{}){};
   /**
    * @brief Construct a new ring buffer object with the provided allocator, and
    * allocate the required memory.
@@ -347,7 +348,7 @@ class RingBuf {
    * @param allocator The allocator to use for the backing storage, and
    *                  optionally for element construction and destruction.
    */
-  explicit RingBuf(const alloc& allocator)
+  explicit RingBuf(const allocator_type& allocator)
       : alloc_(allocator),
         data_(alloc_traits::allocate(alloc_, Capacity + 1)) {}
 
@@ -376,10 +377,10 @@ class RingBuf {
    * @brief Construct a new RingBuf object out of another, using bulk move
    * assignment.
    *
-   * Note that other is not in a valid state after this and should not be used
-   * again.
-   *
    * @param other The RingBuf to move the data out of.
+   * @todo Potential issue when the moved-from RingBuf tries to destroy its
+   *       data_ with a moved-from allocator, might need to swap alloc_ instead.
+   *       That's not entirely in line with the spec, but safe > correct
    */
   RingBuf(RingBuf&& other) noexcept : RingBuf(std::move(other.alloc_)) {
     Swap(other, false);
