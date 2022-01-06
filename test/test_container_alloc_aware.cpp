@@ -38,8 +38,6 @@ TYPED_TEST(ContainerReqsAllocAware, GetAllocator) {
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/scope_exit.hpp>
 
-using namespace std::string_literals;
-
 template <typename RingBuf>
 class ContainerReqsAllocIpc : public testing::Test {};
 
@@ -78,7 +76,7 @@ class AtExit {
 };
 
 TYPED_TEST(ContainerReqsAllocIpc, Ipc) {
-  std::string name = "Ipc-"s + typeid(TypeParam).name();
+  std::string name = std::string("Ipc-") + typeid(TypeParam).name();
 
   AtExit remove_shmem([&] { ipc::shared_memory_object::remove(name.c_str()); });
   ipc::shared_memory_object::remove(name.c_str());
