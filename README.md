@@ -79,9 +79,7 @@ Or use your editor or IDE with CMake integration of choice.
 ### TODO
 What can't it do? Well:
 
-- [ ] Support for user-defined/provided allocators.
-  It already uses `std::allocator` so it shouldn't require any big changes, just
-  small and careful ones.
+- [x] Support for user-defined/provided allocators.
 - [x] Reverse iterators.
 - [ ] Generic tests for the iterators of the different implementations.
 - [ ] Doesn't quite implement

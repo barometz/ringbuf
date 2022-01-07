@@ -111,7 +111,6 @@ TYPED_TEST(ContainerReqsAllocIpc, MoveAssignment) {
   ringbufB.push_back("pete");
   ringbufB.push_back("tommy");
 
-  // Pretty sure this should do elementwise move?
   ringbufB = std::move(ringbufA);
   // Allocator doesn't get copied in this case.
   EXPECT_EQ(Allocator<std::string>(shmB.get_segment_manager()),
