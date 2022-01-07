@@ -73,6 +73,19 @@ TYPED_TEST(ContainerReqsAllocIpc, CopyCtor) {
             copy.get_allocator());
 }
 
+TYPED_TEST(ContainerReqsAllocIpc, MoveCtor) {
+  std::string name = std::string("Move-") + typeid(TypeParam).name();
+  AtExit remove_shmem([&] { ipc::shared_memory_object::remove(name.c_str()); });
+  ipc::shared_memory_object::remove(name.c_str());
+
+  ipc::managed_shared_memory shm(ipc::create_only, name.c_str(), 4096);
+  TypeParam ringbuf(shm.get_segment_manager());
+
+  TypeParam moved(std::move(ringbuf));
+  EXPECT_EQ(Allocator<std::string>(shm.get_segment_manager()),
+            moved.get_allocator());
+}
+
 TYPED_TEST(ContainerReqsAllocIpc, CopyAssignment) {
   std::string nameA = std::string("CopyA-") + typeid(TypeParam).name();
   std::string nameB = std::string("CopyB-") + typeid(TypeParam).name();
@@ -89,6 +102,27 @@ TYPED_TEST(ContainerReqsAllocIpc, CopyAssignment) {
   TypeParam ringbufB(shmB.get_segment_manager());
 
   ringbufB = ringbufA;
+  // Allocator doesn't get copied in this case.
+  EXPECT_EQ(Allocator<std::string>(shmB.get_segment_manager()),
+            ringbufB.get_allocator());
+}
+
+TYPED_TEST(ContainerReqsAllocIpc, MoveAssignment) {
+  std::string nameA = std::string("MoveA-") + typeid(TypeParam).name();
+  std::string nameB = std::string("MoveB-") + typeid(TypeParam).name();
+  AtExit remove_shmem([&] {
+    ipc::shared_memory_object::remove(nameA.c_str());
+    ipc::shared_memory_object::remove(nameB.c_str());
+  });
+  ipc::shared_memory_object::remove(nameA.c_str());
+  ipc::shared_memory_object::remove(nameB.c_str());
+
+  ipc::managed_shared_memory shmA(ipc::create_only, nameA.c_str(), 4096);
+  ipc::managed_shared_memory shmB(ipc::create_only, nameB.c_str(), 4096);
+  TypeParam ringbufA(shmA.get_segment_manager());
+  TypeParam ringbufB(shmB.get_segment_manager());
+
+  ringbufB = std::move(ringbufA);
   // Allocator doesn't get copied in this case.
   EXPECT_EQ(Allocator<std::string>(shmB.get_segment_manager()),
             ringbufB.get_allocator());

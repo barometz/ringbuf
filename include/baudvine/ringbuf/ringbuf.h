@@ -298,11 +298,20 @@ class RingBuf {
     }
   }
 
-  void Swap(RingBuf& other, bool propagate_allocator) noexcept(
-      noexcept(std::swap(alloc_, other.alloc_))) {
-    if (propagate_allocator) {
-      std::swap(alloc_, other.alloc_);
-    }
+  template <bool propagate_allocator>
+  void Swap(RingBuf& other);
+
+  template <>
+  void Swap<false>(RingBuf& other) {
+    std::swap(data_, other.data_);
+    std::swap(next_, other.next_);
+    std::swap(ring_offset_, other.ring_offset_);
+    std::swap(size_, other.size_);
+  }
+
+  template <>
+  void Swap<true>(RingBuf& other) {
+    std::swap(alloc_, other.alloc_);
     std::swap(data_, other.data_);
     std::swap(next_, other.next_);
     std::swap(ring_offset_, other.ring_offset_);
@@ -394,7 +403,7 @@ class RingBuf {
    *       That's not entirely in line with the spec, but safe > correct
    */
   RingBuf(RingBuf&& other) noexcept : RingBuf(std::move(other.alloc_)) {
-    Swap(other, false);
+    Swap<false>(other);
   }
 
   /**
@@ -420,8 +429,8 @@ class RingBuf {
    */
   RingBuf& operator=(RingBuf&& other) noexcept(
       !alloc_traits::propagate_on_container_move_assignment::value ||
-      noexcept(Swap(other, {}))) {
-    Swap(other, alloc_traits::propagate_on_container_move_assignment::value);
+      noexcept(Swap<true>(other))) {
+    Swap<alloc_traits::propagate_on_container_move_assignment::value>(other);
     return *this;
   }
 
@@ -710,8 +719,8 @@ class RingBuf {
    */
   void swap(RingBuf& other) noexcept(
       !alloc_traits::propagate_on_container_swap::value ||
-      noexcept(Swap(other, {}))) {
-    Swap(other, alloc_traits::propagate_on_container_swap::value);
+      noexcept(Swap<true>(other))) {
+    Swap<alloc_traits::propagate_on_container_swap::value>(other);
   }
 
   /**
