@@ -2,6 +2,8 @@
 #include "baudvine/ringbuf/deque_ringbuf.h"
 #include "baudvine/ringbuf/ringbuf.h"
 
+#include "at_exit.h"
+
 #include <gmock/gmock-matchers.h>
 #include <gtest/gtest.h>
 
@@ -27,25 +29,6 @@ using RingBufs = testing::Types<
 
 // NOLINTNEXTLINE - clang-tidy complains about missing variadic args
 TYPED_TEST_SUITE(ContainerReqsAllocIpc, RingBufs);
-
-class AtExit {
- public:
-  AtExit() = default;
-  AtExit(std::function<void()> at_exit) : at_exit_(std::move(at_exit)) {}
-  AtExit(const AtExit&) = delete;
-  AtExit(AtExit&&) = delete;
-  AtExit& operator=(const AtExit&) = delete;
-  AtExit& operator=(AtExit&&) = delete;
-
-  ~AtExit() {
-    if (at_exit_) {
-      at_exit_();
-    }
-  }
-
- private:
-  std::function<void()> at_exit_;
-};
 
 TYPED_TEST(ContainerReqsAllocIpc, Create) {
   std::string name = std::string("Ipc-") + typeid(TypeParam).name();
@@ -75,7 +58,7 @@ TYPED_TEST(ContainerReqsAllocIpc, CopyCtor) {
 }
 
 TYPED_TEST(ContainerReqsAllocIpc, MoveCtor) {
-  std::string name = std::string("Move-") + typeid(TypeParam).name();
+  std::string name = std::string("IpcMove-") + typeid(TypeParam).name();
   AtExit remove_shmem([&] { ipc::shared_memory_object::remove(name.c_str()); });
   ipc::shared_memory_object::remove(name.c_str());
 
@@ -109,8 +92,8 @@ TYPED_TEST(ContainerReqsAllocIpc, CopyAssignment) {
 }
 
 TYPED_TEST(ContainerReqsAllocIpc, MoveAssignment) {
-  std::string nameA = std::string("MoveA-") + typeid(TypeParam).name();
-  std::string nameB = std::string("MoveB-") + typeid(TypeParam).name();
+  std::string nameA = std::string("IpcMoveA-") + typeid(TypeParam).name();
+  std::string nameB = std::string("IpcMoveB-") + typeid(TypeParam).name();
   AtExit remove_shmem([&] {
     ipc::shared_memory_object::remove(nameA.c_str());
     ipc::shared_memory_object::remove(nameB.c_str());

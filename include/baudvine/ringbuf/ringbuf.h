@@ -53,7 +53,7 @@ template <
     typename std::enable_if<std::allocator_traits<Allocator>::
                                 propagate_on_container_move_assignment::value,
                             int>::type = 0>
-void MoveAllocator(Allocator& lhs, Allocator& rhs) noexcept(
+void MoveByAssign(Allocator& lhs, Allocator& rhs) noexcept(
     std::is_nothrow_move_assignable<Allocator>::value) {
   lhs = std::move(rhs);
 }
@@ -63,7 +63,24 @@ template <
     typename std::enable_if<!std::allocator_traits<Allocator>::
                                 propagate_on_container_move_assignment::value,
                             int>::type = 0>
-void MoveAllocator(Allocator& /*lhs*/, Allocator& /*rhs*/) noexcept {}
+void MoveByAssign(Allocator& /*lhs*/, Allocator& /*rhs*/) noexcept {}
+
+template <
+    typename Allocator,
+    typename std::enable_if<std::allocator_traits<Allocator>::
+                                propagate_on_container_move_assignment::value,
+                            int>::type = 0>
+void MoveBySwap(Allocator& lhs,
+                Allocator& rhs) noexcept(noexcept(std::swap(lhs, rhs))) {
+  std::swap(lhs, rhs);
+}
+
+template <
+    typename Allocator,
+    typename std::enable_if<!std::allocator_traits<Allocator>::
+                                propagate_on_container_move_assignment::value,
+                            int>::type = 0>
+void MoveBySwap(Allocator& /*lhs*/, Allocator& /*rhs*/) noexcept {}
 
 template <
     typename Allocator,
@@ -452,11 +469,25 @@ class RingBuf {
    *
    * @param other The RingBuf to copy from.
    * @return This RingBuf.
+   * @todo noexcept spec is incomplete
    */
   RingBuf& operator=(RingBuf&& other) noexcept(
-      noexcept(detail::MoveAllocator(alloc_, other.alloc_))) {
-    detail::MoveAllocator(alloc_, other.alloc_);
-    Swap(other);
+      noexcept(detail::MoveByAssign(alloc_, other.alloc_))) {
+    if (alloc_traits::propagate_on_container_move_assignment::value ||
+        alloc_ == other.alloc_) {
+      // We're either getting the other's allocator or they're already the same,
+      // so swap data in one go.
+      detail::MoveBySwap(alloc_, other.alloc_);
+      Swap(other);
+    } else {
+      // Different allocators and can't swap them, so move elementwise.
+      clear();
+      detail::MoveByAssign(alloc_, other.alloc_);
+      for (auto& element : other) {
+        emplace_back(std::move(element));
+      }
+    }
+
     return *this;
   }
 
