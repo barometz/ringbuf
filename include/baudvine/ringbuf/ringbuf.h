@@ -464,7 +464,7 @@ class RingBuf {
    */
   RingBuf& operator=(RingBuf&& other) noexcept(
       alloc_traits::propagate_on_container_move_assignment::value ||
-      alloc_traits::is_always_equal::value) {
+      std::is_nothrow_move_constructible<Elem>::value) {
     if (alloc_traits::propagate_on_container_move_assignment::value ||
         alloc_ == other.alloc_) {
       // We're either getting the other's allocator or they're already the same,
@@ -765,9 +765,7 @@ class RingBuf {
    *
    * @param other The RingBuf to swap with.
    */
-  void swap(RingBuf& other) noexcept(
-      !alloc_traits::propagate_on_container_swap::value ||
-      noexcept(std::swap(alloc_, other.alloc_))) {
+  void swap(RingBuf& other) noexcept {
     detail::SwapAllocator(alloc_, other.alloc_);
     Swap(other);
   }
