@@ -100,9 +100,6 @@ TYPED_TEST(ContainerReqsGeneral, CopyInitMove) {
 
 TYPED_TEST(ContainerReqsGeneral, MoveAssignment) {
   this->a = this->rv;
-  // TODO: "All existing elements of [moveAssignment] are either move assigned
-  // to or destroyed", which doesn't quite match the implementation. Probably
-  // deal with that together with allocator support.
   EXPECT_THAT(this->a, testing::ContainerEq(this->r));
 }
 

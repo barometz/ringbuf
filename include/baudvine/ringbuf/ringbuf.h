@@ -424,6 +424,7 @@ class RingBuf {
   RingBuf(const RingBuf& other)
       : RingBuf(
             alloc_traits::select_on_container_copy_construction(other.alloc_)) {
+    // TODO: copy in bulk when Elem is POD?
     clear();
 
     for (const auto& value : other) {
@@ -435,9 +436,6 @@ class RingBuf {
    * assignment.
    *
    * @param other The RingBuf to move the data out of.
-   * @todo Potential issue when the moved-from RingBuf tries to destroy its
-   *       data_ with a moved-from allocator, might need to swap alloc_ instead.
-   *       That's not entirely in line with the spec, but safe > correct
    */
   RingBuf(RingBuf&& other) noexcept : RingBuf(std::move(other.alloc_)) {
     Swap(other);
@@ -469,10 +467,12 @@ class RingBuf {
    *
    * @param other The RingBuf to copy from.
    * @return This RingBuf.
-   * @todo noexcept spec is incomplete
    */
   RingBuf& operator=(RingBuf&& other) noexcept(
-      noexcept(detail::MoveByAssign(alloc_, other.alloc_))) {
+      (alloc_traits::propagate_on_container_move_assignment::value&& noexcept(
+          detail::MoveBySwap(alloc_, other.alloc_))) ||
+      (std::is_nothrow_move_constructible<Elem>::value  // for emplace_back
+           && noexcept(detail::MoveByAssign(alloc_, other.alloc_)))) {
     if (alloc_traits::propagate_on_container_move_assignment::value ||
         alloc_ == other.alloc_) {
       // We're either getting the other's allocator or they're already the same,
