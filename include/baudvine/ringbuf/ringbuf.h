@@ -53,25 +53,10 @@ template <
     typename std::enable_if<std::allocator_traits<Allocator>::
                                 propagate_on_container_move_assignment::value,
                             int>::type = 0>
-void MoveByAssign(Allocator& lhs, Allocator& rhs) noexcept(
-    std::is_nothrow_move_assignable<Allocator>::value) {
-  lhs = std::move(rhs);
-}
-
-template <
-    typename Allocator,
-    typename std::enable_if<!std::allocator_traits<Allocator>::
-                                propagate_on_container_move_assignment::value,
-                            int>::type = 0>
-void MoveByAssign(Allocator& /*lhs*/, Allocator& /*rhs*/) noexcept {}
-
-template <
-    typename Allocator,
-    typename std::enable_if<std::allocator_traits<Allocator>::
-                                propagate_on_container_move_assignment::value,
-                            int>::type = 0>
 void MoveBySwap(Allocator& lhs,
                 Allocator& rhs) noexcept(noexcept(std::swap(lhs, rhs))) {
+  // Swap instead of move-assign because data_ & co are also swapped, and the
+  // moved-from ringbuf will need to be able to clean that up.
   std::swap(lhs, rhs);
 }
 
@@ -469,10 +454,8 @@ class RingBuf {
    * @return This RingBuf.
    */
   RingBuf& operator=(RingBuf&& other) noexcept(
-      (alloc_traits::propagate_on_container_move_assignment::value&& noexcept(
-          detail::MoveBySwap(alloc_, other.alloc_))) ||
-      (std::is_nothrow_move_constructible<Elem>::value  // for emplace_back
-           && noexcept(detail::MoveByAssign(alloc_, other.alloc_)))) {
+      alloc_traits::propagate_on_container_move_assignment::value ||
+      alloc_traits::is_always_equal::value) {
     if (alloc_traits::propagate_on_container_move_assignment::value ||
         alloc_ == other.alloc_) {
       // We're either getting the other's allocator or they're already the same,
@@ -482,7 +465,6 @@ class RingBuf {
     } else {
       // Different allocators and can't swap them, so move elementwise.
       clear();
-      detail::MoveByAssign(alloc_, other.alloc_);
       for (auto& element : other) {
         emplace_back(std::move(element));
       }
