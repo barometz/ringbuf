@@ -2,6 +2,7 @@
 #include "baudvine/ringbuf/deque_ringbuf.h"
 #include "baudvine/ringbuf/ringbuf.h"
 
+#include <gmock/gmock-matchers.h>
 #include <gtest/gtest.h>
 
 #include <boost/interprocess/allocators/allocator.hpp>
@@ -122,10 +123,19 @@ TYPED_TEST(ContainerReqsAllocIpc, MoveAssignment) {
   TypeParam ringbufA(shmA.get_segment_manager());
   TypeParam ringbufB(shmB.get_segment_manager());
 
+  ringbufA.push_back("ringo");
+  ringbufA.push_back("paul");
+  ringbufB.push_back("pete");
+  ringbufB.push_back("tommy");
+
+  // Pretty sure this should do elementwise move?
   ringbufB = std::move(ringbufA);
   // Allocator doesn't get copied in this case.
   EXPECT_EQ(Allocator<std::string>(shmB.get_segment_manager()),
             ringbufB.get_allocator());
+
+  ringbufB.push_back("john");
+  EXPECT_THAT(ringbufB, testing::ElementsAre("paul", "john"));
 }
 
 #endif

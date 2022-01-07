@@ -325,7 +325,8 @@ class RingBuf {
     return index < (Capacity) ? index + 1 : 0;
   }
 
-  // Swap everything but the allocator - caller has to figure that out separately.
+  // Swap everything but the allocator - caller has to figure that out
+  // separately.
   void Swap(RingBuf& other) noexcept {
     std::swap(data_, other.data_);
     std::swap(next_, other.next_);
