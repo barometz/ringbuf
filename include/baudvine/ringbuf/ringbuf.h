@@ -41,6 +41,7 @@
 #include <cassert>
 #include <cstddef>
 #include <iterator>
+#include <memory>
 #include <stdexcept>
 #include <tuple>
 #include <type_traits>
@@ -48,58 +49,66 @@
 namespace baudvine {
 namespace detail {
 
-template <
-    typename Allocator,
-    typename std::enable_if<std::allocator_traits<Allocator>::
-                                propagate_on_container_move_assignment::value,
-                            int>::type = 0>
-void MoveBySwap(Allocator& lhs,
-                Allocator& rhs) noexcept(noexcept(std::swap(lhs, rhs))) {
+template <typename Allocator>
+void MoveAllocator(Allocator& lhs,
+                   Allocator& rhs,
+                   std::true_type /*propagate*/) {
   // Swap instead of move-assign because data_ & co are also swapped, and the
   // moved-from ringbuf will need to be able to clean that up.
   std::swap(lhs, rhs);
 }
 
-template <
-    typename Allocator,
-    typename std::enable_if<!std::allocator_traits<Allocator>::
-                                propagate_on_container_move_assignment::value,
-                            int>::type = 0>
-void MoveBySwap(Allocator& /*lhs*/, Allocator& /*rhs*/) noexcept {}
+template <typename Allocator>
+void MoveAllocator(Allocator& /*lhs*/,
+                   Allocator& /*rhs*/,
+                   std::false_type /*propagate*/) noexcept {}
 
-template <
-    typename Allocator,
-    typename std::enable_if<
-        std::allocator_traits<Allocator>::propagate_on_container_swap::value,
-        int>::type = 0>
+template <typename Allocator>
+void MoveAllocator(Allocator& lhs, Allocator& rhs) {
+  using AllocTraits = std::allocator_traits<Allocator>;
+  using Propagate =
+      typename AllocTraits::propagate_on_container_move_assignment;
+  MoveAllocator(lhs, rhs, Propagate{});
+}
+
+template <typename Allocator>
 void SwapAllocator(Allocator& lhs,
-                   Allocator& rhs) noexcept(noexcept(std::swap(lhs, rhs))) {
+                   Allocator& rhs,
+                   std::true_type /*propagate*/) {
   std::swap(lhs, rhs);
 }
 
-template <
-    typename Allocator,
-    typename std::enable_if<
-        !std::allocator_traits<Allocator>::propagate_on_container_swap::value,
-        int>::type = 0>
-void SwapAllocator(Allocator& /*lhs*/, Allocator& /*rhs*/) noexcept {}
+template <typename Allocator>
+void SwapAllocator(Allocator& /*lhs*/,
+                   Allocator& /*rhs*/,
+                   std::false_type /*propagate*/) {}
 
-template <
-    typename Allocator,
-    typename std::enable_if<std::allocator_traits<Allocator>::
-                                propagate_on_container_copy_assignment::value,
-                            int>::type = 0>
-void CopyAllocator(Allocator& lhs, const Allocator& rhs) noexcept(
-    std::is_nothrow_copy_assignable<Allocator>::value) {
+template <typename Allocator>
+void SwapAllocator(Allocator& lhs, Allocator& rhs) {
+  using AllocTraits = std::allocator_traits<Allocator>;
+  using Propagate = typename AllocTraits::propagate_on_container_swap;
+  SwapAllocator(lhs, rhs, Propagate{});
+}
+
+template <typename Allocator>
+void CopyAllocator(Allocator& lhs,
+                   const Allocator& rhs,
+                   std::true_type /*propagate*/) {
   lhs = rhs;
 }
 
-template <
-    typename Allocator,
-    typename std::enable_if<!std::allocator_traits<Allocator>::
-                                propagate_on_container_copy_assignment::value,
-                            int>::type = 0>
-void CopyAllocator(Allocator& /*lhs*/, const Allocator& /*rhs*/) noexcept {}
+template <typename Allocator>
+void CopyAllocator(Allocator& /*lhs*/,
+                   const Allocator& /*rhs*/,
+                   std::false_type /*propagate*/) {}
+
+template <typename Allocator>
+void CopyAllocator(Allocator& lhs, const Allocator& rhs) {
+  using AllocTraits = std::allocator_traits<Allocator>;
+  using Propagate =
+      typename AllocTraits::propagate_on_container_copy_assignment;
+  CopyAllocator(lhs, rhs, Propagate{});
+}
 
 /**
  * @brief Wrap a physical position into an array of size Capacity.
@@ -460,7 +469,7 @@ class RingBuf {
         alloc_ == other.alloc_) {
       // We're either getting the other's allocator or they're already the same,
       // so swap data in one go.
-      detail::MoveBySwap(alloc_, other.alloc_);
+      detail::MoveAllocator(alloc_, other.alloc_);
       Swap(other);
     } else {
       // Different allocators and can't swap them, so move elementwise.
@@ -757,7 +766,8 @@ class RingBuf {
    * @param other The RingBuf to swap with.
    */
   void swap(RingBuf& other) noexcept(
-      noexcept(detail::SwapAllocator(alloc_, other.alloc_))) {
+      !alloc_traits::propagate_on_container_swap::value ||
+      noexcept(std::swap(alloc_, other.alloc_))) {
     detail::SwapAllocator(alloc_, other.alloc_);
     Swap(other);
   }
