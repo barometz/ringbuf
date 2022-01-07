@@ -299,10 +299,11 @@ class RingBuf {
   }
 
   template <bool propagate_allocator>
-  void Swap(RingBuf& other);
+  void Swap(RingBuf& other) noexcept(
+      !propagate_allocator || std::is_nothrow_swappable<allocator_type>::value);
 
   template <>
-  void Swap<false>(RingBuf& other) {
+  void Swap<false>(RingBuf& other) noexcept(true) {
     std::swap(data_, other.data_);
     std::swap(next_, other.next_);
     std::swap(ring_offset_, other.ring_offset_);
@@ -310,7 +311,8 @@ class RingBuf {
   }
 
   template <>
-  void Swap<true>(RingBuf& other) {
+  void Swap<true>(RingBuf& other) noexcept(
+      std::is_nothrow_swappable<allocator_type>::value) {
     std::swap(alloc_, other.alloc_);
     std::swap(data_, other.data_);
     std::swap(next_, other.next_);
@@ -427,9 +429,9 @@ class RingBuf {
    * @param other The RingBuf to copy from.
    * @return This RingBuf.
    */
-  RingBuf& operator=(RingBuf&& other) noexcept(
-      !alloc_traits::propagate_on_container_move_assignment::value ||
-      noexcept(Swap<true>(other))) {
+  RingBuf& operator=(RingBuf&& other) noexcept(noexcept(
+      Swap<alloc_traits::propagate_on_container_move_assignment::value>(
+          other))) {
     Swap<alloc_traits::propagate_on_container_move_assignment::value>(other);
     return *this;
   }
@@ -718,8 +720,7 @@ class RingBuf {
    * @param other The RingBuf to swap with.
    */
   void swap(RingBuf& other) noexcept(
-      !alloc_traits::propagate_on_container_swap::value ||
-      noexcept(Swap<true>(other))) {
+      noexcept(Swap<alloc_traits::propagate_on_container_swap::value>(other))) {
     Swap<alloc_traits::propagate_on_container_swap::value>(other);
   }
 
