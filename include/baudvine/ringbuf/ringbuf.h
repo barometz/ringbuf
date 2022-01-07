@@ -274,14 +274,25 @@ class RingBuf {
     return index < (Capacity) ? index + 1 : 0;
   }
 
-  void CopyAssign(const RingBuf& other, bool propagate_allocator) {
+  template <bool propagate_allocator>
+  void CopyAssign(const RingBuf& other);
+
+  template <>
+  void CopyAssign<false>(const RingBuf& other) {
     // TODO: copy in bulk when Elem is POD?
     clear();
 
-    if (propagate_allocator) {
-      alloc_ = other.alloc_;
+    for (const auto& value : other) {
+      push_back(value);
     }
+  }
 
+  template <>
+  void CopyAssign<true>(const RingBuf& other) {
+    // TODO: copy in bulk when Elem is POD?
+    clear();
+
+    alloc_ = other.alloc_;
     for (const auto& value : other) {
       push_back(value);
     }
@@ -371,7 +382,7 @@ class RingBuf {
   RingBuf(const RingBuf& other)
       : RingBuf(
             alloc_traits::select_on_container_copy_construction(other.alloc_)) {
-    *this = other;
+    CopyAssign<false>(other);
   }
   /**
    * @brief Construct a new RingBuf object out of another, using bulk move
@@ -395,8 +406,8 @@ class RingBuf {
    * @return This RingBuf.
    */
   RingBuf& operator=(const RingBuf& other) {
-    CopyAssign(other,
-               alloc_traits::propagate_on_container_copy_assignment::value);
+    CopyAssign<alloc_traits::propagate_on_container_copy_assignment::value>(
+        other);
     return *this;
   }
   /**
