@@ -48,6 +48,59 @@
 namespace baudvine {
 namespace detail {
 
+// TODO: there has to be a better way than this
+
+template <
+    typename Allocator,
+    typename std::enable_if<std::allocator_traits<Allocator>::
+                                propagate_on_container_move_assignment::value,
+                            int>::type = 0>
+void MoveAllocator(Allocator& lhs, Allocator& rhs) noexcept(
+    std::is_nothrow_move_assignable<Allocator>::value) {
+  lhs = std::move(rhs);
+}
+
+template <
+    typename Allocator,
+    typename std::enable_if<!std::allocator_traits<Allocator>::
+                                propagate_on_container_move_assignment::value,
+                            int>::type = 0>
+void MoveAllocator(Allocator& /*lhs*/, Allocator& /*rhs*/) noexcept {}
+
+template <
+    typename Allocator,
+    typename std::enable_if<
+        std::allocator_traits<Allocator>::propagate_on_container_swap::value,
+        int>::type = 0>
+void SwapAllocator(Allocator& lhs,
+                   Allocator& rhs) noexcept(noexcept(std::swap(lhs, rhs))) {
+  std::swap(lhs, rhs);
+}
+
+template <
+    typename Allocator,
+    typename std::enable_if<
+        !std::allocator_traits<Allocator>::propagate_on_container_swap::value,
+        int>::type = 0>
+void SwapAllocator(Allocator& /*lhs*/, Allocator& /*rhs*/) noexcept {}
+
+template <
+    typename Allocator,
+    typename std::enable_if<std::allocator_traits<Allocator>::
+                                propagate_on_container_copy_assignment::value,
+                            int>::type = 0>
+void CopyAllocator(Allocator& lhs, const Allocator& rhs) noexcept(
+    std::is_nothrow_copy_assignable<Allocator>::value) {
+  lhs = rhs;
+}
+
+template <
+    typename Allocator,
+    typename std::enable_if<!std::allocator_traits<Allocator>::
+                                propagate_on_container_copy_assignment::value,
+                            int>::type = 0>
+void CopyAllocator(Allocator& /*lhs*/, const Allocator& /*rhs*/) noexcept {}
+
 /**
  * @brief Wrap a physical position into an array of size Capacity.
  *
@@ -274,52 +327,6 @@ class RingBuf {
     return index < (Capacity) ? index + 1 : 0;
   }
 
-  template <bool propagate_allocator>
-  void CopyAssign(const RingBuf& other);
-
-  template <>
-  void CopyAssign<false>(const RingBuf& other) {
-    // TODO: copy in bulk when Elem is POD?
-    clear();
-
-    for (const auto& value : other) {
-      push_back(value);
-    }
-  }
-
-  template <>
-  void CopyAssign<true>(const RingBuf& other) {
-    // TODO: copy in bulk when Elem is POD?
-    clear();
-
-    alloc_ = other.alloc_;
-    for (const auto& value : other) {
-      push_back(value);
-    }
-  }
-
-  template <bool propagate_allocator>
-  void Swap(RingBuf& other) noexcept(
-      !propagate_allocator || std::is_nothrow_swappable<allocator_type>::value);
-
-  template <>
-  void Swap<false>(RingBuf& other) noexcept(true) {
-    std::swap(data_, other.data_);
-    std::swap(next_, other.next_);
-    std::swap(ring_offset_, other.ring_offset_);
-    std::swap(size_, other.size_);
-  }
-
-  template <>
-  void Swap<true>(RingBuf& other) noexcept(
-      std::is_nothrow_swappable<allocator_type>::value) {
-    std::swap(alloc_, other.alloc_);
-    std::swap(data_, other.data_);
-    std::swap(next_, other.next_);
-    std::swap(ring_offset_, other.ring_offset_);
-    std::swap(size_, other.size_);
-  }
-
   // Move things after pop_front.
   void ShrinkFront() noexcept {
     ring_offset_ = Increment(ring_offset_);
@@ -393,7 +400,11 @@ class RingBuf {
   RingBuf(const RingBuf& other)
       : RingBuf(
             alloc_traits::select_on_container_copy_construction(other.alloc_)) {
-    CopyAssign<false>(other);
+    clear();
+
+    for (const auto& value : other) {
+      push_back(value);
+    }
   }
   /**
    * @brief Construct a new RingBuf object out of another, using bulk move
@@ -405,7 +416,10 @@ class RingBuf {
    *       That's not entirely in line with the spec, but safe > correct
    */
   RingBuf(RingBuf&& other) noexcept : RingBuf(std::move(other.alloc_)) {
-    Swap<false>(other);
+    std::swap(data_, other.data_);
+    std::swap(next_, other.next_);
+    std::swap(ring_offset_, other.ring_offset_);
+    std::swap(size_, other.size_);
   }
 
   /**
@@ -417,8 +431,14 @@ class RingBuf {
    * @return This RingBuf.
    */
   RingBuf& operator=(const RingBuf& other) {
-    CopyAssign<alloc_traits::propagate_on_container_copy_assignment::value>(
-        other);
+    // TODO: copy in bulk when Elem is POD?
+    clear();
+
+    detail::CopyAllocator(alloc_, other.alloc_);
+
+    for (const auto& value : other) {
+      push_back(value);
+    }
     return *this;
   }
   /**
@@ -429,10 +449,13 @@ class RingBuf {
    * @param other The RingBuf to copy from.
    * @return This RingBuf.
    */
-  RingBuf& operator=(RingBuf&& other) noexcept(noexcept(
-      Swap<alloc_traits::propagate_on_container_move_assignment::value>(
-          other))) {
-    Swap<alloc_traits::propagate_on_container_move_assignment::value>(other);
+  RingBuf& operator=(RingBuf&& other) noexcept(
+      noexcept(detail::MoveAllocator(alloc_, other.alloc_))) {
+    detail::MoveAllocator(alloc_, other.alloc_);
+    std::swap(data_, other.data_);
+    std::swap(next_, other.next_);
+    std::swap(ring_offset_, other.ring_offset_);
+    std::swap(size_, other.size_);
     return *this;
   }
 
@@ -720,8 +743,12 @@ class RingBuf {
    * @param other The RingBuf to swap with.
    */
   void swap(RingBuf& other) noexcept(
-      noexcept(Swap<alloc_traits::propagate_on_container_swap::value>(other))) {
-    Swap<alloc_traits::propagate_on_container_swap::value>(other);
+      noexcept(detail::SwapAllocator(alloc_, other.alloc_))) {
+    detail::SwapAllocator(alloc_, other.alloc_);
+    std::swap(data_, other.data_);
+    std::swap(next_, other.next_);
+    std::swap(ring_offset_, other.ring_offset_);
+    std::swap(size_, other.size_);
   }
 
   /**
