@@ -48,8 +48,6 @@
 namespace baudvine {
 namespace detail {
 
-// TODO: there has to be a better way than this
-
 template <
     typename Allocator,
     typename std::enable_if<std::allocator_traits<Allocator>::
@@ -327,6 +325,14 @@ class RingBuf {
     return index < (Capacity) ? index + 1 : 0;
   }
 
+  // Swap everything but the allocator - caller has to figure that out separately.
+  void Swap(RingBuf& other) noexcept {
+    std::swap(data_, other.data_);
+    std::swap(next_, other.next_);
+    std::swap(ring_offset_, other.ring_offset_);
+    std::swap(size_, other.size_);
+  }
+
   // Move things after pop_front.
   void ShrinkFront() noexcept {
     ring_offset_ = Increment(ring_offset_);
@@ -416,10 +422,7 @@ class RingBuf {
    *       That's not entirely in line with the spec, but safe > correct
    */
   RingBuf(RingBuf&& other) noexcept : RingBuf(std::move(other.alloc_)) {
-    std::swap(data_, other.data_);
-    std::swap(next_, other.next_);
-    std::swap(ring_offset_, other.ring_offset_);
-    std::swap(size_, other.size_);
+    Swap(other);
   }
 
   /**
@@ -452,10 +455,7 @@ class RingBuf {
   RingBuf& operator=(RingBuf&& other) noexcept(
       noexcept(detail::MoveAllocator(alloc_, other.alloc_))) {
     detail::MoveAllocator(alloc_, other.alloc_);
-    std::swap(data_, other.data_);
-    std::swap(next_, other.next_);
-    std::swap(ring_offset_, other.ring_offset_);
-    std::swap(size_, other.size_);
+    Swap(other);
     return *this;
   }
 
@@ -745,10 +745,7 @@ class RingBuf {
   void swap(RingBuf& other) noexcept(
       noexcept(detail::SwapAllocator(alloc_, other.alloc_))) {
     detail::SwapAllocator(alloc_, other.alloc_);
-    std::swap(data_, other.data_);
-    std::swap(next_, other.next_);
-    std::swap(ring_offset_, other.ring_offset_);
-    std::swap(size_, other.size_);
+    Swap(other);
   }
 
   /**
