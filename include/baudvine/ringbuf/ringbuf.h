@@ -147,6 +147,7 @@ constexpr std::size_t RingWrap(const std::size_t ring_index) {
  *                     conversion to const iterator).
  * @tparam Capacity The size of the backing array, and maximum size of the ring
  *                  buffer.
+ * @todo Upgrade to random_access_iterator, since offsets are constant-time.
  */
 template <typename Ptr, typename AllocTraits, std::size_t Capacity>
 class Iterator {
@@ -440,10 +441,10 @@ class RingBuf {
    * @param other The RingBuf to copy values from.
    * @param allocator The allocator to use for storage and element construction.
    * @todo maybe allow other (smaller) sizes as input?
+   * @todo Use memcpy/std::copy if Elem is POD
    */
   RingBuf(const RingBuf& other, const allocator_type& allocator)
       : RingBuf(allocator) {
-    // TODO: copy in bulk when Elem is POD?
     clear();
 
     for (const auto& value : other) {
@@ -487,7 +488,6 @@ class RingBuf {
    * @returns This RingBuf.
    */
   RingBuf& operator=(const RingBuf& other) {
-    // TODO: copy in bulk when Elem is POD?
     clear();
 
     detail::CopyAllocator(alloc_, other.alloc_);
