@@ -3,7 +3,7 @@ name: Generate & deploy documentation
 on:
   push:
     branches:
-      - feature/doc-generation
+      - main
 
 jobs:
   deploy:

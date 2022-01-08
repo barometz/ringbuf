@@ -1,4 +1,4 @@
-# baudvine/ringbuf
+# baudvine::RingBuf
 
 - [Overview](#overview)
 - [The present](#the-present)
@@ -95,6 +95,7 @@ What can't it do? Well:
 - [x] Moved-from RingBuf instances can't be reused.
 - [ ] The iterator is not std::random_access_iterator, which is a slightly dubious but plausible fit.
 - [x] Docs.
+- [ ] Better code examples.
 
 ### NOT TODO
 What won't it do?
