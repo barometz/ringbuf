@@ -128,7 +128,7 @@ void CopyAllocator(Allocator& lhs, const Allocator& rhs) {
  *
  * @tparam Capacity The backing array size.
  * @param ring_index The physical index into the backing array.
- * @returns The ring_index wrapped to [0..Capacity).
+ * @returns The ring_index wrapped to [0..Capacity].
  * @private
  */
 template <std::size_t Capacity>
@@ -148,10 +148,11 @@ constexpr std::size_t RingWrap(const std::size_t ring_index) {
  * @tparam Capacity The size of the backing array, and maximum size of the ring
  *                  buffer.
  */
-template <typename Ptr, typename AllocTraits, size_t Capacity>
+template <typename Ptr, typename AllocTraits, std::size_t Capacity>
 class Iterator {
  public:
   using difference_type = typename AllocTraits::difference_type;
+  using size_type = typename AllocTraits::difference_type;
   using value_type = typename AllocTraits::value_type;
   using pointer = Ptr;
   using reference = decltype(*pointer{});
@@ -167,8 +168,8 @@ class Iterator {
    *                   ring_offset, ring_index is 0.
    */
   Iterator(pointer data,
-           const std::size_t ring_offset,
-           const std::size_t ring_index)
+           const size_type ring_offset,
+           const size_type ring_index)
       : data_(data), ring_offset_(ring_offset), ring_index_(ring_index) {}
 
   /**
@@ -254,8 +255,8 @@ class Iterator {
   // redundant (you could add them once and then increment the sum in
   // operator++), but the unchanging ring_offset_ appears to help the compiler
   // optimize RingWrap calls.
-  std::size_t ring_offset_{};
-  std::size_t ring_index_{};
+  size_type ring_offset_{};
+  size_type ring_index_{};
 };
 
 /**
@@ -305,7 +306,7 @@ OutputIt copy(const Iterator<Ptr, AllocTraits, Capacity>& begin,
            construction.
  */
 template <typename Elem,
-          size_t Capacity,
+          std::size_t Capacity,
           typename Allocator = std::allocator<Elem>>
 class RingBuf {
  public:
