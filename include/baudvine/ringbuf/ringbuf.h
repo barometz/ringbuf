@@ -23,7 +23,7 @@
  * @author Dominic van Berkel
  * @copyright MIT License
  *
- * A ring buffer for C++11, with an STL-compatible interface.
+ * A ring buffer for C++11, with an STL-like interface.
  *
  * The comments frequently refer to "physical" and "logical" indices. This is
  * meant to make explicit the distinction between:
@@ -260,17 +260,9 @@ class Iterator {
   size_type ring_index_{};
 };
 
-/**
- * Copy the elements in the range [@c begin, @c end) to a destination range
- * starting at @c out.
- *
- * @tparam Ptr The pointer type of the input iterator.
- * @tparam AllocTraits The allocator traits of the input iterator.
- * @tparam Capacity The capacity of the input iterator.
- * @param begin Start of the source range.
- * @param end End of the source range, one past the last element to copy.
- * @param out Start of the destination range.
- * @returns OutputIt One past the last copied element in the destination range.
+/** 
+ * @see baudvine::copy
+ * @private
  */
 template <typename Ptr,
           typename AllocTraits,
@@ -298,7 +290,8 @@ OutputIt copy(const Iterator<Ptr, AllocTraits, Capacity>& begin,
 }  // namespace detail
 
 /**
- * The ring buffer itself.
+ * An STL-like ring buffer with dynamic allocation and compile-time capacity
+ * limits.
  *
  * @tparam Elem The type of elements contained by the ring buffer.
  * @tparam Capacity The maximum size of the ring buffer, and the fixed size of
@@ -849,6 +842,32 @@ class RingBuf {
   }
 };
 
-using detail::copy;
+/**
+ * Copy the elements in the range [@c begin, @c end) to a destination range
+ * starting at @c out.
+ *
+ * Can be used like std::copy:
+ * @code
+ * std::vector<int> vec;
+ * baudvine::copy(ring.begin(), ring.end(), std::back_inserter(vec));
+ * @endcode 
+ *
+ * @tparam Ptr The pointer type of the input iterator.
+ * @tparam AllocTraits The allocator traits of the input iterator.
+ * @tparam Capacity The capacity of the input iterator.
+ * @param begin Start of the source range.
+ * @param end End of the source range, one past the last element to copy.
+ * @param out Start of the destination range.
+ * @returns One past the last copied element in the destination range.
+ */
+template <typename Ptr,
+          typename AllocTraits,
+          std::size_t Capacity,
+          typename OutputIt>
+OutputIt copy(const detail::Iterator<Ptr, AllocTraits, Capacity>& begin,
+              const detail::Iterator<Ptr, AllocTraits, Capacity>& end,
+              OutputIt out) {
+  return detail::copy(begin, end, out);
+}
 
 }  // namespace baudvine
