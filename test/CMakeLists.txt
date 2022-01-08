@@ -26,3 +26,17 @@ FetchContent_MakeAvailable(googletest)
 target_link_libraries(ringbuf-test PRIVATE gtest_main gmock)
 include(GoogleTest)
 gtest_discover_tests(ringbuf-test)
+
+# Feature detection
+
+find_package(Boost 1.67.0)
+if (Boost_FOUND)
+  # The allocator-aware tests use Boost's shared memory allocator.
+  target_link_libraries(ringbuf-test PRIVATE Boost::headers)
+  if (UNIX)
+    # need librt for shm_open & co
+    target_link_libraries(ringbuf-test PRIVATE rt)
+  endif()
+  target_compile_definitions(ringbuf-test PRIVATE BOOST_DATE_TIME_NO_LIB)
+  target_compile_definitions(ringbuf-test PRIVATE BAUDVINE_HAVE_BOOST_IPC)
+endif()
