@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['design_20notes_82',['Design notes',['../design-notes.html',1,'']]]
+  ['baudvine_3a_3aringbuf_83',['baudvine::RingBuf',['../index.html',1,'']]]
 ];

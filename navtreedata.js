@@ -23,8 +23,8 @@ for the JavaScript code in this file
 var NAVTREE =
 [
   [ "baudvine::RingBuf", "index.html", [
-    [ "Usage", "index.html#autotoc_md0", null ],
-    [ "Building", "index.html#autotoc_md1", null ],
+    [ "Usage", "index.html#usage", null ],
+    [ "Building", "index.html#building", null ],
     [ "Design notes", "design-notes.html", [
       [ "STL compatibility", "design-notes.html#stl-compat", null ],
       [ "Memory allocation", "design-notes.html#memory-allocation", null ],
