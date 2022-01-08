@@ -9,8 +9,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Run DenverCode1/doxygen-github-pages-action
-        working-directory: docs
-        uses: DenverCoder1/doxygen-github-pages-action@v1
+      - uses: DenverCoder1/doxygen-github-pages-action@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

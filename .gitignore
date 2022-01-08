@@ -1,4 +1,5 @@
 build
+docs/html
 .vscode
 .cache
 .vs
