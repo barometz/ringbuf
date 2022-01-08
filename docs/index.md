@@ -1,3 +1,5 @@
+# baudvine::RingBuf {#index}
+
 This is a header-only
 [ring/circular buffer](https://en.wikipedia.org/wiki/Circular_buffer)
 implementation in C++11, with the following goals:
@@ -22,7 +24,7 @@ based on `std::deque` it's a bit less efficient (time, memory fragmentation)
 than the array-based one, but it's also a lot easier to trust since all the
 hairy math and allocation happens in the standard library.
 
-# Usage
+## Usage {#usage}
 
 ```{.cpp}
 #include <baudvine/ringbuf/ringbuf.h>
@@ -43,7 +45,7 @@ you can use it as an STL container, except it wraps like a ring buffer. You get
 iterators, `front()`, `back()`, `push_back()`, `pop_front()`, `emplace_back()`,
 range-for, all\* the things you expect from a standard library container.
 
-# Building
+## Building {#building}
 The project is header-only, so you only have to copy
 `include/baudvine/ringbuf/ringbuf.h` into your project. You should also be able
 to include it as a CMake subproject, but that's untested.
