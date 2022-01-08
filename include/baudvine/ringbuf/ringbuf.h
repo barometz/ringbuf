@@ -48,8 +48,10 @@
 #include <tuple>
 #include <type_traits>
 
+/** The baudvine "project". */
 namespace baudvine {
 namespace detail {
+namespace ringbuf {
 
 /** @private */
 template <typename Allocator>
@@ -260,7 +262,7 @@ class Iterator {
   size_type ring_index_{};
 };
 
-/** 
+/**
  * @see baudvine::copy
  * @private
  */
@@ -287,6 +289,7 @@ OutputIt copy(const Iterator<Ptr, AllocTraits, Capacity>& begin,
   return out;
 }
 
+}  // namespace ringbuf
 }  // namespace detail
 
 /**
@@ -311,9 +314,9 @@ class RingBuf {
   using const_pointer = typename alloc_traits::const_pointer;
   using reference = decltype(*pointer{});
   using const_reference = decltype(*const_pointer{});
-  using iterator = detail::Iterator<pointer, alloc_traits, Capacity>;
+  using iterator = detail::ringbuf::Iterator<pointer, alloc_traits, Capacity>;
   using const_iterator =
-      detail::Iterator<const_pointer, alloc_traits, Capacity>;
+      detail::ringbuf::Iterator<const_pointer, alloc_traits, Capacity>;
   using reverse_iterator = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
   using difference_type = typename alloc_traits::difference_type;
@@ -483,7 +486,7 @@ class RingBuf {
   RingBuf& operator=(const RingBuf& other) {
     clear();
 
-    detail::CopyAllocator(alloc_, other.alloc_);
+    detail::ringbuf::CopyAllocator(alloc_, other.alloc_);
 
     for (const auto& value : other) {
       push_back(value);
@@ -506,7 +509,7 @@ class RingBuf {
         alloc_ == other.alloc_) {
       // We're either getting the other's allocator or they're already the same,
       // so swap data in one go.
-      detail::MoveAllocator(alloc_, other.alloc_);
+      detail::ringbuf::MoveAllocator(alloc_, other.alloc_);
       Swap(other);
     } else {
       // Different allocators and can't swap them, so move elementwise.
@@ -544,7 +547,7 @@ class RingBuf {
    * @returns A const reference to the element.
    */
   const_reference operator[](const size_type index) const {
-    return data_[detail::RingWrap<Capacity>(ring_offset_ + index)];
+    return data_[detail::ringbuf::RingWrap<Capacity>(ring_offset_ + index)];
   }
   /**
    * Retrieve an element from the ring buffer without range checking.
@@ -555,7 +558,7 @@ class RingBuf {
    * @returns A reference to the element.
    */
   reference operator[](const size_type index) {
-    return data_[detail::RingWrap<Capacity>(ring_offset_ + index)];
+    return data_[detail::ringbuf::RingWrap<Capacity>(ring_offset_ + index)];
   }
   /**
    * Retrieve an element from the ring buffer with range checking.
@@ -783,7 +786,7 @@ class RingBuf {
    * @param other The RingBuf to swap with.
    */
   void swap(RingBuf& other) noexcept {
-    detail::SwapAllocator(alloc_, other.alloc_);
+    detail::ringbuf::SwapAllocator(alloc_, other.alloc_);
     Swap(other);
   }
 
@@ -850,7 +853,7 @@ class RingBuf {
  * @code
  * std::vector<int> vec;
  * baudvine::copy(ring.begin(), ring.end(), std::back_inserter(vec));
- * @endcode 
+ * @endcode
  *
  * @tparam Ptr The pointer type of the input iterator.
  * @tparam AllocTraits The allocator traits of the input iterator.
@@ -864,10 +867,11 @@ template <typename Ptr,
           typename AllocTraits,
           std::size_t Capacity,
           typename OutputIt>
-OutputIt copy(const detail::Iterator<Ptr, AllocTraits, Capacity>& begin,
-              const detail::Iterator<Ptr, AllocTraits, Capacity>& end,
-              OutputIt out) {
-  return detail::copy(begin, end, out);
+OutputIt copy(
+    const detail::ringbuf::Iterator<Ptr, AllocTraits, Capacity>& begin,
+    const detail::ringbuf::Iterator<Ptr, AllocTraits, Capacity>& end,
+    OutputIt out) {
+  return detail::ringbuf::copy(begin, end, out);
 }
 
 }  // namespace baudvine
