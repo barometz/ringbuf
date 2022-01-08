@@ -1,6 +1,6 @@
-# Design notes
+# Design notes {#design-notes}
 
-## STL compatibility
+## STL compatibility {#stl-compat}
 
 baudvine::RingBuf is meant to be STL-compatible and STL-like. To that end, most
 of its functionality is defined and tested with an eye on C++20's general
@@ -33,7 +33,7 @@ RingBuf is mostly a sequence container
 ([sequence.reqmts/4](https://timsong-cpp.github.io/cppwp/n4868/sequence.reqmts#4)),
 and thoroughly defining and testing that is next on the list.
 
-## Memory allocation
+## Memory allocation {#memory-allocation}
 
 RingBuf uses dynamic memory allocation, or colloquially heap allocation. This is
 not strictly required, but automatic ("stack") allocation would require more
@@ -49,13 +49,39 @@ element lifetimes. Automatic storage is more difficult.
 
 The expression `std::string arr[65]` will result in 65 default-initialized
 strings. Since `std::string` has a default constructor, that means 65 strings
-will be initialized. WHICH MEANS WHAT
+will be initialized. For some types that doesn't matter, but for others you
+really want to avoid running 65 (or a million) default constructors. And if the
+type *doesn't* have a default constructor you can't create that array at all.
 
-## Allocation size
+The way to do this with automatic storage duration involves aligned storage and
+allocating space for byte arrays the size of the elements. An implementation
+like that may be added in the future, and maybe even become the norm.
 
-To provide a [strong exception guarantee](https://en.cppreference.com/w/cpp/language/exceptions#Exception_safety), 
-RingBuf allocates one element more than WHAT
+## Allocation size {#allocation-size}
 
-## Not an adapter
+To provide a [strong exception
+guarantee](https://en.cppreference.com/w/cpp/language/exceptions#Exception_safety),
+RingBuf allocates one element more than `Capacity`. When the ring is full and
+`emplace_back` is called, the new element is created in the free space between
+the last and first elements. Only when construction succeeds is pop_front called
+and the ring moved around. As a result, when construction throws an exception,
+everything stays the same.
 
-WHAT
+## Not an adapter {#not-an-adapter}
+
+A recurring question (twice, so far) is "why is this not a container adapter,
+like std::queue?". A container adapter wraps an existing container to provide
+more specialized functionality. For example, `std::stack` adapts another
+container (`std::deque` by default) and provides `pop()` and `push()` based on
+its `pop_back()` and `push_back()` members. The baudvine::DequeRingBuf is almost
+that, and may yet be updated to allow for different inner containers.
+
+However, there is no other container that provides all three of: 
+
+- Single allocation (`std::array`, `std::vector`)
+- Push and pop on opposing ends (`std::deque`, `std::list`)
+- Control over element lifetime (`std::vector`, `std::list`, `std::deque`)
+
+... whereas baudvine::RingBuf does. "Single allocation" is the least important
+of the three, but for embedded allocations with limited memory it's common to
+allocate everything upfront so you're sure you won't run out.

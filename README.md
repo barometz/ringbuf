@@ -32,8 +32,8 @@ pushing/emplacing at the front causes the element in the back to fall off (and
 vice versa).
 
 `baudvine::RingBuf` is the primary implementation: it stores elements in a
-fixed-size, dynamically allocated array, and provides custom iterators as well
-as `baudvine::copy` for efficient copying.
+fixed-size, dynamically allocated array, and provides the usual container
+operations as well as `baudvine::copy` for efficient copying.
 
 `baudvine::DequeRingBuf` is included primarily for testing purposes. Because
 it's based on `std::deque` it's a bit less efficient (time, memory
@@ -104,12 +104,15 @@ What won't it do?
 
 ### MAYBE TODO
 
-- It's meant to be C++11-compatible without a lot of optional chunks for newer
-  standards, but maybe we can show that it *does* match the relevant C++20
+- [x] It's meant to be C++11-compatible without a lot of optional chunks for
+  newer standards, but maybe we can show that it *does* match the relevant C++20
   iterator concepts.
-- An implementation with mutable capacity (drop the template parameter, add a
-  ctor parameter and a `set_capacity` member) would be slightly slower and
+- [ ] An implementation with mutable capacity (drop the template parameter, add
+  a ctor parameter and a `set_capacity` member) would be slightly slower and
   slightly nicer to use.
+- [ ] DequeRingBuf could possibly be a container adapter.
+- [ ] A variant of RingBuf with automatic storage duration (so no dynamic
+  allocation) is possible. Would be nice for embedded targets.
 
 ## Performance
 
@@ -135,31 +138,28 @@ IterateOver.
 ## FAQ
 
 ### Why does this allocate "manually" and not just wrap `std::array`?
-A functional requirement of `baudvine::ringbuf` is that element lifetime is
+
+A functional requirement of `baudvine::Ringbuf` is that element lifetime is
 controlled by the `push` and `pop` member functions: a T is constructed when it
 is pushed into the buffer, and it is destroyed when popped. The tests using the
-`RefCounter` class in `tests/test_ringbuf.cpp` demonstrate this.
+`Instance` class in `tests/test_ringbuf.cpp` demonstrate this.
 
-With `std::array`, it'd be possible to perform in-place construction and
-destruction, but once the `std::array` is destroyed all of its elements get
-destroyed as well - which breaks when not all elements are valid objects.
+Neither C-style arrays nor `std::array` allow for this:
+`std::array<std::string, 5>` default-initializes five strings (calling its
+default constructor), and if you destroy it in-place it'll get re-destroyed when
+the array goes out of scope.
+
+See also https://barometz.github.io/ringbuf/design-notes.html#memory-allocation.
 
 ### Why isn't this an adapter for existing containers?
-The `baudvine::DequeRingBuf` class is very nearly an adapter on top of
-`std::deque`, so it's reasonable to ask why the entire implementation doesn't
-simply wrap an arbitrary container. The trouble is that no existing container
-yields exactly the properties I'm looking for.
 
-- `std::vector` gets you `push_back` and `pop_back` for free, but for
-  `pop_front` you need to either lose elementwise lifetimes or move all values
-  by one position.
-- `std::deque` (as demonstrated) gets you all the member functions for free but
-  not the compile-time size. It also can't allocate the entire capacity in one
-  chunk, increasing memory fragmentation.
-- `std::list` is the same as `std::deque`, except with per-element allocation
-  which leads to more fragmentation and slower iteration.
-- `std::array` is a single allocation but you lose elementwise lifetimes, as
-  discussed above.
+No underlying container would provide all three of: 
+
+- Single allocation (`std::array`, `std::vector`)
+- Push and pop on opposing ends (`std::deque`, `std::list`)
+- Control over element lifetime (`std::vector`, `std::list`, `std::deque`)
+
+See also: https://barometz.github.io/ringbuf/design-notes.html#not-an-adapter.
 
 ## License
 I chose the [MIT license](LICENSE) for this project, because I have a bad habit
