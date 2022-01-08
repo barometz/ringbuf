@@ -13,33 +13,39 @@
 - [License](#license)
 
 ## Overview
+
+For detailed documentation, see https://barometz.github.io/ringbuf/.
+
 This is a header-only
 [ring/circular buffer](https://en.wikipedia.org/wiki/Circular_buffer)
 implementation in C++11, with the following goals:
 
 - Reasonably performant.
 - Readable.
-- Roughly STL-compatible.
+- STL-compatible and STL-like.
 
-There are two implementations: `RingBuf` and `DequeRingBuf`. They're meant to be
-functionally equivalent (mostly), but behave differently under water. Tests
-ideally cover both, expecting the same behaviour.
+There are two implementations: `baudvine::RingBuf` and `baudvine::DequeRingBuf`.
+They're meant to be functionally equivalent (mostly), but behave differently
+under water. Tests ideally cover both, expecting the same behaviour. Both behave
+like double-ended queues up until the point where they fill up, at which point
+pushing/emplacing at the front causes the element in the back to fall off (and
+vice versa).
 
-The Deque variant is included primarily for testing purposes: because it's based
-on `std::deque` it's a lot less efficient than the array-based on, but it's also
-a lot easier to verify since all the hairy allocation bits happen in the
-standard library.
+`baudvine::RingBuf` is the primary implementation: it stores elements in a
+fixed-size, dynamically allocated array, and provides custom iterators as well
+as `baudvine::copy` for efficient copying.
 
-`RingBuf` is the primary implementation: it stores elements in a fixed-size,
-dynamically allocated array, adding new elements to the end, and popping
-elements off the front when more space is needed.
+`baudvine::DequeRingBuf` is included primarily for testing purposes. Because
+it's based on `std::deque` it's a bit less efficient (time, memory
+fragmentation) than the array-based one, but it's also a lot easier to trust
+since all the hairy math and allocation happens in the standard library.
 
 ## The present
 
 ### Using
 
 ```c++
-#include <baudvine/ringbuf.h>
+#include <baudvine/ringbuf/ringbuf.h>
 
 void demo()
 {
@@ -88,7 +94,7 @@ What can't it do? Well:
 - [x] Needs more ~~cowbell~~ `noexcept`
 - [x] Moved-from RingBuf instances can't be reused.
 - [ ] The iterator is not std::random_access_iterator, which is a slightly dubious but plausible fit.
-- [ ] Docs.
+- [x] Docs.
 
 ### NOT TODO
 What won't it do?
