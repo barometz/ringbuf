@@ -63,7 +63,7 @@ $(function() {
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
-$(document).ready(function(){initNavTree('md__home_runner_work_ringbuf_ringbuf_docs_design.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('design-notes.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -86,24 +86,33 @@ $(document).ready(function(){initNavTree('md__home_runner_work_ringbuf_ringbuf_d
 <div class="title">Design notes </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h1><a class="anchor" id="autotoc_md1"></a>
+<div class="textblock"><h1><a class="anchor" id="stl-compat"></a>
 STL compatibility</h1>
 <p><a class="el" href="classbaudvine_1_1_ring_buf.html" title="An STL-like ring buffer with dynamic allocation and compile-time capacity limits.">baudvine::RingBuf</a> is meant to be STL-compatible and STL-like. To that end, most of its functionality is defined and tested with an eye on C++20's general requirements for standard containers such as <code>std::vector</code> and <code>std::deque</code>. Not everything applies - for example, all standard containers other than <code>std::array</code> may allocate during their lifetime, whereas <a class="el" href="classbaudvine_1_1_ring_buf.html" title="An STL-like ring buffer with dynamic allocation and compile-time capacity limits.">baudvine::RingBuf</a> only allocates during construction.</p>
 <p>RingBuf is a container (<a href="https://timsong-cpp.github.io/cppwp/n4868/container.requirements.general#4">container.requirements.general/4</a>), with the exception of the spaceship comparison operator (<code>&lt;=&gt;</code>). It is a container of elements with begin and end iterators, which can be copied, moved and swapped with other instances of the same type.</p>
 <p>RingBuf is a reversible container (<a href="https://timsong-cpp.github.io/cppwp/n4868/container.requirements.general#10">container.requirements.general/10</a>), which means all begin/end member functions have reverse counterparts for iterating backwards.</p>
 <p>RingBuf is an allocator-aware container (<a href="https://timsong-cpp.github.io/cppwp/n4868/container.requirements.general#17">container.requirements.general/17</a>), meaning that it's possible to supply your own memory allocator (a typical example is the <code>boost::interprocess</code> <a href="https://www.boost.org/doc/libs/1_78_0/doc/html/interprocess/quick_guide.html#interprocess.quick_guide.qg_interprocess_container">shared memory manager</a>). The ring buffer's backing storage as well as that of any contained allocator-aware objects (such as strings) can then be allocated through that allocator.</p>
 <p>RingBuf is mostly a sequence container (<a href="https://timsong-cpp.github.io/cppwp/n4868/sequence.reqmts#4">sequence.reqmts/4</a>), and thoroughly defining and testing that is next on the list.</p>
-<h1><a class="anchor" id="autotoc_md2"></a>
+<h1><a class="anchor" id="memory-allocation"></a>
 Memory allocation</h1>
 <p>RingBuf uses dynamic memory allocation, or colloquially heap allocation. This is not strictly required, but automatic ("stack") allocation would require more work.</p>
 <p>Element lifetime is tied to the push, emplace and pop member functions. A declaration of <code><a class="el" href="classbaudvine_1_1_ring_buf.html" title="An STL-like ring buffer with dynamic allocation and compile-time capacity limits.">baudvine::RingBuf</a>&lt;std::string, 5&gt; ring;</code> does not instantiate any strings: the elements are constructed on <code>push_back</code>, and destroyed on <code>pop_front</code> (or clear(), or RingBuf destruction). Dynamic allocation makes this simple: <code>std::allocator&lt;std::string&gt;::allocate(65);</code> allocates memory for 65 strings but does not initialize any of them, allowing the container to control element lifetimes. Automatic storage is more difficult.</p>
-<p>The expression <code>std::string arr[65]</code> will result in 65 default-initialized strings. Since <code>std::string</code> has a default constructor, that means 65 strings will be initialized. WHICH MEANS WHAT</p>
-<h1><a class="anchor" id="autotoc_md3"></a>
+<p>The expression <code>std::string arr[65]</code> will result in 65 default-initialized strings. Since <code>std::string</code> has a default constructor, that means 65 strings will be initialized. For some types that doesn't matter, but for others you really want to avoid running 65 (or a million) default constructors. And if the type <em>doesn't</em> have a default constructor you can't create that array at all.</p>
+<p>The way to do this with automatic storage duration involves aligned storage and allocating space for byte arrays the size of the elements. An implementation like that may be added in the future, and maybe even become the norm.</p>
+<h1><a class="anchor" id="allocation-size"></a>
 Allocation size</h1>
-<p>To provide a <a href="https://en.cppreference.com/w/cpp/language/exceptions#Exception_safety">strong exception guarantee</a>, RingBuf allocates one element more than WHAT</p>
-<h1><a class="anchor" id="autotoc_md4"></a>
+<p>To provide a <a href="https://en.cppreference.com/w/cpp/language/exceptions#Exception_safety">strong exception guarantee</a>, RingBuf allocates one element more than <code>Capacity</code>. When the ring is full and <code>emplace_back</code> is called, the new element is created in the free space between the last and first elements. Only when construction succeeds is pop_front called and the ring moved around. As a result, when construction throws an exception, everything stays the same.</p>
+<h1><a class="anchor" id="not-an-adapter"></a>
 Not an adapter</h1>
-<p>WHAT </p>
+<p>A recurring question (twice, so far) is "why is this not a container adapter,
+like std::queue?". A container adapter wraps an existing container to provide more specialized functionality. For example, <code>std::stack</code> adapts another container (<code>std::deque</code> by default) and provides <code>pop()</code> and <code>push()</code> based on its <code>pop_back()</code> and <code>push_back()</code> members. The <a class="el" href="classbaudvine_1_1_deque_ring_buf.html">baudvine::DequeRingBuf</a> is almost that, and may yet be updated to allow for different inner containers.</p>
+<p>However, there is no other container that provides all three of:</p>
+<ul>
+<li>Single allocation (<code>std::array</code>, <code>std::vector</code>)</li>
+<li>Push and pop on opposing ends (<code>std::deque</code>, <code>std::list</code>)</li>
+<li>Control over element lifetime (<code>std::vector</code>, <code>std::list</code>, <code>std::deque</code>)</li>
+</ul>
+<p>... whereas <a class="el" href="classbaudvine_1_1_ring_buf.html" title="An STL-like ring buffer with dynamic allocation and compile-time capacity limits.">baudvine::RingBuf</a> does. "Single allocation" is the least important of the three, but for embedded allocations with limited memory it's common to allocate everything upfront so you're sure you won't run out. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
