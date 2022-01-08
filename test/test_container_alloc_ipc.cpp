@@ -57,6 +57,25 @@ TYPED_TEST(ContainerReqsAllocIpc, CopyCtor) {
             copy.get_allocator());
 }
 
+TYPED_TEST(ContainerReqsAllocIpc, AllocExtendedCopyCtor) {
+  std::string nameA = std::string("AECopyA-") + typeid(TypeParam).name();
+  std::string nameB = std::string("AECopyB-") + typeid(TypeParam).name();
+  AtExit remove_shmem([&] {
+    ipc::shared_memory_object::remove(nameA.c_str());
+    ipc::shared_memory_object::remove(nameB.c_str());
+  });
+  ipc::shared_memory_object::remove(nameA.c_str());
+  ipc::shared_memory_object::remove(nameB.c_str());
+
+  ipc::managed_shared_memory shmA(ipc::create_only, nameA.c_str(), 4096);
+  ipc::managed_shared_memory shmB(ipc::create_only, nameB.c_str(), 4096);
+  TypeParam ringbuf(shmA.get_segment_manager());
+
+  TypeParam copy(ringbuf, shmB.get_segment_manager());
+  EXPECT_EQ(Allocator<std::string>(shmB.get_segment_manager()),
+            copy.get_allocator());
+}
+
 TYPED_TEST(ContainerReqsAllocIpc, MoveCtor) {
   std::string name = std::string("IpcMove-") + typeid(TypeParam).name();
   AtExit remove_shmem([&] { ipc::shared_memory_object::remove(name.c_str()); });
@@ -67,6 +86,24 @@ TYPED_TEST(ContainerReqsAllocIpc, MoveCtor) {
 
   TypeParam moved(std::move(ringbuf));
   EXPECT_EQ(Allocator<std::string>(shm.get_segment_manager()),
+            moved.get_allocator());
+}
+TYPED_TEST(ContainerReqsAllocIpc, AllocExtendedMoveCtor) {
+  std::string nameA = std::string("AEMoveA-") + typeid(TypeParam).name();
+  std::string nameB = std::string("AEMoveB-") + typeid(TypeParam).name();
+  AtExit remove_shmem([&] {
+    ipc::shared_memory_object::remove(nameA.c_str());
+    ipc::shared_memory_object::remove(nameB.c_str());
+  });
+  ipc::shared_memory_object::remove(nameA.c_str());
+  ipc::shared_memory_object::remove(nameB.c_str());
+
+  ipc::managed_shared_memory shmA(ipc::create_only, nameA.c_str(), 4096);
+  ipc::managed_shared_memory shmB(ipc::create_only, nameB.c_str(), 4096);
+  TypeParam ringbuf(shmA.get_segment_manager());
+
+  TypeParam moved(std::move(ringbuf), shmB.get_segment_manager());
+  EXPECT_EQ(Allocator<std::string>(shmB.get_segment_manager()),
             moved.get_allocator());
 }
 

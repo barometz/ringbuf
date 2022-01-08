@@ -48,6 +48,10 @@ class DequeRingBuf {
  public:
   DequeRingBuf() = default;
   DequeRingBuf(const allocator_type& alloc) : data_(alloc) {}
+  DequeRingBuf(const DequeRingBuf& other, const allocator_type& allocator)
+      : data_(other.data_, allocator) {}
+  DequeRingBuf(DequeRingBuf&& other, const allocator_type& allocator)
+      : data_(std::move(other.data_), allocator) {}
 
   allocator_type get_allocator() const { return data_.get_allocator(); }
 

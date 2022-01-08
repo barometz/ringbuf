@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <scoped_allocator>
 
 #define EXPECT_TYPE_EQ(T1, T2) EXPECT_TRUE((std::is_same<T1, T2>::value))
@@ -25,4 +26,8 @@ TYPED_TEST(ContainerReqsAllocAware, TypeAliases) {
 
 TYPED_TEST(ContainerReqsAllocAware, GetAllocator) {
   EXPECT_TYPE_EQ(Allocator<std::string>, decltype(TypeParam{}.get_allocator()));
+}
+
+TYPED_TEST(ContainerReqsAllocAware, UsesAllocator) {
+  EXPECT_TRUE((std::uses_allocator<TypeParam, Allocator<std::string>>::value));
 }

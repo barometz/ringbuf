@@ -417,7 +417,17 @@ class RingBuf {
    */
   RingBuf(const RingBuf& other)
       : RingBuf(
+            other,
             alloc_traits::select_on_container_copy_construction(other.alloc_)) {
+  }
+  /**
+   * @brief Allocator-extended copy constructor.
+   *
+   * @param other The RingBuf to copy values from.
+   * @todo maybe allow other (smaller) sizes as input?
+   */
+  RingBuf(const RingBuf& other, const allocator_type& allocator)
+      : RingBuf(allocator) {
     // TODO: copy in bulk when Elem is POD?
     clear();
 
@@ -433,6 +443,24 @@ class RingBuf {
    */
   RingBuf(RingBuf&& other) noexcept : RingBuf(std::move(other.alloc_)) {
     Swap(other);
+  }
+  /**
+   * @brief Allocator-extended move constructor.
+   *
+   * May move elementwise if the provided allocator and other's allocator are
+   * not the same.
+   *
+   * @param other The RingBuf to move the data out of.
+   */
+  RingBuf(RingBuf&& other, const allocator_type& allocator)
+      : RingBuf(allocator) {
+    if (other.alloc_ == allocator) {
+      Swap(other);
+    } else {
+      for (auto& element : other) {
+        emplace_back(std::move(element));
+      }
+    }
   }
 
   /**
@@ -457,14 +485,15 @@ class RingBuf {
   /**
    * @brief Move a RingBuf into this one.
    *
-   * The backing storage is swapped, so no elementwise moves are performed.
+   * If the allocator is the same or can be moved as well, no elementwise moves
+   * are performed.
    *
    * @param other The RingBuf to copy from.
    * @return This RingBuf.
    */
   RingBuf& operator=(RingBuf&& other) noexcept(
       alloc_traits::propagate_on_container_move_assignment::value ||
-      std::is_nothrow_move_constructible<Elem>::value) {
+      std::is_nothrow_move_constructible<value_type>::value) {
     if (alloc_traits::propagate_on_container_move_assignment::value ||
         alloc_ == other.alloc_) {
       // We're either getting the other's allocator or they're already the same,
