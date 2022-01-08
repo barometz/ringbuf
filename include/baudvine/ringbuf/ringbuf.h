@@ -20,13 +20,15 @@
 
 /**
  * @file ringbuf.h
+ * @author Dominic van Berkel
+ * @copyright MIT License
  *
- * A ring buffer for C++11, with an STL-compatible interface.
+ * A ring buffer for C++11, with an STL-like interface.
  *
  * The comments frequently refer to "physical" and "logical" indices. This is
  * meant to make explicit the distinction between:
  *
- * - The backing array of RingBuf, which is always of size Capacity and is
+ * - The backing array of RingBuf, which is always of size Capacity + 1 and is
  *   allocated once during RingBuf construction. Physical indices are relative
  *   to the start of this array.
  * - The conceptual ring buffer, which moves around in the backing array and has
@@ -46,9 +48,12 @@
 #include <tuple>
 #include <type_traits>
 
+/** The baudvine "project". */
 namespace baudvine {
 namespace detail {
+namespace ringbuf {
 
+/** @private */
 template <typename Allocator>
 void MoveAllocator(Allocator& lhs,
                    Allocator& rhs,
@@ -58,11 +63,13 @@ void MoveAllocator(Allocator& lhs,
   std::swap(lhs, rhs);
 }
 
+/** @private */
 template <typename Allocator>
 void MoveAllocator(Allocator& /*lhs*/,
                    Allocator& /*rhs*/,
                    std::false_type /*propagate*/) noexcept {}
 
+/** @private */
 template <typename Allocator>
 void MoveAllocator(Allocator& lhs, Allocator& rhs) {
   using AllocTraits = std::allocator_traits<Allocator>;
@@ -71,6 +78,7 @@ void MoveAllocator(Allocator& lhs, Allocator& rhs) {
   MoveAllocator(lhs, rhs, Propagate{});
 }
 
+/** @private */
 template <typename Allocator>
 void SwapAllocator(Allocator& lhs,
                    Allocator& rhs,
@@ -78,11 +86,13 @@ void SwapAllocator(Allocator& lhs,
   std::swap(lhs, rhs);
 }
 
+/** @private */
 template <typename Allocator>
 void SwapAllocator(Allocator& /*lhs*/,
                    Allocator& /*rhs*/,
                    std::false_type /*propagate*/) {}
 
+/** @private */
 template <typename Allocator>
 void SwapAllocator(Allocator& lhs, Allocator& rhs) {
   using AllocTraits = std::allocator_traits<Allocator>;
@@ -90,6 +100,7 @@ void SwapAllocator(Allocator& lhs, Allocator& rhs) {
   SwapAllocator(lhs, rhs, Propagate{});
 }
 
+/** @private */
 template <typename Allocator>
 void CopyAllocator(Allocator& lhs,
                    const Allocator& rhs,
@@ -97,11 +108,13 @@ void CopyAllocator(Allocator& lhs,
   lhs = rhs;
 }
 
+/** @private */
 template <typename Allocator>
 void CopyAllocator(Allocator& /*lhs*/,
                    const Allocator& /*rhs*/,
                    std::false_type /*propagate*/) {}
 
+/** @private */
 template <typename Allocator>
 void CopyAllocator(Allocator& lhs, const Allocator& rhs) {
   using AllocTraits = std::allocator_traits<Allocator>;
@@ -111,13 +124,14 @@ void CopyAllocator(Allocator& lhs, const Allocator& rhs) {
 }
 
 /**
- * @brief Wrap a physical position into an array of size Capacity.
+ * Wrap a physical position into an array of size Capacity.
  *
- * Precondition: ring_index < 2 * Capacity.
+ * Precondition: ring_index < 2 * Capacity + 1.
  *
  * @tparam Capacity The backing array size.
  * @param ring_index The physical index into the backing array.
- * @returns The ring_index wrapped to [0..Capacity).
+ * @returns The ring_index wrapped to [0..Capacity].
+ * @private
  */
 template <std::size_t Capacity>
 constexpr std::size_t RingWrap(const std::size_t ring_index) {
@@ -127,7 +141,7 @@ constexpr std::size_t RingWrap(const std::size_t ring_index) {
 }
 
 /**
- * @brief An iterator into RingBuf.
+ * An iterator into RingBuf.
  *
  * @tparam Ptr The pointer type, which determines constness.
  * @tparam AllocTraits The allocator traits for the container, used for
@@ -135,11 +149,13 @@ constexpr std::size_t RingWrap(const std::size_t ring_index) {
  *                     conversion to const iterator).
  * @tparam Capacity The size of the backing array, and maximum size of the ring
  *                  buffer.
+ * @todo Upgrade to random_access_iterator, since offsets are constant-time.
  */
-template <typename Ptr, typename AllocTraits, size_t Capacity>
+template <typename Ptr, typename AllocTraits, std::size_t Capacity>
 class Iterator {
  public:
   using difference_type = typename AllocTraits::difference_type;
+  using size_type = typename AllocTraits::difference_type;
   using value_type = typename AllocTraits::value_type;
   using pointer = Ptr;
   using reference = decltype(*pointer{});
@@ -147,7 +163,7 @@ class Iterator {
 
   constexpr Iterator() noexcept = default;
   /**
-   * @brief Construct a new iterator object.
+   * Construct a new iterator object.
    *
    * @param data Pointer to the start of the RingBuf's backing array.
    * @param ring_offset Physical index of the start of the ring buffer.
@@ -155,12 +171,12 @@ class Iterator {
    *                   ring_offset, ring_index is 0.
    */
   Iterator(pointer data,
-           const std::size_t ring_offset,
-           const std::size_t ring_index)
+           const size_type ring_offset,
+           const size_type ring_index)
       : data_(data), ring_offset_(ring_offset), ring_index_(ring_index) {}
 
   /**
-   * @brief Convert an iterator into a const iterator.
+   * Convert an iterator into a const iterator.
    *
    * @returns A const iterator pointing to the same place.
    */
@@ -242,21 +258,13 @@ class Iterator {
   // redundant (you could add them once and then increment the sum in
   // operator++), but the unchanging ring_offset_ appears to help the compiler
   // optimize RingWrap calls.
-  std::size_t ring_offset_{};
-  std::size_t ring_index_{};
+  size_type ring_offset_{};
+  size_type ring_index_{};
 };
 
 /**
- * @brief Copy the elements in the range [@c begin, @c end) to a destination
- * range starting at @c out.
- *
- * @tparam Ptr The pointer type of the input iterator.
- * @tparam AllocTraits The allocator traits of the input iterator.
- * @tparam Capacity The capacity of the input iterator.
- * @param begin Start of the source range.
- * @param end End of the source range, one past the last element to copy.
- * @param out Start of the destination range.
- * @return OutputIt One past the last copied element in the destination range.
+ * @see baudvine::copy
+ * @private
  */
 template <typename Ptr,
           typename AllocTraits,
@@ -281,17 +289,21 @@ OutputIt copy(const Iterator<Ptr, AllocTraits, Capacity>& begin,
   return out;
 }
 
+}  // namespace ringbuf
 }  // namespace detail
 
 /**
- * @brief The ring buffer itself.
+ * An STL-like ring buffer with dynamic allocation and compile-time capacity
+ * limits.
  *
  * @tparam Elem The type of elements contained by the ring buffer.
  * @tparam Capacity The maximum size of the ring buffer, and the fixed size of
  *         the backing array.
+ * @tparam Allocator The allocator type to use for storage and element
+           construction.
  */
 template <typename Elem,
-          size_t Capacity,
+          std::size_t Capacity,
           typename Allocator = std::allocator<Elem>>
 class RingBuf {
  public:
@@ -302,9 +314,9 @@ class RingBuf {
   using const_pointer = typename alloc_traits::const_pointer;
   using reference = decltype(*pointer{});
   using const_reference = decltype(*const_pointer{});
-  using iterator = detail::Iterator<pointer, alloc_traits, Capacity>;
+  using iterator = detail::ringbuf::Iterator<pointer, alloc_traits, Capacity>;
   using const_iterator =
-      detail::Iterator<const_pointer, alloc_traits, Capacity>;
+      detail::ringbuf::Iterator<const_pointer, alloc_traits, Capacity>;
   using reverse_iterator = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
   using difference_type = typename alloc_traits::difference_type;
@@ -378,29 +390,28 @@ class RingBuf {
 
  public:
   /**
-   * @brief Construct a new ring buffer object with a default-constructed
-   * allocator, and allocate the required memory.
+   * Construct a new ring buffer object with a default-constructed allocator,
+   * and allocate the required memory.
    *
    * Allocates Capacity + 1 to allow for strong exception guarantees in
    * emplace_front/back.
    */
   RingBuf() : RingBuf(allocator_type{}){};
   /**
-   * @brief Construct a new ring buffer object with the provided allocator, and
+   * Construct a new ring buffer object with the provided allocator, and
    * allocate the required memory.
    *
    * Allocates Capacity + 1 to allow for strong exception guarantees in
    * emplace_front/back.
    *
-   * @param allocator The allocator to use for the backing storage, and
-   *                  optionally for element construction and destruction.
+   * @param allocator The allocator to use for storage and element construction.
    */
   explicit RingBuf(const allocator_type& allocator)
       : alloc_(allocator),
         data_(alloc_traits::allocate(alloc_, Capacity + 1)) {}
 
   /**
-   * @brief Destroy the ring buffer object.
+   * Destroy the ring buffer object.
    *
    * Destroys the active elements via clear() and deallocates the backing array.
    */
@@ -409,7 +420,7 @@ class RingBuf {
     alloc_traits::deallocate(alloc_, data_, Capacity + 1);
   }
   /**
-   * @brief Construct a new RingBuf object out of another, using elementwise
+   * Construct a new RingBuf object out of another, using elementwise
    * copy assignment.
    *
    * @param other The RingBuf to copy values from.
@@ -421,14 +432,15 @@ class RingBuf {
             alloc_traits::select_on_container_copy_construction(other.alloc_)) {
   }
   /**
-   * @brief Allocator-extended copy constructor.
+   * Allocator-extended copy constructor.
    *
    * @param other The RingBuf to copy values from.
+   * @param allocator The allocator to use for storage and element construction.
    * @todo maybe allow other (smaller) sizes as input?
+   * @todo Use memcpy/std::copy if Elem is POD
    */
   RingBuf(const RingBuf& other, const allocator_type& allocator)
       : RingBuf(allocator) {
-    // TODO: copy in bulk when Elem is POD?
     clear();
 
     for (const auto& value : other) {
@@ -436,8 +448,7 @@ class RingBuf {
     }
   }
   /**
-   * @brief Construct a new RingBuf object out of another, using bulk move
-   * assignment.
+   * Construct a new RingBuf object out of another, using bulk move assignment.
    *
    * @param other The RingBuf to move the data out of.
    */
@@ -445,12 +456,13 @@ class RingBuf {
     Swap(other);
   }
   /**
-   * @brief Allocator-extended move constructor.
+   * Allocator-extended move constructor.
    *
    * May move elementwise if the provided allocator and other's allocator are
    * not the same.
    *
    * @param other The RingBuf to move the data out of.
+   * @param allocator The allocator to use for storage and element construction.
    */
   RingBuf(RingBuf&& other, const allocator_type& allocator)
       : RingBuf(allocator) {
@@ -464,18 +476,17 @@ class RingBuf {
   }
 
   /**
-   * @brief Copy a RingBuf into this one.
+   * Copy a RingBuf into this one.
    *
-   * First clears this RingBuf, and then copies @c other element by element.
+   * First clear()s this RingBuf, and then copies @c other element by element.
    *
    * @param other The RingBuf to copy from.
-   * @return This RingBuf.
+   * @returns This RingBuf.
    */
   RingBuf& operator=(const RingBuf& other) {
-    // TODO: copy in bulk when Elem is POD?
     clear();
 
-    detail::CopyAllocator(alloc_, other.alloc_);
+    detail::ringbuf::CopyAllocator(alloc_, other.alloc_);
 
     for (const auto& value : other) {
       push_back(value);
@@ -483,13 +494,13 @@ class RingBuf {
     return *this;
   }
   /**
-   * @brief Move a RingBuf into this one.
+   * Move a RingBuf into this one.
    *
    * If the allocator is the same or can be moved as well, no elementwise moves
    * are performed.
    *
    * @param other The RingBuf to copy from.
-   * @return This RingBuf.
+   * @returns This RingBuf.
    */
   RingBuf& operator=(RingBuf&& other) noexcept(
       alloc_traits::propagate_on_container_move_assignment::value ||
@@ -498,7 +509,7 @@ class RingBuf {
         alloc_ == other.alloc_) {
       // We're either getting the other's allocator or they're already the same,
       // so swap data in one go.
-      detail::MoveAllocator(alloc_, other.alloc_);
+      detail::ringbuf::MoveAllocator(alloc_, other.alloc_);
       Swap(other);
     } else {
       // Different allocators and can't swap them, so move elementwise.
@@ -511,52 +522,51 @@ class RingBuf {
     return *this;
   }
 
+  /**
+   * Get a copy of the allocator used by this RingBuf.
+   */
   allocator_type get_allocator() const { return alloc_; }
 
   /**
-   * @brief Return the first element in the ring buffer.
-   *
-   * @return The first element in the ring buffer.
-   * @exception std::out_of_range The buffer is empty.
+   * Returns the first element in the ring buffer.
+   * @throws std::out_of_range The buffer is empty.
    */
   reference front() { return at(0); }
   /**
-   * @brief Return the last element in the ring buffer.
-   *
-   * @return The last element in the ring buffer.
-   * @exception std::out_of_range The buffer is empty.
+   * Returns he last element in the ring buffer.
+   * @throws std::out_of_range The buffer is empty.
    */
   reference back() { return at(size() - 1); }
 
   /**
-   * @brief Retrieve an element from the ring buffer without range checking.
+   * Retrieve an element from the ring buffer without range checking.
    *
    * The behaviour is undefined when @c index is outside [0, size()).
    *
    * @param index The logical index into the ring buffer.
-   * @return A const reference to the element.
+   * @returns A const reference to the element.
    */
   const_reference operator[](const size_type index) const {
-    return data_[detail::RingWrap<Capacity>(ring_offset_ + index)];
+    return data_[detail::ringbuf::RingWrap<Capacity>(ring_offset_ + index)];
   }
   /**
-   * @brief Retrieve an element from the ring buffer without range checking.
+   * Retrieve an element from the ring buffer without range checking.
    *
    * The behaviour is undefined when @c index is outside [0, size()).
    *
    * @param index The logical index into the ring buffer.
-   * @return A reference to the element.
+   * @returns A reference to the element.
    */
   reference operator[](const size_type index) {
-    return data_[detail::RingWrap<Capacity>(ring_offset_ + index)];
+    return data_[detail::ringbuf::RingWrap<Capacity>(ring_offset_ + index)];
   }
   /**
-   * @brief Retrieve an element from the ring buffer with range checking.
+   * Retrieve an element from the ring buffer with range checking.
    *
    * @param index The logical index into the ring buffer. Must be in range
    *              [0, size()).
-   * @return A const reference to the element.
-   * @exception std::out_of_range The index is out of range.
+   * @returns A const reference to the element.
+   * @throw std::out_of_range The index is out of range.
    */
   const_reference at(const size_type index) const {
     if (index >= size()) {
@@ -565,12 +575,12 @@ class RingBuf {
     return (*this)[index];
   }
   /**
-   * @brief Retrieve an element from the ring buffer with range checking.
+   * Retrieve an element from the ring buffer with range checking.
    *
    * @param index The logical index into the ring buffer. Must be in range
    *              [0, size()).
-   * @return A reference to the element.
-   * @exception std::out_of_range The index is out of range.
+   * @returns A reference to the element.
+   * @throws std::out_of_range The index is out of range.
    */
   reference at(const size_type index) {
     if (index >= size()) {
@@ -580,108 +590,93 @@ class RingBuf {
   }
 
   /**
-   * @return An iterator pointing at the start of the ring buffer.
+   * Get an iterator pointing to the first element.
    */
   iterator begin() noexcept { return iterator(&data_[0], ring_offset_, 0); }
   /**
-   * @return An iterator pointing at one past the last element of the ring
-   * buffer.
+   * Get an iterator pointing to one past the last element.
    */
   iterator end() noexcept { return iterator(&data_[0], ring_offset_, size()); }
   /**
-   * @return A const iterator pointing at the start of the ring buffer.
+   * Get a const iterator pointing to the first element.
    */
   const_iterator begin() const noexcept {
     return const_iterator(&data_[0], ring_offset_, 0);
   }
   /**
-   * @return A const iterator pointing at one past the last element of the ring
-   * buffer.
+   * Get a const iterator pointing to one past the last element.
    */
   const_iterator end() const noexcept {
     return const_iterator(&data_[0], ring_offset_, size());
   }
   /**
-   * @return A const iterator pointing at the start of the ring buffer.
+   * Get a const iterator pointing to the first element.
    */
   const_iterator cbegin() const noexcept {
     return const_cast<self const&>(*this).begin();
   }
   /**
-   * @return A const iterator pointing at one past the last element of the ring
-   * buffer.
+   * Get a const iterator pointing to one past the last element.
    */
   const_iterator cend() const noexcept {
     return const_cast<self const&>(*this).end();
   }
-
   /**
-   * @return A reverse iterator pointing at the last element of the ring buffer.
+   * Get a reverse iterator pointing to the last element.
    */
   reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
   /**
-   * @return A reverse iterator pointing at one before the beginning of the ring
-   * buffer.
+   * Get a reverse iterator pointing to one before the first element.
    */
   reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
   /**
-   * @return A const reverse iterator pointing at the last element of the ring
-   * buffer.
+   * Get a const reverse iterator pointing to the last element.
    */
   const_reverse_iterator rbegin() const noexcept {
     return const_reverse_iterator(end());
   }
   /**
-   * @return A const reverse iterator pointing at one before the first element
-   * of the ring buffer.
+   * Get a const reverse iterator pointing to one before the first element.
    */
   const_reverse_iterator rend() const noexcept {
     return const_reverse_iterator(begin());
   }
   /**
-   * @return A const reverse iterator pointing at the last element of the ring
-   * buffer.
+   * Get a const reverse iterator pointing to the last element.
    */
   const_reverse_iterator crbegin() const noexcept {
     return const_cast<self const&>(*this).rbegin();
   }
   /**
-   * @return A const reverse iterator pointing at one before the first element
-   * of the ring buffer.
+   * Get a const reverse iterator pointing to one before the first element.
    */
   const_reverse_iterator crend() const noexcept {
     return const_cast<self const&>(*this).rend();
   }
 
   /**
-   * @brief Check if the ring buffer is empty.
-   *
-   * @return True if size() == 0, otherwise false.
+   * Get whether the ring buffer is empty (size() == 0)
    */
   bool empty() const noexcept { return size() == 0; }
   /**
-   * @brief Get the current number of elements in the ring buffer.
-   *
-   * @return The number of elements.
+   * Get the number of elements in the ring buffer.
    */
   size_type size() const noexcept { return size_; }
   /**
-   * @brief Get the maximum number of elements in this ring buffer.
-   *
-   * @return Capacity.
+   * Get the maximum number of elements in this ring buffer (Capacity).
    */
   constexpr size_type max_size() const noexcept { return Capacity; }
 
   /**
-   * @brief Push a new element at the front of the ring buffer, popping the back
-   * if necessary.
+   * Push a new element at the front of the ring buffer, popping the back if
+   * necessary.
    *
    * @param value The value to copy into the ring buffer.
    */
   void push_front(const_reference value) { return emplace_front(value); }
   /**
-   * @brief Push a new element at the front of the ring buffer, popping the
-   * front if necessary.
+   * Push a new element at the front of the ring buffer, popping the back if
+   * necessary.
    *
    * @param value The value to move into the ring buffer.
    */
@@ -689,8 +684,8 @@ class RingBuf {
     return emplace_front(std::move(value));
   }
   /**
-   * @brief Construct a new element in-place before the front of the ring
-   * buffer, popping the back if necessary.
+   * Construct a new element in-place before the front of the ring buffer,
+   * popping the back if necessary.
    *
    * @tparam Args Arguments to the element constructor.
    * @param args Arguments to the element constructor.
@@ -713,22 +708,20 @@ class RingBuf {
   }
 
   /**
-   * @brief Push a new element into the ring buffer, popping the front if
-   * necessary.
+   * Push a new element into the ring buffer, popping the front if necessary.
    *
    * @param value The value to copy into the ring buffer.
    */
   void push_back(const_reference value) { return emplace_back(value); }
   /**
-   * @brief Push a new element into the ring buffer, popping the front if
-   * necessary.
+   * Push a new element into the ring buffer, popping the front if necessary.
    *
    * @param value The value to move into the ring buffer.
    */
   void push_back(value_type&& value) { return emplace_back(std::move(value)); }
   /**
-   * @brief Construct a new element in-place at the end of the ring buffer,
-   * popping the front if necessary.
+   * Construct a new element in-place at the end of the ring buffer, popping the
+   * front if necessary.
    *
    * @tparam Args Arguments to the element constructor.
    * @param args Arguments to the element constructor.
@@ -750,8 +743,8 @@ class RingBuf {
   }
 
   /**
-   * @brief Pop an element off the front, destroying the first element in the
-   * ring buffer.
+   * Pop an element off the front, destroying the first element in the ring
+   * buffer.
    */
   void pop_front() noexcept {
     if (size() == 0) {
@@ -761,9 +754,8 @@ class RingBuf {
     alloc_traits::destroy(alloc_, &data_[ring_offset_]);
     ShrinkFront();
   }
-
   /**
-   * @brief Pop an element off the back, destroying the last element in the ring
+   * Pop an element off the back, destroying the last element in the ring
    * buffer.
    */
   void pop_back() noexcept {
@@ -774,10 +766,9 @@ class RingBuf {
     ShrinkBack();
     alloc_traits::destroy(alloc_, &data_[next_]);
   }
-
   /**
-   * @brief Remove all elements from the ring buffer, destroying each one
-   * starting at the front.
+   * Remove all elements from the ring buffer, destroying each one starting at
+   * the front.
    *
    * After clear(), size() == 0.
    */
@@ -790,20 +781,18 @@ class RingBuf {
   }
 
   /**
-   * @brief Swap this ring buffer with another using std::swap.
+   * Swap this ring buffer with another using std::swap.
    *
    * @param other The RingBuf to swap with.
    */
   void swap(RingBuf& other) noexcept {
-    detail::SwapAllocator(alloc_, other.alloc_);
+    detail::ringbuf::SwapAllocator(alloc_, other.alloc_);
     Swap(other);
   }
 
   /**
-   * @brief Elementwise lexicographical comparison of two ring buffers.
+   * Elementwise lexicographical comparison of two ring buffers.
    *
-   * @param lhs The left-hand side in lhs < rhs.
-   * @param rhs The right-hand side in lhs < rhs.
    * @returns True if the left-hand side compares as less than the right.
    */
   friend bool operator<(const RingBuf& lhs, const RingBuf& rhs) {
@@ -811,20 +800,16 @@ class RingBuf {
                                         rhs.end());
   }
   /**
-   * @brief Elementwise lexicographical comparison of two ring buffers.
+   * Elementwise lexicographical comparison of two ring buffers.
    *
-   * @param lhs The left-hand side in lhs > rhs.
-   * @param rhs The right-hand side in lhs > rhs.
    * @returns True if the left-hand side compares as more than the right.
    */
   friend bool operator>(const RingBuf& lhs, const RingBuf& rhs) {
     return rhs < lhs;
   }
   /**
-   * @brief Elementwise comparison of two ring buffers.
+   * Elementwise comparison of two ring buffers.
    *
-   * @param lhs The left-hand side in lhs == rhs.
-   * @param rhs The right-hand side in lhs == rhs.
    * @returns True if @c lhs is equal to @c rhs.
    */
   friend bool operator==(const RingBuf& lhs, const RingBuf& rhs) {
@@ -835,30 +820,24 @@ class RingBuf {
     return std::equal(lhs.begin(), lhs.end(), rhs.begin());
   }
   /**
-   * @brief Elementwise comparison of two ring buffers.
+   * Elementwise comparison of two ring buffers.
    *
-   * @param lhs The left-hand side in lhs >= rhs.
-   * @param rhs The right-hand side in lhs >= rhs.
    * @returns True if @c lhs is greater than or equal to @c rhs.
    */
   friend bool operator>=(const RingBuf& lhs, const RingBuf& rhs) {
     return !(lhs < rhs);
   }
   /**
-   * @brief Elementwise comparison of two ring buffers.
+   * Elementwise comparison of two ring buffers.
    *
-   * @param lhs The left-hand side in lhs <= rhs.
-   * @param rhs The right-hand side in lhs <= rhs.
    * @returns True if @c lhs is less than or equal to @c rhs.
    */
   friend bool operator<=(const RingBuf& lhs, const RingBuf& rhs) {
     return !(lhs > rhs);
   }
   /**
-   * @brief Elementwise comparison of two ring buffers.
+   * Elementwise comparison of two ring buffers.
    *
-   * @param lhs The left-hand side in lhs != rhs.
-   * @param rhs The right-hand side in lhs != rhs.
    * @returns True if @c lhs is not equal to @c rhs.
    */
   friend bool operator!=(const RingBuf& lhs, const RingBuf& rhs) {
@@ -866,6 +845,33 @@ class RingBuf {
   }
 };
 
-using detail::copy;
+/**
+ * Copy the elements in the range [@c begin, @c end) to a destination range
+ * starting at @c out.
+ *
+ * Can be used like std::copy:
+ * @code
+ * std::vector<int> vec;
+ * baudvine::copy(ring.begin(), ring.end(), std::back_inserter(vec));
+ * @endcode
+ *
+ * @tparam Ptr The pointer type of the input iterator.
+ * @tparam AllocTraits The allocator traits of the input iterator.
+ * @tparam Capacity The capacity of the input iterator.
+ * @param begin Start of the source range.
+ * @param end End of the source range, one past the last element to copy.
+ * @param out Start of the destination range.
+ * @returns One past the last copied element in the destination range.
+ */
+template <typename Ptr,
+          typename AllocTraits,
+          std::size_t Capacity,
+          typename OutputIt>
+OutputIt copy(
+    const detail::ringbuf::Iterator<Ptr, AllocTraits, Capacity>& begin,
+    const detail::ringbuf::Iterator<Ptr, AllocTraits, Capacity>& end,
+    OutputIt out) {
+  return detail::ringbuf::copy(begin, end, out);
+}
 
 }  // namespace baudvine
