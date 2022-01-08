@@ -23,7 +23,22 @@ for the JavaScript code in this file
 var NAVTREE =
 [
   [ "baudvine::RingBuf", "index.html", [
+    [ "Usage", "index.html#autotoc_md5", null ],
+    [ "Building", "index.html#autotoc_md6", null ],
+    [ "Design notes", "md__home_runner_work_ringbuf_ringbuf_docs_design.html", [
+      [ "STL compatibility", "md__home_runner_work_ringbuf_ringbuf_docs_design.html#autotoc_md1", null ],
+      [ "Memory allocation", "md__home_runner_work_ringbuf_ringbuf_docs_design.html#autotoc_md2", null ],
+      [ "Allocation size", "md__home_runner_work_ringbuf_ringbuf_docs_design.html#autotoc_md3", null ],
+      [ "Not an adapter", "md__home_runner_work_ringbuf_ringbuf_docs_design.html#autotoc_md4", null ]
+    ] ],
     [ "Todo List", "todo.html", null ],
+    [ "Namespaces", "namespaces.html", [
+      [ "Namespace List", "namespaces.html", "namespaces_dup" ],
+      [ "Namespace Members", "namespacemembers.html", [
+        [ "All", "namespacemembers.html", null ],
+        [ "Functions", "namespacemembers_func.html", null ]
+      ] ]
+    ] ],
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],

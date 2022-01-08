@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.17"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>baudvine::RingBuf: ringbuf.h File Reference</title>
+<title>baudvine::RingBuf: baudvine/ringbuf/ringbuf.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -84,6 +84,7 @@ $(document).ready(function(){initNavTree('ringbuf_8h.html',''); initResizable();
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
+<a href="#namespaces">Namespaces</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">ringbuf.h File Reference</div>  </div>
@@ -102,179 +103,43 @@ $(document).ready(function(){initNavTree('ringbuf_8h.html',''); initResizable();
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classbaudvine_1_1detail_1_1_iterator.html">baudvine::detail::Iterator&lt; Ptr, AllocTraits, Capacity &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An iterator into <a class="el" href="classbaudvine_1_1_ring_buf.html" title="The ring buffer itself.">RingBuf</a>.  <a href="classbaudvine_1_1detail_1_1_iterator.html#details">More...</a><br /></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html">baudvine::detail::ringbuf::Iterator&lt; Ptr, AllocTraits, Capacity &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An iterator into <a class="el" href="classbaudvine_1_1_ring_buf.html" title="An STL-like ring buffer with dynamic allocation and compile-time capacity limits.">RingBuf</a>.  <a href="classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classbaudvine_1_1_ring_buf.html">baudvine::RingBuf&lt; Elem, Capacity, Allocator &gt;</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">The ring buffer itself.  <a href="classbaudvine_1_1_ring_buf.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">An STL-like ring buffer with dynamic allocation and compile-time capacity limits.  <a href="classbaudvine_1_1_ring_buf.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:namespacebaudvine"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacebaudvine.html">baudvine</a></td></tr>
+<tr class="memdesc:namespacebaudvine"><td class="mdescLeft">&#160;</td><td class="mdescRight">The baudvine "project". <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aaa430cb9f28f91cbb4b5979fb5261945"><td class="memTemplParams" colspan="2"><a id="aaa430cb9f28f91cbb4b5979fb5261945"></a>
-template&lt;typename Allocator &gt; </td></tr>
-<tr class="memitem:aaa430cb9f28f91cbb4b5979fb5261945"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>baudvine::detail::MoveAllocator</b> (Allocator &amp;lhs, Allocator &amp;rhs, std::true_type)</td></tr>
-<tr class="separator:aaa430cb9f28f91cbb4b5979fb5261945"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7c5ca4fffadc5ed42b76b0b877dd9f8"><td class="memTemplParams" colspan="2"><a id="af7c5ca4fffadc5ed42b76b0b877dd9f8"></a>
-template&lt;typename Allocator &gt; </td></tr>
-<tr class="memitem:af7c5ca4fffadc5ed42b76b0b877dd9f8"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>baudvine::detail::MoveAllocator</b> (Allocator &amp;, Allocator &amp;, std::false_type) noexcept</td></tr>
-<tr class="separator:af7c5ca4fffadc5ed42b76b0b877dd9f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a12b5e7a23314fff77b0a3faadeb83d3c"><td class="memTemplParams" colspan="2"><a id="a12b5e7a23314fff77b0a3faadeb83d3c"></a>
-template&lt;typename Allocator &gt; </td></tr>
-<tr class="memitem:a12b5e7a23314fff77b0a3faadeb83d3c"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>baudvine::detail::MoveAllocator</b> (Allocator &amp;lhs, Allocator &amp;rhs)</td></tr>
-<tr class="separator:a12b5e7a23314fff77b0a3faadeb83d3c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad36383b727583bcaef49954dc719ec05"><td class="memTemplParams" colspan="2"><a id="ad36383b727583bcaef49954dc719ec05"></a>
-template&lt;typename Allocator &gt; </td></tr>
-<tr class="memitem:ad36383b727583bcaef49954dc719ec05"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>baudvine::detail::SwapAllocator</b> (Allocator &amp;lhs, Allocator &amp;rhs, std::true_type)</td></tr>
-<tr class="separator:ad36383b727583bcaef49954dc719ec05"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a69c324951c1f3cefcd9dcc316f7d0051"><td class="memTemplParams" colspan="2"><a id="a69c324951c1f3cefcd9dcc316f7d0051"></a>
-template&lt;typename Allocator &gt; </td></tr>
-<tr class="memitem:a69c324951c1f3cefcd9dcc316f7d0051"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>baudvine::detail::SwapAllocator</b> (Allocator &amp;, Allocator &amp;, std::false_type)</td></tr>
-<tr class="separator:a69c324951c1f3cefcd9dcc316f7d0051"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af70c41d2fca6b547890731803ed87587"><td class="memTemplParams" colspan="2"><a id="af70c41d2fca6b547890731803ed87587"></a>
-template&lt;typename Allocator &gt; </td></tr>
-<tr class="memitem:af70c41d2fca6b547890731803ed87587"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>baudvine::detail::SwapAllocator</b> (Allocator &amp;lhs, Allocator &amp;rhs)</td></tr>
-<tr class="separator:af70c41d2fca6b547890731803ed87587"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a915629b40cd1de2b148ff90c4191c01d"><td class="memTemplParams" colspan="2"><a id="a915629b40cd1de2b148ff90c4191c01d"></a>
-template&lt;typename Allocator &gt; </td></tr>
-<tr class="memitem:a915629b40cd1de2b148ff90c4191c01d"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>baudvine::detail::CopyAllocator</b> (Allocator &amp;lhs, const Allocator &amp;rhs, std::true_type)</td></tr>
-<tr class="separator:a915629b40cd1de2b148ff90c4191c01d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa324883a63011c1fef6f801f6bfe5dce"><td class="memTemplParams" colspan="2"><a id="aa324883a63011c1fef6f801f6bfe5dce"></a>
-template&lt;typename Allocator &gt; </td></tr>
-<tr class="memitem:aa324883a63011c1fef6f801f6bfe5dce"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>baudvine::detail::CopyAllocator</b> (Allocator &amp;, const Allocator &amp;, std::false_type)</td></tr>
-<tr class="separator:aa324883a63011c1fef6f801f6bfe5dce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a87a8e6957a63ebcb84179ba19ad20fb7"><td class="memTemplParams" colspan="2"><a id="a87a8e6957a63ebcb84179ba19ad20fb7"></a>
-template&lt;typename Allocator &gt; </td></tr>
-<tr class="memitem:a87a8e6957a63ebcb84179ba19ad20fb7"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>baudvine::detail::CopyAllocator</b> (Allocator &amp;lhs, const Allocator &amp;rhs)</td></tr>
-<tr class="separator:a87a8e6957a63ebcb84179ba19ad20fb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8c91ca8617fbf6911c85382952af3c68"><td class="memTemplParams" colspan="2">template&lt;std::size_t Capacity&gt; </td></tr>
-<tr class="memitem:a8c91ca8617fbf6911c85382952af3c68"><td class="memTemplItemLeft" align="right" valign="top">constexpr std::size_t&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="ringbuf_8h.html#a8c91ca8617fbf6911c85382952af3c68">baudvine::detail::RingWrap</a> (const std::size_t ring_index)</td></tr>
-<tr class="memdesc:a8c91ca8617fbf6911c85382952af3c68"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wrap a physical position into an array of size Capacity.  <a href="ringbuf_8h.html#a8c91ca8617fbf6911c85382952af3c68">More...</a><br /></td></tr>
-<tr class="separator:a8c91ca8617fbf6911c85382952af3c68"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad9af7443b5ce268f8a34b96b57d859c4"><td class="memTemplParams" colspan="2">template&lt;typename Ptr , typename AllocTraits , std::size_t Capacity, typename OutputIt &gt; </td></tr>
-<tr class="memitem:ad9af7443b5ce268f8a34b96b57d859c4"><td class="memTemplItemLeft" align="right" valign="top">OutputIt&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="ringbuf_8h.html#ad9af7443b5ce268f8a34b96b57d859c4">baudvine::detail::copy</a> (const Iterator&lt; Ptr, AllocTraits, Capacity &gt; &amp;begin, const Iterator&lt; Ptr, AllocTraits, Capacity &gt; &amp;end, OutputIt out)</td></tr>
-<tr class="memdesc:ad9af7443b5ce268f8a34b96b57d859c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy the elements in the range [<code>begin</code>, <code>end</code>) to a destination range starting at <code>out</code>.  <a href="ringbuf_8h.html#ad9af7443b5ce268f8a34b96b57d859c4">More...</a><br /></td></tr>
-<tr class="separator:ad9af7443b5ce268f8a34b96b57d859c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5699b409ce7f3e8064d889175884d5f"><td class="memTemplParams" colspan="2">template&lt;typename Ptr , typename AllocTraits , std::size_t Capacity, typename OutputIt &gt; </td></tr>
+<tr class="memitem:aa5699b409ce7f3e8064d889175884d5f"><td class="memTemplItemLeft" align="right" valign="top">OutputIt&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacebaudvine.html#aa5699b409ce7f3e8064d889175884d5f">baudvine::copy</a> (const detail::ringbuf::Iterator&lt; Ptr, AllocTraits, Capacity &gt; &amp;begin, const detail::ringbuf::Iterator&lt; Ptr, AllocTraits, Capacity &gt; &amp;end, OutputIt out)</td></tr>
+<tr class="memdesc:aa5699b409ce7f3e8064d889175884d5f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy the elements in the range [<code>begin</code>, <code>end</code>) to a destination range starting at <code>out</code>.  <a href="namespacebaudvine.html#aa5699b409ce7f3e8064d889175884d5f">More...</a><br /></td></tr>
+<tr class="separator:aa5699b409ce7f3e8064d889175884d5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A ring buffer for C++11, with an STL-compatible interface.</p>
+<div class="textblock"><dl class="section author"><dt>Author</dt><dd>Dominic van Berkel </dd></dl>
+<dl class="section copyright"><dt>Copyright</dt><dd>MIT License</dd></dl>
+<p>A ring buffer for C++11, with an STL-like interface.</p>
 <p>The comments frequently refer to "physical" and "logical" indices. This is meant to make explicit the distinction between:</p>
 <ul>
-<li>The backing array of RingBuf, which is always of size Capacity and is allocated once during RingBuf construction. Physical indices are relative to the start of this array.</li>
+<li>The backing array of RingBuf, which is always of size Capacity + 1 and is allocated once during RingBuf construction. Physical indices are relative to the start of this array.</li>
 <li>The conceptual ring buffer, which moves around in the backing array and has a variable length. Logical indices are relative to its start ("ring_offset"), and ring_offset + index may exceed Capacity (before wrapping). </li>
 </ul>
 
 <p class="definition">Definition in file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
-</div><h2 class="groupheader">Function Documentation</h2>
-<a id="ad9af7443b5ce268f8a34b96b57d859c4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad9af7443b5ce268f8a34b96b57d859c4">&#9670;&nbsp;</a></span>copy()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename Ptr , typename AllocTraits , std::size_t Capacity, typename OutputIt &gt; </div>
-      <table class="memname">
-        <tr>
-          <td class="memname">OutputIt baudvine::detail::copy </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classbaudvine_1_1detail_1_1_iterator.html">Iterator</a>&lt; Ptr, AllocTraits, Capacity &gt; &amp;&#160;</td>
-          <td class="paramname"><em>begin</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="classbaudvine_1_1detail_1_1_iterator.html">Iterator</a>&lt; Ptr, AllocTraits, Capacity &gt; &amp;&#160;</td>
-          <td class="paramname"><em>end</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">OutputIt&#160;</td>
-          <td class="paramname"><em>out</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Copy the elements in the range [<code>begin</code>, <code>end</code>) to a destination range starting at <code>out</code>. </p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">Ptr</td><td>The pointer type of the input iterator. </td></tr>
-    <tr><td class="paramname">AllocTraits</td><td>The allocator traits of the input iterator. </td></tr>
-    <tr><td class="paramname">Capacity</td><td>The capacity of the input iterator. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">begin</td><td>Start of the source range. </td></tr>
-    <tr><td class="paramname">end</td><td>End of the source range, one past the last element to copy. </td></tr>
-    <tr><td class="paramname">out</td><td>Start of the destination range. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>OutputIt One past the last copied element in the destination range. </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00265">265</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
-
-</div>
-</div>
-<a id="a8c91ca8617fbf6911c85382952af3c68"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8c91ca8617fbf6911c85382952af3c68">&#9670;&nbsp;</a></span>RingWrap()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;std::size_t Capacity&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr std::size_t baudvine::detail::RingWrap </td>
-          <td>(</td>
-          <td class="paramtype">const std::size_t&#160;</td>
-          <td class="paramname"><em>ring_index</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Wrap a physical position into an array of size Capacity. </p>
-<p>Precondition: ring_index &lt; 2 * Capacity.</p>
-<dl class="tparams"><dt>Template Parameters</dt><dd>
-  <table class="tparams">
-    <tr><td class="paramname">Capacity</td><td>The backing array size. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">ring_index</td><td>The physical index into the backing array. </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>The ring_index wrapped to [0..Capacity). </dd></dl>
-
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00123">123</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
-
-</div>
-</div>
-</div><!-- contents -->
+</div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_d44c64559bbebec7f509842c48db8b23.html">include</a></li><li class="navelem"><a class="el" href="dir_db77e01671fd08b611fd0d2a353b9976.html">baudvine</a></li><li class="navelem"><a class="el" href="dir_17f57914527a2394bff9d068b56ba2b3.html">ringbuf</a></li><li class="navelem"><a class="el" href="ringbuf_8h.html">ringbuf.h</a></li>
+    <li class="navelem"><a class="el" href="dir_db77e01671fd08b611fd0d2a353b9976.html">baudvine</a></li><li class="navelem"><a class="el" href="dir_17f57914527a2394bff9d068b56ba2b3.html">ringbuf</a></li><li class="navelem"><a class="el" href="ringbuf_8h.html">ringbuf.h</a></li>
     <li class="footer">Generated by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>

@@ -1,6 +1,4 @@
 var searchData=
 [
-  ['operator_20iterator_3c_20typename_20alloctraits_3a_3aconst_5fpointer_2c_20alloctraits_2c_20capacity_20_3e_59',['operator Iterator&lt; typename AllocTraits::const_pointer, AllocTraits, Capacity &gt;',['../classbaudvine_1_1detail_1_1_iterator.html#a124834f4fb4844d22bb1cbf45308880b',1,'baudvine::detail::Iterator']]],
-  ['operator_3d_60',['operator=',['../classbaudvine_1_1_ring_buf.html#a10655c1185e9e4e78c42a0321cc8092a',1,'baudvine::RingBuf::operator=(const RingBuf &amp;other)'],['../classbaudvine_1_1_ring_buf.html#a74dc3cc7ae26f01c42b9d869211a31ad',1,'baudvine::RingBuf::operator=(RingBuf &amp;&amp;other) noexcept(alloc_traits::propagate_on_container_move_assignment::value||std::is_nothrow_move_constructible&lt; value_type &gt;::value)']]],
-  ['operator_5b_5d_61',['operator[]',['../classbaudvine_1_1_ring_buf.html#afd1b38b1558d3bf3e70165980fa0dbdd',1,'baudvine::RingBuf::operator[](const size_type index) const'],['../classbaudvine_1_1_ring_buf.html#a7b53c1e544a519e92e204da658da9d46',1,'baudvine::RingBuf::operator[](const size_type index)']]]
+  ['max_5fsize_62',['max_size',['../classbaudvine_1_1_ring_buf.html#afebd9643c870ffa5f7fd32e6d7aca64c',1,'baudvine::RingBuf']]]
 ];

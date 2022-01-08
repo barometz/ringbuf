@@ -1,8 +1,7 @@
 var searchData=
 [
-  ['rbegin_30',['rbegin',['../classbaudvine_1_1_ring_buf.html#a62fcf878968972473f0e5d8b97144fb5',1,'baudvine::RingBuf::rbegin() noexcept'],['../classbaudvine_1_1_ring_buf.html#a6627f24430e5446f71894dcc33335aec',1,'baudvine::RingBuf::rbegin() const noexcept']]],
-  ['rend_31',['rend',['../classbaudvine_1_1_ring_buf.html#a0c6c01e9e2717b299846a6daed090932',1,'baudvine::RingBuf::rend() noexcept'],['../classbaudvine_1_1_ring_buf.html#af7b6fb9e91d5c5a1fffbbc5141b7c89e',1,'baudvine::RingBuf::rend() const noexcept']]],
-  ['ringbuf_32',['RingBuf',['../classbaudvine_1_1_ring_buf.html',1,'baudvine::RingBuf&lt; Elem, Capacity, Allocator &gt;'],['../classbaudvine_1_1_ring_buf.html#af41d49d277f21ba86a17a0af49ba0295',1,'baudvine::RingBuf::RingBuf()'],['../classbaudvine_1_1_ring_buf.html#a37720d5a4681b11d823306b207bfbf27',1,'baudvine::RingBuf::RingBuf(const allocator_type &amp;allocator)'],['../classbaudvine_1_1_ring_buf.html#ad16e74a9de6fbc0bcf0b86688ec74852',1,'baudvine::RingBuf::RingBuf(const RingBuf &amp;other)'],['../classbaudvine_1_1_ring_buf.html#a5d2bc9bcef47000a64fadde7e4d19531',1,'baudvine::RingBuf::RingBuf(const RingBuf &amp;other, const allocator_type &amp;allocator)'],['../classbaudvine_1_1_ring_buf.html#a5da261dbcb7fcd9be3d8c3139c92abcc',1,'baudvine::RingBuf::RingBuf(RingBuf &amp;&amp;other) noexcept'],['../classbaudvine_1_1_ring_buf.html#ade5b0ffc1b513c249cd1b4a04f89ef4e',1,'baudvine::RingBuf::RingBuf(RingBuf &amp;&amp;other, const allocator_type &amp;allocator)']]],
-  ['ringbuf_2eh_33',['ringbuf.h',['../ringbuf_8h.html',1,'']]],
-  ['ringwrap_34',['RingWrap',['../ringbuf_8h.html#a8c91ca8617fbf6911c85382952af3c68',1,'baudvine::detail']]]
+  ['pop_5fback_29',['pop_back',['../classbaudvine_1_1_ring_buf.html#a2efcd491d95dae2b2dfbc784dd46ddf5',1,'baudvine::RingBuf']]],
+  ['pop_5ffront_30',['pop_front',['../classbaudvine_1_1_ring_buf.html#a3c06aca28b9d82e6b47d14a994c23a41',1,'baudvine::RingBuf']]],
+  ['push_5fback_31',['push_back',['../classbaudvine_1_1_ring_buf.html#af4c7c7438341ce5eb9ca74a7d926984b',1,'baudvine::RingBuf::push_back(const_reference value)'],['../classbaudvine_1_1_ring_buf.html#a67d0ba73f048f07bc1a9675e9fe47ee4',1,'baudvine::RingBuf::push_back(value_type &amp;&amp;value)']]],
+  ['push_5ffront_32',['push_front',['../classbaudvine_1_1_ring_buf.html#a03e35f9df191a4cbc4a34124c72a2f58',1,'baudvine::RingBuf::push_front(const_reference value)'],['../classbaudvine_1_1_ring_buf.html#a04f3c283f5289c44ee9cdff3eb525b25',1,'baudvine::RingBuf::push_front(value_type &amp;&amp;value)']]]
 ];

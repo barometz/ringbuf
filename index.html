@@ -81,13 +81,51 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 </iframe>
 </div>
 
-<div class="header">
+<div class="PageDoc"><div class="header">
   <div class="headertitle">
 <div class="title">baudvine::RingBuf Documentation</div>  </div>
 </div><!--header-->
 <div class="contents">
+<div class="textblock"><p>This is a header-only <a href="https://en.wikipedia.org/wiki/Circular_buffer">ring/circular buffer</a> implementation in C++11, with the following goals:</p>
+<ul>
+<li>Reasonably performant.</li>
+<li>Readable.</li>
+<li>STL-compatible and STL-like.</li>
+</ul>
+<p>There are two implementations: <a class="el" href="classbaudvine_1_1_ring_buf.html" title="An STL-like ring buffer with dynamic allocation and compile-time capacity limits.">baudvine::RingBuf</a> and <a class="el" href="classbaudvine_1_1_deque_ring_buf.html">baudvine::DequeRingBuf</a>. They're meant to be functionally equivalent (mostly), but behave differently under water. Tests ideally cover both, expecting the same behaviour. Both behave like double-ended queues up until the point where they fill up, at which point pushing/emplacing at the front causes the element in the back to fall off (and vice versa).</p>
+<p><a class="el" href="classbaudvine_1_1_ring_buf.html" title="An STL-like ring buffer with dynamic allocation and compile-time capacity limits.">baudvine::RingBuf</a> is the primary implementation: it stores elements in a fixed-size, dynamically allocated array, and provides custom iterators as well as <a class="el" href="namespacebaudvine.html#aa5699b409ce7f3e8064d889175884d5f" title="Copy the elements in the range [begin, end) to a destination range starting at out.">baudvine::copy</a> for efficient copying.</p>
+<p><a class="el" href="classbaudvine_1_1_deque_ring_buf.html">baudvine::DequeRingBuf</a> is included primarily for testing purposes. Because it's based on <code>std::deque</code> it's a bit less efficient (time, memory fragmentation) than the array-based one, but it's also a lot easier to trust since all the hairy math and allocation happens in the standard library.</p>
+<h1><a class="anchor" id="autotoc_md5"></a>
+Usage</h1>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="ringbuf_8h.html">baudvine/ringbuf/ringbuf.h</a>&gt;</span></div>
+<div class="line"> </div>
+<div class="line"><span class="keywordtype">void</span> demo()</div>
+<div class="line">{</div>
+<div class="line">  <a class="code" href="classbaudvine_1_1_ring_buf.html">baudvine::RingBuf&lt;std::string, 2&gt;</a> buffer;</div>
+<div class="line">  buffer.<a class="code" href="classbaudvine_1_1_ring_buf.html#af4c7c7438341ce5eb9ca74a7d926984b">push_back</a>(<span class="stringliteral">&quot;Testing, &quot;</span>);</div>
+<div class="line">  buffer.<a class="code" href="classbaudvine_1_1_ring_buf.html#af4c7c7438341ce5eb9ca74a7d926984b">push_back</a>(<span class="stringliteral">&quot;one, &quot;</span>);</div>
+<div class="line">  buffer.<a class="code" href="classbaudvine_1_1_ring_buf.html#af4c7c7438341ce5eb9ca74a7d926984b">push_back</a>(<span class="stringliteral">&quot;two.&quot;</span>);</div>
+<div class="line">  assert(buffer.<a class="code" href="classbaudvine_1_1_ring_buf.html#a53f0dd41b28cd5f4bc561aff6385fac1">front</a>() == <span class="stringliteral">&quot;one, &quot;</span>);</div>
+<div class="line">  assert(buffer.<a class="code" href="classbaudvine_1_1_ring_buf.html#adcb84f81f26f71f241ab3b51ad2384ca">back</a>() == <span class="stringliteral">&quot;two.&quot;</span>);</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>See test/examples.cpp for further usage examples. The high-level pitch is this: you can use it as an STL container, except it wraps like a ring buffer. You get iterators, <code>front()</code>, <code>back()</code>, <code>push_back()</code>, <code>pop_front()</code>, <code>emplace_back()</code>, range-for, all* the things you expect from a standard library container.</p>
+<h1><a class="anchor" id="autotoc_md6"></a>
+Building</h1>
+<p>The project is header-only, so you only have to copy <code><a class="el" href="ringbuf_8h.html">include/baudvine/ringbuf/ringbuf.h</a></code> into your project. You should also be able to include it as a CMake subproject, but that's untested.</p>
+<p>To build and run the tests, install <a href="https://cmake.org/">CMake</a>, then run:</p>
+<div class="fragment"><div class="line">mkdir build</div>
+<div class="line">cmake -S . -B build</div>
+<div class="line">cmake --build build</div>
+<div class="line">build/test/ringbuf-test</div>
+</div><!-- fragment --><p>Or use your editor or IDE with CMake integration of choice. </p>
+</div></div><!-- PageDoc -->
 </div><!-- contents -->
 </div><!-- doc-content -->
+<div class="ttc" id="aclassbaudvine_1_1_ring_buf_html_adcb84f81f26f71f241ab3b51ad2384ca"><div class="ttname"><a href="classbaudvine_1_1_ring_buf.html#adcb84f81f26f71f241ab3b51ad2384ca">baudvine::RingBuf::back</a></div><div class="ttdeci">reference back()</div><div class="ttdoc">Returns he last element in the ring buffer.</div><div class="ttdef"><b>Definition:</b> <a href="ringbuf_8h_source.html#l00539">ringbuf.h:539</a></div></div>
+<div class="ttc" id="aclassbaudvine_1_1_ring_buf_html_a53f0dd41b28cd5f4bc561aff6385fac1"><div class="ttname"><a href="classbaudvine_1_1_ring_buf.html#a53f0dd41b28cd5f4bc561aff6385fac1">baudvine::RingBuf::front</a></div><div class="ttdeci">reference front()</div><div class="ttdoc">Returns the first element in the ring buffer.</div><div class="ttdef"><b>Definition:</b> <a href="ringbuf_8h_source.html#l00534">ringbuf.h:534</a></div></div>
+<div class="ttc" id="aclassbaudvine_1_1_ring_buf_html"><div class="ttname"><a href="classbaudvine_1_1_ring_buf.html">baudvine::RingBuf</a></div><div class="ttdoc">An STL-like ring buffer with dynamic allocation and compile-time capacity limits.</div><div class="ttdef"><b>Definition:</b> <a href="ringbuf_8h_source.html#l00308">ringbuf.h:308</a></div></div>
+<div class="ttc" id="aclassbaudvine_1_1_ring_buf_html_af4c7c7438341ce5eb9ca74a7d926984b"><div class="ttname"><a href="classbaudvine_1_1_ring_buf.html#af4c7c7438341ce5eb9ca74a7d926984b">baudvine::RingBuf::push_back</a></div><div class="ttdeci">void push_back(const_reference value)</div><div class="ttdoc">Push a new element into the ring buffer, popping the front if necessary.</div><div class="ttdef"><b>Definition:</b> <a href="ringbuf_8h_source.html#l00715">ringbuf.h:715</a></div></div>
+<div class="ttc" id="aringbuf_8h_html"><div class="ttname"><a href="ringbuf_8h.html">ringbuf.h</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>

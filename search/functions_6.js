@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['max_5fsize_58',['max_size',['../classbaudvine_1_1_ring_buf.html#afebd9643c870ffa5f7fd32e6d7aca64c',1,'baudvine::RingBuf']]]
+  ['iterator_61',['Iterator',['../classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html#ad164c7d1b5236e461b7c2eabd5bcee31',1,'baudvine::detail::ringbuf::Iterator']]]
 ];
