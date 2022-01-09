@@ -1,6 +1,5 @@
 #include "baudvine/ringbuf/deque_ringbuf.h"
 #include "baudvine/ringbuf/ringbuf.h"
-#include "config.h"
 
 #include <gtest/gtest-typed-test.h>
 #include <gtest/gtest.h>

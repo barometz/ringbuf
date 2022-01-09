@@ -40,3 +40,12 @@ if (Boost_FOUND)
   target_compile_definitions(ringbuf-test PRIVATE BOOST_DATE_TIME_NO_LIB)
   target_compile_definitions(ringbuf-test PRIVATE BAUDVINE_HAVE_BOOST_IPC)
 endif()
+
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+try_compile(have_variant ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/build_tools/feature_check_variant.cpp)
+try_compile(have_ranges ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}/build_tools/feature_check_ranges.cpp)
+
+target_compile_definitions(ringbuf-test PRIVATE
+  $<$<BOOL:${have_variant}>:BAUDVINE_HAVE_VARIANT>
+  $<$<BOOL:${have_ranges}>:BAUDVINE_HAVE_RANGES>
+  )
