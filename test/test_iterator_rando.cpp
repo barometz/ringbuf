@@ -1,6 +1,5 @@
 #include "ringbuf_adapter.h"
 
-#include <bits/iterator_concepts.h>
 #include <gtest/gtest.h>
 
 #include <iterator>
