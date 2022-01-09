@@ -20,4 +20,8 @@ TYPED_TEST(ContainerConcepts, IsBidiRange) {
   EXPECT_TRUE(std::ranges::bidirectional_range<TypeParam>);
 }
 
+TYPED_TEST(ContainerConcepts, IsRandomAccessRange) {
+  EXPECT_TRUE(std::ranges::random_access_range<TypeParam>);
+}
+
 #endif  // BAUDVINE_HAVE_RANGES

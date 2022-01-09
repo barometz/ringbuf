@@ -159,7 +159,7 @@ class Iterator {
   using value_type = typename AllocTraits::value_type;
   using pointer = Ptr;
   using reference = decltype(*pointer{});
-  using iterator_category = std::bidirectional_iterator_tag;
+  using iterator_category = std::random_access_iterator_tag;
 
   constexpr Iterator() noexcept = default;
   /**
@@ -187,7 +187,7 @@ class Iterator {
         data_, ring_offset_, ring_index_);
   }
 
-  reference operator*() const noexcept {
+  reference operator*() const {
     return data_[RingWrap<Capacity>(ring_offset_ + ring_index_)];
   }
 
@@ -237,8 +237,17 @@ class Iterator {
     return copy;
   }
 
-  reference operator[](difference_type n) const {
-    return *(*this + n);
+  reference operator[](difference_type n) const { return *(*this + n); }
+
+  friend difference_type operator-(const Iterator& lhs,
+                                   const Iterator& rhs) noexcept {
+    return lhs.ring_index_ > rhs.ring_index_
+               ? lhs.ring_index_ - rhs.ring_index_
+               : -(rhs.ring_index_ - lhs.ring_index_);
+  }
+
+  friend Iterator operator+(difference_type lhs, const Iterator& rhs) noexcept {
+    return rhs + lhs;
   }
 
   friend bool operator<(const Iterator& lhs, const Iterator& rhs) noexcept {

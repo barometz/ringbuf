@@ -45,14 +45,18 @@ TYPED_TEST(IteratorRando, PlusIsIdentity) {
 }
 
 TYPED_TEST(IteratorRando, Plus) {
-  const auto plus = (this->a_ + this->n_);
+  const auto plus = this->a_ + this->n_;
   const auto plus_is = (this->a_ += this->n_);
   EXPECT_EQ(plus, plus_is);
 }
 
+TYPED_TEST(IteratorRando, sulP) {
+  EXPECT_EQ(this->a_ + this->n_, this->n_ + this->a_);
+}
+
 TYPED_TEST(IteratorRando, PlusZero) {
   using D = typename IteratorRando<TypeParam>::D;
-  EXPECT_EQ((this->a_ + D(0)), this->a_);
+  EXPECT_EQ(this->a_ + D(0), this->a_);
 }
 
 TYPED_TEST(IteratorRando, IncrementToEnd) {
@@ -77,7 +81,7 @@ TYPED_TEST(IteratorRando, SubIsIdentity) {
 }
 
 TYPED_TEST(IteratorRando, Sub) {
-  const auto sub = (this->b_ - this->n_);
+  const auto sub = this->b_ - this->n_;
   const auto sub_is = (this->b_ -= this->n_);
   EXPECT_EQ(sub, sub_is);
 }
@@ -97,4 +101,9 @@ TYPED_TEST(IteratorRando, Ordering) {
   EXPECT_TRUE(ring.begin() < ring.end());
   ring.push_back(4);
   EXPECT_TRUE(ring.begin() < ring.end());
+}
+
+TYPED_TEST(IteratorRando, SizedSentinel) {
+  EXPECT_EQ(this->b_ - this->a_, this->n_);
+  EXPECT_EQ(this->a_ - this->b_, -this->n_);
 }
