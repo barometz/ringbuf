@@ -220,9 +220,7 @@ class Iterator {
   }
 
   Iterator operator+(difference_type n) const noexcept {
-    auto copy = *this;
-    copy += n;
-    return copy;
+    return Iterator(data_, ring_offset_, ring_index_ + n);
   }
 
   Iterator& operator-=(difference_type n) noexcept {
@@ -231,9 +229,7 @@ class Iterator {
   }
 
   Iterator operator-(difference_type n) const noexcept {
-    auto copy = *this;
-    copy -= n;
-    return copy;
+    return Iterator(data_, ring_offset_, ring_index_ - n);
   }
 
   reference operator[](difference_type n) const { return *(*this + n); }
