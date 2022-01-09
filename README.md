@@ -93,7 +93,7 @@ What can't it do? Well:
 - [x] The tests for Container aren't as well organized as they could be either.
 - [x] Needs more ~~cowbell~~ `noexcept`
 - [x] Moved-from RingBuf instances can't be reused.
-- [*] The iterator is not std::random_access_iterator.
+- [x] The iterator is not std::random_access_iterator.
 - [x] Docs.
 - [ ] Better code examples.
 - [ ] Document iterator invalidation.
