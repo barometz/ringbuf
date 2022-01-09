@@ -60,7 +60,7 @@ TYPED_TEST(IteratorRando, PlusZero) {
 
 TYPED_TEST(IteratorRando, IncrementToEnd) {
   using D = typename IteratorRando<TypeParam>::D;
-  EXPECT_EQ((this->a_ + this->n_), [this](typename TypeParam::iterator c) {
+  EXPECT_EQ((this->a_ + this->n_), [](typename TypeParam::iterator c) {
     return ++c;
   }(this->a_ + D(this->n_ - 1)));
 }
