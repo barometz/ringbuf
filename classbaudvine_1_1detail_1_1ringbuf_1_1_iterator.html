@@ -114,9 +114,9 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>pointer</b> = Ptr</t
 <tr class="memitem:ae6d828264a362e71a497dbe62aab228e"><td class="memItemLeft" align="right" valign="top"><a id="ae6d828264a362e71a497dbe62aab228e"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>reference</b> = decltype(*pointer{})</td></tr>
 <tr class="separator:ae6d828264a362e71a497dbe62aab228e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d189cab1d7d5cc29342b738fe0613a7"><td class="memItemLeft" align="right" valign="top"><a id="a3d189cab1d7d5cc29342b738fe0613a7"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>iterator_category</b> = std::bidirectional_iterator_tag</td></tr>
-<tr class="separator:a3d189cab1d7d5cc29342b738fe0613a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a78ef35ee31f3814549eee2f86c124698"><td class="memItemLeft" align="right" valign="top"><a id="a78ef35ee31f3814549eee2f86c124698"></a>
+using&#160;</td><td class="memItemRight" valign="bottom"><b>iterator_category</b> = std::random_access_iterator_tag</td></tr>
+<tr class="separator:a78ef35ee31f3814549eee2f86c124698"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -126,9 +126,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:aea9fd5b5ecd91fad6fa35028d789ee93"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html#aea9fd5b5ecd91fad6fa35028d789ee93">operator Iterator&lt; typename AllocTraits::const_pointer, AllocTraits, Capacity &gt;</a> () const</td></tr>
 <tr class="memdesc:aea9fd5b5ecd91fad6fa35028d789ee93"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert an iterator into a const iterator.  <a href="classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html#aea9fd5b5ecd91fad6fa35028d789ee93">More...</a><br /></td></tr>
 <tr class="separator:aea9fd5b5ecd91fad6fa35028d789ee93"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a133b36537ced626bdd5a868217bd130f"><td class="memItemLeft" align="right" valign="top"><a id="a133b36537ced626bdd5a868217bd130f"></a>
-reference&#160;</td><td class="memItemRight" valign="bottom"><b>operator*</b> () const noexcept</td></tr>
-<tr class="separator:a133b36537ced626bdd5a868217bd130f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5802c97a801419ab6d3e2e8713ccb70"><td class="memItemLeft" align="right" valign="top"><a id="aa5802c97a801419ab6d3e2e8713ccb70"></a>
+reference&#160;</td><td class="memItemRight" valign="bottom"><b>operator*</b> () const</td></tr>
+<tr class="separator:aa5802c97a801419ab6d3e2e8713ccb70"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a87cb5b0e48a99d73ce0f52b32679e54b"><td class="memItemLeft" align="right" valign="top"><a id="a87cb5b0e48a99d73ce0f52b32679e54b"></a>
 pointer&#160;</td><td class="memItemRight" valign="bottom"><b>operator-&gt;</b> () const noexcept</td></tr>
 <tr class="separator:a87cb5b0e48a99d73ce0f52b32679e54b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -144,9 +144,30 @@ pointer&#160;</td><td class="memItemRight" valign="bottom"><b>operator-&gt;</b> 
 <tr class="memitem:a9db30a290d8d67ffdb7d2188d365fa69"><td class="memItemLeft" align="right" valign="top"><a id="a9db30a290d8d67ffdb7d2188d365fa69"></a>
 <a class="el" href="classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html">Iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator--</b> () noexcept</td></tr>
 <tr class="separator:a9db30a290d8d67ffdb7d2188d365fa69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9487f35a634f1ceefeebeceb5d912d3d"><td class="memItemLeft" align="right" valign="top"><a id="a9487f35a634f1ceefeebeceb5d912d3d"></a>
+<a class="el" href="classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html">Iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator+=</b> (difference_type n) noexcept</td></tr>
+<tr class="separator:a9487f35a634f1ceefeebeceb5d912d3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3b92b8ea4c213d88ee957ff577a7da1"><td class="memItemLeft" align="right" valign="top"><a id="aa3b92b8ea4c213d88ee957ff577a7da1"></a>
+<a class="el" href="classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html">Iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>operator+</b> (difference_type n) const noexcept</td></tr>
+<tr class="separator:aa3b92b8ea4c213d88ee957ff577a7da1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8b261b0b8ddebb0eb277ed32b88ed17"><td class="memItemLeft" align="right" valign="top"><a id="aa8b261b0b8ddebb0eb277ed32b88ed17"></a>
+<a class="el" href="classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html">Iterator</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator-=</b> (difference_type n) noexcept</td></tr>
+<tr class="separator:aa8b261b0b8ddebb0eb277ed32b88ed17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee2db8bc7bcb8fd23d015486187deafb"><td class="memItemLeft" align="right" valign="top"><a id="aee2db8bc7bcb8fd23d015486187deafb"></a>
+<a class="el" href="classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html">Iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>operator-</b> (difference_type n) const noexcept</td></tr>
+<tr class="separator:aee2db8bc7bcb8fd23d015486187deafb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5465b2301bb5091fbaa662500550276e"><td class="memItemLeft" align="right" valign="top"><a id="a5465b2301bb5091fbaa662500550276e"></a>
+reference&#160;</td><td class="memItemRight" valign="bottom"><b>operator[]</b> (difference_type n) const</td></tr>
+<tr class="separator:a5465b2301bb5091fbaa662500550276e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
+<tr class="memitem:a56d2ec1349146c2eb76c472339b705f0"><td class="memItemLeft" align="right" valign="top"><a id="a56d2ec1349146c2eb76c472339b705f0"></a>
+difference_type&#160;</td><td class="memItemRight" valign="bottom"><b>operator-</b> (const <a class="el" href="classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html">Iterator</a> &amp;lhs, const <a class="el" href="classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html">Iterator</a> &amp;rhs) noexcept</td></tr>
+<tr class="separator:a56d2ec1349146c2eb76c472339b705f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae1074046f27aa1c905bc1a25768f3c97"><td class="memItemLeft" align="right" valign="top"><a id="ae1074046f27aa1c905bc1a25768f3c97"></a>
+<a class="el" href="classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html">Iterator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>operator+</b> (difference_type lhs, const <a class="el" href="classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html">Iterator</a> &amp;rhs) noexcept</td></tr>
+<tr class="separator:ae1074046f27aa1c905bc1a25768f3c97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc0bde7d904a94a47a4c8e11b69158a6"><td class="memItemLeft" align="right" valign="top"><a id="abc0bde7d904a94a47a4c8e11b69158a6"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>operator&lt;</b> (const <a class="el" href="classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html">Iterator</a> &amp;lhs, const <a class="el" href="classbaudvine_1_1detail_1_1ringbuf_1_1_iterator.html">Iterator</a> &amp;rhs) noexcept</td></tr>
 <tr class="separator:abc0bde7d904a94a47a4c8e11b69158a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -183,9 +204,8 @@ class baudvine::detail::ringbuf::Iterator&lt; Ptr, AllocTraits, Capacity &gt;</h
   </table>
   </dd>
 </dl>
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000001">Todo:</a></b></dt><dd>Upgrade to random_access_iterator, since offsets are constant-time. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00155">155</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00154">154</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad164c7d1b5236e461b7c2eabd5bcee31"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad164c7d1b5236e461b7c2eabd5bcee31">&#9670;&nbsp;</a></span>Iterator()</h2>
@@ -239,7 +259,7 @@ template&lt;typename Ptr , typename AllocTraits , std::size_t Capacity&gt; </div
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00173">173</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00172">172</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -272,7 +292,7 @@ template&lt;typename Ptr , typename AllocTraits , std::size_t Capacity&gt; </div
 <p>Convert an iterator into a const iterator. </p>
 <dl class="section return"><dt>Returns</dt><dd>A const iterator pointing to the same place. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00185">185</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00184">184</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>

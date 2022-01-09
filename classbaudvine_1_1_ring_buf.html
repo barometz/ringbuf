@@ -323,7 +323,7 @@ class baudvine::RingBuf&lt; Elem, Capacity, Allocator &gt;</h3>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00308">308</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00338">338</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="af41d49d277f21ba86a17a0af49ba0295"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af41d49d277f21ba86a17a0af49ba0295">&#9670;&nbsp;</a></span>RingBuf() <span class="overload">[1/6]</span></h2>
@@ -353,7 +353,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
 <p>Construct a new ring buffer object with a default-constructed allocator, and allocate the required memory. </p>
 <p>Allocates Capacity + 1 to allow for strong exception guarantees in emplace_front/back. </p>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00399">399</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00429">429</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -392,7 +392,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00409">409</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00439">439</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -424,7 +424,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
 <p>Destroy the ring buffer object. </p>
 <p>Destroys the active elements via <a class="el" href="classbaudvine_1_1_ring_buf.html#ae9bb23f80106526237aeaa897b8c1021" title="Remove all elements from the ring buffer, destroying each one starting at the front.">clear()</a> and deallocates the backing array. </p>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00418">418</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00448">448</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -461,9 +461,9 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
   </table>
   </dd>
 </dl>
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000002">Todo:</a></b></dt><dd>maybe allow other (smaller) sizes as input? </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000001">Todo:</a></b></dt><dd>maybe allow other (smaller) sizes as input? </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00429">429</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00459">459</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -511,11 +511,11 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
   </table>
   </dd>
 </dl>
-<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000003">Todo:</a></b></dt><dd><p class="startdd">maybe allow other (smaller) sizes as input? </p>
+<dl class="todo"><dt><b><a class="el" href="todo.html#_todo000002">Todo:</a></b></dt><dd><p class="startdd">maybe allow other (smaller) sizes as input? </p>
 <p class="enddd">Use memcpy/std<a class="el" href="namespacebaudvine.html#aa5699b409ce7f3e8064d889175884d5f" title="Copy the elements in the range [begin, end) to a destination range starting at out.">copy</a> if Elem is POD </p>
 </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00442">442</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00472">472</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -553,7 +553,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00455">455</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00485">485</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -603,7 +603,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00467">467</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00497">497</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -649,7 +649,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00585">585</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00615">615</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -694,7 +694,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00571">571</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00601">601</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -731,7 +731,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00539">539</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00569">569</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -763,7 +763,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
 <p>Remove all elements from the ring buffer, destroying each one starting at the front. </p>
 <p>After <a class="el" href="classbaudvine_1_1_ring_buf.html#ae9bb23f80106526237aeaa897b8c1021" title="Remove all elements from the ring buffer, destroying each one starting at the front.">clear()</a>, <a class="el" href="classbaudvine_1_1_ring_buf.html#afb58b9bfb50a3933d1d38802de5bf932" title="Get the number of elements in the ring buffer.">size()</a> == 0. </p>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00775">775</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00805">805</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -809,7 +809,7 @@ template&lt;typename... Args&gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00730">730</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00760">760</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -855,7 +855,7 @@ template&lt;typename... Args&gt; </div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00694">694</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00724">724</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -892,7 +892,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00534">534</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00564">564</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -932,7 +932,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>This <a class="el" href="classbaudvine_1_1_ring_buf.html" title="An STL-like ring buffer with dynamic allocation and compile-time capacity limits.">RingBuf</a>. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00486">486</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00516">516</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -972,7 +972,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>This <a class="el" href="classbaudvine_1_1_ring_buf.html" title="An STL-like ring buffer with dynamic allocation and compile-time capacity limits.">RingBuf</a>. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00505">505</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00535">535</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -1012,7 +1012,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>A reference to the element. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00560">560</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00590">590</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -1052,7 +1052,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>A const reference to the element. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00549">549</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00579">579</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -1090,7 +1090,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00715">715</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00745">745</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -1128,7 +1128,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00721">721</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00751">751</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -1166,7 +1166,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00676">676</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00706">706</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -1204,7 +1204,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00683">683</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00713">713</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -1242,7 +1242,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00788">788</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00818">818</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -1286,7 +1286,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
 <p>Elementwise comparison of two ring buffers. </p>
 <dl class="section return"><dt>Returns</dt><dd>True if <code>lhs</code> is not equal to <code>rhs</code>. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00843">843</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00873">873</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -1329,7 +1329,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
 <p>Elementwise lexicographical comparison of two ring buffers. </p>
 <dl class="section return"><dt>Returns</dt><dd>True if the left-hand side compares as less than the right. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00798">798</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00828">828</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -1372,7 +1372,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
 <p>Elementwise comparison of two ring buffers. </p>
 <dl class="section return"><dt>Returns</dt><dd>True if <code>lhs</code> is less than or equal to <code>rhs</code>. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00835">835</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00865">865</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -1415,7 +1415,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
 <p>Elementwise comparison of two ring buffers. </p>
 <dl class="section return"><dt>Returns</dt><dd>True if <code>lhs</code> is equal to <code>rhs</code>. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00815">815</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00845">845</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -1458,7 +1458,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
 <p>Elementwise lexicographical comparison of two ring buffers. </p>
 <dl class="section return"><dt>Returns</dt><dd>True if the left-hand side compares as more than the right. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00807">807</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00837">837</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
@@ -1501,7 +1501,7 @@ template&lt;typename Elem , std::size_t Capacity, typename Allocator  = std::all
 <p>Elementwise comparison of two ring buffers. </p>
 <dl class="section return"><dt>Returns</dt><dd>True if <code>lhs</code> is greater than or equal to <code>rhs</code>. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00827">827</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="ringbuf_8h_source.html#l00857">857</a> of file <a class="el" href="ringbuf_8h_source.html">ringbuf.h</a>.</p>
 
 </div>
 </div>
