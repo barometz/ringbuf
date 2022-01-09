@@ -149,7 +149,6 @@ constexpr std::size_t RingWrap(const std::size_t ring_index) {
  *                     conversion to const iterator).
  * @tparam Capacity The size of the backing array, and maximum size of the ring
  *                  buffer.
- * @todo Upgrade to random_access_iterator, since offsets are constant-time.
  */
 template <typename Ptr, typename AllocTraits, std::size_t Capacity>
 class Iterator {
