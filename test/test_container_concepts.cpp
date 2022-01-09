@@ -1,6 +1,5 @@
 #include "baudvine/ringbuf/deque_ringbuf.h"
 #include "baudvine/ringbuf/ringbuf.h"
-#include "config.h"
 
 #include <gtest/gtest-typed-test.h>
 #include <gtest/gtest.h>
@@ -19,6 +18,10 @@ TYPED_TEST_SUITE(ContainerConcepts, RingBufs);
 
 TYPED_TEST(ContainerConcepts, IsBidiRange) {
   EXPECT_TRUE(std::ranges::bidirectional_range<TypeParam>);
+}
+
+TYPED_TEST(ContainerConcepts, IsRandomAccessRange) {
+  EXPECT_TRUE(std::ranges::random_access_range<TypeParam>);
 }
 
 #endif  // BAUDVINE_HAVE_RANGES
