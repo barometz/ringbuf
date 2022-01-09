@@ -215,6 +215,32 @@ class Iterator {
     return *this;
   }
 
+  Iterator& operator+=(difference_type n) noexcept {
+    ring_index_ += n;
+    return *this;
+  }
+
+  Iterator operator+(difference_type n) const noexcept {
+    auto copy = *this;
+    copy += n;
+    return copy;
+  }
+
+  Iterator& operator-=(difference_type n) noexcept {
+    ring_index_ -= n;
+    return *this;
+  }
+
+  Iterator operator-(difference_type n) const noexcept {
+    auto copy = *this;
+    copy -= n;
+    return copy;
+  }
+
+  reference operator[](difference_type n) const {
+    return *(*this + n);
+  }
+
   friend bool operator<(const Iterator& lhs, const Iterator& rhs) noexcept {
     // Comparison via std::tie uses std::tuple::operator<, which compares its
     // elements lexicographically.
