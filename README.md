@@ -96,6 +96,7 @@ What can't it do? Well:
 - [*] The iterator is not std::random_access_iterator.
 - [x] Docs.
 - [ ] Better code examples.
+- [ ] Document iterator invalidation.
 
 ### NOT TODO
 What won't it do?
