@@ -187,7 +187,7 @@ class Iterator {
   }
 
   reference operator*() const {
-    return data_[RingWrap<Capacity>(ring_offset_ + ring_index_)];
+    return *GetAddress();
   }
 
   pointer operator->() const noexcept { return &**this; }
@@ -265,10 +265,7 @@ class Iterator {
   }
 
   friend bool operator==(const Iterator& lhs, const Iterator& rhs) noexcept {
-    // Comparison via std::tie is very slow in debug builds, eating into
-    // range-for cycle time.
-    return lhs.ring_index_ == rhs.ring_index_ && lhs.data_ == rhs.data_ &&
-           lhs.ring_offset_ == rhs.ring_offset_;
+    return lhs.GetAddress() == rhs.GetAddress();
   }
 
   friend bool operator!=(const Iterator& lhs, const Iterator& rhs) noexcept {
@@ -283,6 +280,10 @@ class Iterator {
                        OutputIt out);
 
  private:
+  pointer GetAddress() {
+    return &data_[0] + RingWrap<Capacity>(ring_offset_ + ring_index_);
+  }
+
   pointer data_{};
   // Keeping both ring_offset_ and ring_index_ around is algorithmically
   // redundant (you could add them once and then increment the sum in
