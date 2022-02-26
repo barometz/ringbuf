@@ -1,51 +1,63 @@
 // The iterator should be
 // https://en.cppreference.com/w/cpp/named_req/BidirectionalIterator
 
-#include <baudvine/ringbuf/ringbuf.h>
+#include "ringbuf_adapter.h"
+#include "ringbufs.h"
+
 #include <gmock/gmock-matchers.h>
 #include <gtest/gtest.h>
 
+#include <string>
 #include <type_traits>
 
 namespace {
-baudvine::RingBuf<int, 3> GetBuf() {
-  baudvine::RingBuf<int, 3> result;
+template <typename T>
+T GetBuf() {
+  T result;
   result.push_back(10);
   result.push_back(20);
   return result;
 }
 }  // namespace
 
-TEST(IteratorSta, Deref) {
-  auto buf = GetBuf();
+template <class RingBuf>
+class IteratorBidi : public testing::Test {};
+
+using RingBufs = AllRingBufs<int, 3>;
+// NOLINTNEXTLINE - clang-tidy complains about missing variadic args
+TYPED_TEST_SUITE(IteratorBidi, RingBufs);
+
+TYPED_TEST(IteratorBidi, Deref) {
+  auto buf = GetBuf<TypeParam>();
   EXPECT_EQ(*buf.begin(), 10);
 }
 
-TEST(IteratorSta, Increment) {
-  auto buf = GetBuf();
+TYPED_TEST(IteratorBidi, Increment) {
+  auto buf = GetBuf<TypeParam>();
   auto underTest = buf.begin();
   EXPECT_EQ(*++underTest, 20);
 }
 
-TEST(IteratorSta, Inequality) {
-  auto buf = GetBuf();
+TYPED_TEST(IteratorBidi, Inequality) {
+  auto buf = GetBuf<TypeParam>();
   EXPECT_NE(buf.begin(), buf.end());
 }
 
-TEST(IteratorSta, DerefToValueType) {
-  auto buf = GetBuf();
-  EXPECT_TRUE((std::is_convertible<decltype(*buf.begin()),
-                                   decltype(buf.begin())::value_type>::value));
+TYPED_TEST(IteratorBidi, DerefToValueType) {
+  auto buf = GetBuf<TypeParam>();
+  EXPECT_TRUE(
+      (std::is_convertible<decltype(*buf.begin()),
+                           typename decltype(buf.begin())::value_type>::value));
 }
 
-TEST(IteratorSta, ArrowDeref) {
-  baudvine::RingBuf<std::string, 1> buf;
+TYPED_TEST(IteratorBidi, ArrowDeref) {
+  RingBufAdapter<TypeParam, std::string, 1> buf;
   buf.push_back("hello");
   EXPECT_EQ(buf.begin()->size(), (*buf.begin()).size());
 }
 
-TEST(IteratorSta, PostfixIncrement) {
-  auto buf = GetBuf();
+TYPED_TEST(IteratorBidi, PostfixIncrement) {
+  auto buf = GetBuf<TypeParam>();
   auto i1 = buf.begin();
   auto i2 = buf.begin();
   i1++;
@@ -55,13 +67,14 @@ TEST(IteratorSta, PostfixIncrement) {
 
 // And a little extra:
 
-TEST(IteratorSta, Zero) {
-  baudvine::RingBuf<int, 0> underTest{};
+TYPED_TEST(IteratorBidi, Zero) {
+  // TODO not really an iterator test?
+  RingBufAdapter<TypeParam, int, 0> underTest{};
   EXPECT_EQ(underTest.begin(), underTest.end());
 }
 
-TEST(IteratorSta, RangeFor) {
-  baudvine::RingBuf<int, 4> underTest;
+TYPED_TEST(IteratorBidi, RangeFor) {
+  RingBufAdapter<TypeParam, int, 4> underTest;
   underTest.push_back(41);
   underTest.push_back(40);
   underTest.push_back(39);
@@ -75,7 +88,8 @@ TEST(IteratorSta, RangeFor) {
   }
 }
 
-TEST(IteratorSta, Copy) {
+// TODO move these out
+TEST(IteratorRingBuf, Copy) {
   baudvine::RingBuf<std::string, 3> underTest;
   std::vector<std::string> copy;
 
@@ -115,7 +129,7 @@ TEST(IteratorSta, Copy) {
   EXPECT_THAT(copy, testing::ElementsAre());
 }
 
-TEST(IteratorSta, CopyAdl) {
+TEST(IteratorRingBuf, CopyAdl) {
   // Check for argument-dependent lookup of baudvine::copy. This test only uses
   // iterators from the baudvine namespace to suppress std::copy.
 
