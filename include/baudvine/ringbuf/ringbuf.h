@@ -186,7 +186,9 @@ class Iterator {
         data_, ring_offset_, ring_index_);
   }
 
-  reference operator*() const { return *GetAddress(); }
+  reference operator*() const {
+    return data_[RingWrap<Capacity>(ring_offset_ + ring_index_)];
+  }
 
   pointer operator->() const noexcept { return &**this; }
 
@@ -263,7 +265,7 @@ class Iterator {
   }
 
   friend bool operator==(const Iterator& lhs, const Iterator& rhs) noexcept {
-    return lhs.GetAddress() == rhs.GetAddress();
+    return &*lhs == &*rhs;
   }
 
   friend bool operator!=(const Iterator& lhs, const Iterator& rhs) noexcept {
@@ -278,10 +280,6 @@ class Iterator {
                        OutputIt out);
 
  private:
-  pointer GetAddress() {
-    return &data_[0] + RingWrap<Capacity>(ring_offset_ + ring_index_);
-  }
-
   pointer data_{};
   // Keeping both ring_offset_ and ring_index_ around is algorithmically
   // redundant (you could add them once and then increment the sum in
