@@ -96,7 +96,8 @@ What can't it do? Well:
 - [x] The iterator is not std::random_access_iterator.
 - [x] Docs.
 - [ ] Better code examples.
-- [ ] Document iterator invalidation.
+- [x] Document iterator invalidation.
+- [ ] Compare to `boost::circular_buffer`
 
 ### NOT TODO
 What won't it do?
