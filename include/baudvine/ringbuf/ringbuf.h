@@ -851,7 +851,7 @@ class RingBuf {
       }
     } else {
       // Move from front towards last
-      for (auto i = -leading; i < 0; i++) {
+      for (auto i = -1; i >= -leading; i--) {
         last[i] = std::move(first[i]);
       }
       const auto to_pop = last - first;

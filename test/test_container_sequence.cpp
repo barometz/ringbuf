@@ -1,4 +1,5 @@
 #include "ringbufs.h"
+#include "ringbuf_adapter.h"
 
 #include <gmock/gmock-matchers.h>
 
@@ -74,4 +75,28 @@ TYPED_TEST(ContainerSequence, EraseRange) {
   it = underTest.erase(underTest.begin() + 2, underTest.begin() + 4);
   EXPECT_THAT(underTest, testing::ElementsAre(4, 6, 12));
   EXPECT_EQ(*it, 12);
+}
+
+TYPED_TEST(ContainerSequence, SmallRangeInLowerMiddle) {
+  RingBufAdapter<TypeParam, int, 7> underTest;
+  for (size_t i = 0; i < underTest.max_size() + 2; i++) {
+    underTest.push_back(i * 2);
+  }
+  // the important bit here is that the range is in the bottom half, and shorter
+  // than the leading elements.
+  auto it = underTest.erase(underTest.begin() + 2, underTest.begin() + 3);
+  EXPECT_THAT(underTest, testing::ElementsAre(4, 6, 10, 12, 14, 16));
+  EXPECT_EQ(*it, 10);
+}
+
+TYPED_TEST(ContainerSequence, SmallRangeInUpperMiddle) {
+  RingBufAdapter<TypeParam, int, 7> underTest;
+  for (size_t i = 0; i < underTest.max_size() + 2; i++) {
+    underTest.push_back(i * 2);
+  }
+  // the important bit here is that the range is in the upper half, and shorter
+  // than the trailing elements.
+  auto it = underTest.erase(underTest.end() - 3, underTest.end() - 2);
+  EXPECT_THAT(underTest, testing::ElementsAre(4, 6, 8, 10, 14, 16));
+  EXPECT_EQ(*it, 14);
 }
