@@ -348,6 +348,8 @@ class RingBuf {
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
   using difference_type = typename alloc_traits::difference_type;
   using size_type = typename alloc_traits::size_type;
+  using unsigned_difference =
+      typename std::make_unsigned<difference_type>::type;
 
   using self = RingBuf<Elem, Capacity>;
 
@@ -413,6 +415,10 @@ class RingBuf {
     // Precondition: size != Capacity (when it is, emplace_back pop_fronts
     // first)
     size_++;
+  }
+
+  iterator UnConstIterator(const_iterator it) const {
+    return iterator(data_, ring_offset_, it - begin());
   }
 
  public:
@@ -805,6 +811,37 @@ class RingBuf {
     while (!empty()) {
       pop_front();
     }
+  }
+
+  /**
+   * Erase an element.
+   *
+   * @param pos An iterator pointing to the element to erase.
+   * @return Iterator pointing to the element after @c pos.
+   */
+  iterator erase(const_iterator pos) noexcept(
+      noexcept(pop_front()) && std::is_nothrow_move_assignable<Elem>::value) {
+    const difference_type middle = size() / 2;
+    const auto trailing = end() - pos;
+
+    if (pos - begin() > middle) {
+      // Move items from the back towards pos
+      const unsigned_difference begin = pos - this->begin();
+      const unsigned_difference end = size() - 1;
+      for (auto i = begin; i < end; i++) {
+        (*this)[i] = std::move((*this)[i + 1]);
+      }
+      pop_back();
+    } else {
+      // Or move items from the front towards pos
+      const auto leading = pos - begin();
+      for (auto i = leading; i > 0; i--) {
+        (*this)[i] = std::move(*this)[i - 1];
+      }
+      pop_front();
+    }
+
+    return end() - (trailing - 1);
   }
 
   /**
