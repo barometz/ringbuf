@@ -12,6 +12,5 @@ using AllRingBufs =
     testing::Types<baudvine::RingBuf<T, N>, baudvine::DequeRingBuf<T, N>>;
 
 // All completely local implementations.
-template<typename T, size_t N>
-using OurRingBufs =
-    testing::Types<baudvine::RingBuf<T, N>>;
+template <typename T, size_t N>
+using OurRingBufs = testing::Types<baudvine::RingBuf<T, N>>;
