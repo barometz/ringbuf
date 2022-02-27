@@ -817,31 +817,50 @@ class RingBuf {
    * Erase an element.
    *
    * @param pos An iterator pointing to the element to erase.
-   * @return Iterator pointing to the element after @c pos.
+   * @returns Iterator pointing to the element after @c pos.
    */
-  iterator erase(const_iterator pos) noexcept(
-      noexcept(pop_front()) && std::is_nothrow_move_assignable<Elem>::value) {
-    const difference_type middle = size() / 2;
-    const auto trailing = end() - pos;
+  iterator erase(const_iterator pos) noexcept(noexcept(erase(pos, pos + 1))) {
+    return erase(pos, pos + 1);
+  }
 
-    if (pos - begin() > middle) {
-      // Move items from the back towards pos
-      const unsigned_difference begin = pos - this->begin();
-      const unsigned_difference end = size() - 1;
-      for (auto i = begin; i < end; i++) {
-        (*this)[i] = std::move((*this)[i + 1]);
-      }
-      pop_back();
-    } else {
-      // Or move items from the front towards pos
-      const auto leading = pos - begin();
-      for (auto i = leading; i > 0; i--) {
-        (*this)[i] = std::move(*this)[i - 1];
-      }
-      pop_front();
+  /**
+   * Erase elements in the range [first, last).
+   * @param from The first element to erase.
+   * @param to One past the last element to erase.
+   * @returns Iterator pointing to the element after @c to.
+   */
+  iterator erase(const_iterator from, const_iterator to) noexcept(
+      noexcept(pop_front()) && std::is_nothrow_move_assignable<Elem>::value) {
+    if (from == to) {
+      return UnConstIterator(to);
     }
 
-    return end() - (trailing - 1);
+    const iterator first = UnConstIterator(from);
+    const iterator last = UnConstIterator(to);
+
+    const auto leading = first - begin();
+    const auto trailing = end() - last;
+    if (leading > trailing) {
+      // Move from back towards first
+      for (auto i = 0; i < trailing; i++) {
+        first[i] = std::move(last[i]);
+      }
+      const auto to_pop = last - first;
+      for (auto i = 0; i < to_pop; i++) {
+        pop_back();
+      }
+    } else {
+      // Move from front towards last
+      for (auto i = -leading; i < 0; i++) {
+        last[i] = std::move(first[i]);
+      }
+      const auto to_pop = last - first;
+      for (auto i = 0; i < to_pop; i++) {
+        pop_front();
+      }
+    }
+
+    return end() - trailing;
   }
 
   /**

@@ -83,6 +83,11 @@ class DequeRingBuf {
   iterator erase(const_iterator pos) noexcept(noexcept(data_.erase(pos))) {
     return data_.erase(pos);
   }
+  iterator erase(const_iterator first,
+                 const_iterator last) noexcept(noexcept(data_.erase(first,
+                                                                    last))) {
+    return data_.erase(first, last);
+  }
 
   void push_front(const_reference value) { return emplace_front(value); }
   void push_front(value_type&& value) {

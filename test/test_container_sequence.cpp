@@ -35,3 +35,43 @@ TYPED_TEST(ContainerSequence, EraseSingle) {
   EXPECT_THAT(underTest, testing::ElementsAre());
   EXPECT_EQ(it, underTest.end());
 }
+
+TYPED_TEST(ContainerSequence, EraseRange) {
+  TypeParam original;
+  // 4 6 8 10 12
+  for (size_t i = 0; i < original.max_size() + 2; i++) {
+    original.push_back(i * 2);
+  }
+
+  // is this too many tests for one TEST()? probably.
+
+  TypeParam underTest = original;
+  auto it = underTest.erase(underTest.begin(), underTest.begin());
+  EXPECT_THAT(underTest, testing::ElementsAre(4, 6, 8, 10, 12));
+  EXPECT_EQ(it, underTest.begin());
+
+  underTest = original;
+  it = underTest.erase(underTest.begin(), underTest.end());
+  EXPECT_THAT(underTest, testing::ElementsAre());
+  EXPECT_EQ(it, underTest.end());
+
+  underTest = original;
+  it = underTest.erase(underTest.begin(), underTest.begin() + 3);
+  EXPECT_THAT(underTest, testing::ElementsAre(10, 12));
+  EXPECT_EQ(*it, 10);
+
+  underTest = original;
+  it = underTest.erase(underTest.end() - 3, underTest.end());
+  EXPECT_THAT(underTest, testing::ElementsAre(4, 6));
+  EXPECT_EQ(it, underTest.end());
+
+  underTest = original;
+  it = underTest.erase(underTest.begin() + 1, underTest.begin() + 3);
+  EXPECT_THAT(underTest, testing::ElementsAre(4, 10, 12));
+  EXPECT_EQ(*it, 10);
+
+  underTest = original;
+  it = underTest.erase(underTest.begin() + 2, underTest.begin() + 4);
+  EXPECT_THAT(underTest, testing::ElementsAre(4, 6, 12));
+  EXPECT_EQ(*it, 12);
+}
