@@ -186,9 +186,7 @@ class Iterator {
         data_, ring_offset_, ring_index_);
   }
 
-  reference operator*() const {
-    return *GetAddress();
-  }
+  reference operator*() const { return *GetAddress(); }
 
   pointer operator->() const noexcept { return &**this; }
 

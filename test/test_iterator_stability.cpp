@@ -48,10 +48,16 @@ TYPED_TEST(IteratorStability, PopFront) {
   const auto end = underTest.end();
   underTest.pop_front();
   EXPECT_EQ(end, underTest.end());
+  EXPECT_FALSE(end < underTest.end());
+  EXPECT_FALSE(end > underTest.end());
+  EXPECT_EQ(0, end - underTest.end());
 
   underTest.pop_front();
   underTest.pop_front();
   underTest.pop_front();
   underTest.pop_front();
   EXPECT_EQ(end, underTest.end());
+  EXPECT_FALSE(end < underTest.end());
+  EXPECT_FALSE(end > underTest.end());
+  EXPECT_EQ(0, end - underTest.end());
 }
