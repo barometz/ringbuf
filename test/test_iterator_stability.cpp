@@ -10,7 +10,7 @@
 template <class RingBuf>
 class IteratorStability : public testing::Test {};
 
-using RingBufs = AllRingBufs<int, 5>;
+using RingBufs = OurRingBufs<int, 5>;
 // NOLINTNEXTLINE - clang-tidy complains about missing variadic args
 TYPED_TEST_SUITE(IteratorStability, RingBufs);
 
