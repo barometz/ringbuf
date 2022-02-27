@@ -87,7 +87,7 @@ What can't it do? Well:
 
 - [x] Support for user-defined/provided allocators.
 - [x] Reverse iterators.
-- [ ] Generic tests for the iterators of the different implementations.
+- [x] Generic tests for the iterators of the different implementations.
 - [ ] Doesn't quite implement
   [SequenceContainer](https://en.cppreference.com/w/cpp/named_req/SequenceContainer).
 - [x] The tests for Container aren't as well organized as they could be either.
@@ -96,7 +96,8 @@ What can't it do? Well:
 - [x] The iterator is not std::random_access_iterator.
 - [x] Docs.
 - [ ] Better code examples.
-- [ ] Document iterator invalidation.
+- [x] Document iterator invalidation.
+- [ ] Compare to `boost::circular_buffer`
 
 ### NOT TODO
 What won't it do?

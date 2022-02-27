@@ -265,10 +265,7 @@ class Iterator {
   }
 
   friend bool operator==(const Iterator& lhs, const Iterator& rhs) noexcept {
-    // Comparison via std::tie is very slow in debug builds, eating into
-    // range-for cycle time.
-    return lhs.ring_index_ == rhs.ring_index_ && lhs.data_ == rhs.data_ &&
-           lhs.ring_offset_ == rhs.ring_offset_;
+    return &*lhs == &*rhs;
   }
 
   friend bool operator!=(const Iterator& lhs, const Iterator& rhs) noexcept {
