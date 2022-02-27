@@ -33,6 +33,42 @@ RingBuf is mostly a sequence container
 ([sequence.reqmts/4](https://timsong-cpp.github.io/cppwp/n4868/sequence.reqmts#4)),
 and thoroughly defining and testing that is next on the list.
 
+## Iterator stability {#iterator-stability}
+
+Iterators into RingBuf remain dereferenceable as long as the element hasn't been
+popped off (explicitly through a pop, or implicitly through a push on the other
+side). Equality as in `it1 == it2` is also fine, but due to how ring buffer
+accounting works, the *distance* between iterators is not stable. If you store
+an iterator to the last element of a RingBuf that is not full, and then call
+`push_front()`, `.end() - last` may not be 1, and `.end() > last` may return
+false.
+
+```
+B = begin()
+E = end()
+# = unused element
+                B = (5, 0)
+[ | | | |#| ]   E = (5, 5)
+       L E B    L = (5, 4) // buf.end() - 1
+```
+In this case, (E - L) can be (5 + 5) - (5 + 4) == 1. But after pop_front(), the
+stored L doesn't compare to .end() without wrapping:
+```
+                B = (0, 0)
+[ | | | |#|#]   E = (0, 4)
+ B       E
+```
+Following the same calculation as before, that'd be (E - L) = (0 + 4) - (5 + 4)
+= -5. You could wrap the operands in the same way they are for dereferencing
+(subtract `Capacity + 1`), but that breaks other scenarios:
+```
+            B = (1, 0)
+[#| | | ]   E = (1, 3)
+ E B
+```
+With the wrapping approach, (E - B) becomes (1 + 3 - (3 + 1)) - (1 + 0) == -1,
+when it should be 3.
+
 ## Memory allocation {#memory-allocation}
 
 RingBuf uses dynamic memory allocation, or colloquially heap allocation. This is
