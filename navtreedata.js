@@ -27,6 +27,7 @@ var NAVTREE =
     [ "Building", "index.html#building", null ],
     [ "Design notes", "design-notes.html", [
       [ "STL compatibility", "design-notes.html#stl-compat", null ],
+      [ "Iterator stability", "design-notes.html#iterator-stability", null ],
       [ "Memory allocation", "design-notes.html#memory-allocation", null ],
       [ "Allocation size", "design-notes.html#allocation-size", null ],
       [ "Not an adapter", "design-notes.html#not-an-adapter", null ]
