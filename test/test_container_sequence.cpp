@@ -1,8 +1,11 @@
 #include "ringbuf_adapter.h"
 #include "ringbufs.h"
+#include "instance_counter.h"
 
 #include <gmock/gmock-matchers.h>
 
+// Tests for the Sequence Container requirements.
+// https://timsong-cpp.github.io/cppwp/n4868/sequence.reqmts#4 and #14
 template <typename RingBuf>
 class ContainerSequence : public testing::Test {};
 
@@ -151,4 +154,40 @@ TYPED_TEST(ContainerSequence, EmplaceBack) {
 
   underTest.emplace_back(5, 'd') = "haha, nope!";
   EXPECT_EQ(underTest.back(), "haha, nope!");
+}
+
+TYPED_TEST(ContainerSequence, PushFront) {
+  RingBufAdapter<TypeParam, InstanceCounter, 2> underTest;
+  InstanceCounter source;
+  underTest.push_front(source);
+  underTest.push_front(std::move(source));
+  EXPECT_TRUE(underTest[0].IsMoved());
+  EXPECT_TRUE(underTest[1].IsCopy());
+}
+
+TYPED_TEST(ContainerSequence, PushBack) {
+  RingBufAdapter<TypeParam, InstanceCounter, 2> underTest;
+  InstanceCounter source;
+  underTest.push_back(source);
+  underTest.push_back(std::move(source));
+  EXPECT_TRUE(underTest[0].IsCopy());
+  EXPECT_TRUE(underTest[1].IsMoved());
+}
+
+TYPED_TEST(ContainerSequence, PopFront) {
+  TypeParam underTest;
+  for (size_t i = 0; i < underTest.max_size() + 2; i++) {
+    underTest.push_back(i * 2);
+  }
+  underTest.pop_front();
+  EXPECT_EQ(underTest.front(), 6);
+}
+
+TYPED_TEST(ContainerSequence, PopBack) {
+  TypeParam underTest;
+  for (size_t i = 0; i < underTest.max_size() + 2; i++) {
+    underTest.push_back(i * 2);
+  }
+  underTest.pop_back();
+  EXPECT_EQ(underTest.back(), 10);
 }
