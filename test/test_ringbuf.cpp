@@ -33,88 +33,6 @@ TYPED_TEST(RingBuf, Capacity) {
   EXPECT_EQ((RingBufAdapter<TypeParam, int, 500>()).max_size(), 500U);
 }
 
-TYPED_TEST(RingBuf, AtEmpty) {
-  auto underTest = RingBufAdapter<TypeParam, int, 4>();
-
-  EXPECT_THROW(underTest.at(0), std::out_of_range);
-  EXPECT_THROW(underTest.at(1), std::out_of_range);
-  EXPECT_THROW(underTest.at(4), std::out_of_range);
-}
-
-TYPED_TEST(RingBuf, AtConstEmpty) {
-  const auto underTest = RingBufAdapter<TypeParam, int, 4>();
-
-  EXPECT_THROW(underTest.at(0), std::out_of_range);
-  EXPECT_THROW(underTest.at(1), std::out_of_range);
-  EXPECT_THROW(underTest.at(4), std::out_of_range);
-}
-
-TYPED_TEST(RingBuf, PushBack) {
-  auto underTest = RingBufAdapter<TypeParam, std::string, 3>();
-  underTest.push_back("one");
-  EXPECT_EQ(underTest.at(0), "one");
-  underTest.push_back("two");
-  EXPECT_EQ(underTest.at(1), "two");
-  EXPECT_EQ(underTest.at(0), "one");
-  EXPECT_EQ(underTest.size(), 2U);
-}
-
-TYPED_TEST(RingBuf, PushOver) {
-  auto underTest = RingBufAdapter<TypeParam, std::string, 2>();
-  underTest.push_back("one");
-  underTest.push_back("two");
-  underTest.push_back("three");
-
-  EXPECT_EQ(underTest.size(), 2U);
-  EXPECT_EQ(underTest.at(0), "two");
-  EXPECT_EQ(underTest.at(1), "three");
-
-  underTest.push_back("five");
-  underTest.push_back("six");
-  underTest.push_back("seven");
-  EXPECT_EQ(underTest.size(), 2U);
-  EXPECT_EQ(underTest.at(0), "six");
-  EXPECT_EQ(underTest.at(1), "seven");
-}
-
-TYPED_TEST(RingBuf, Pop) {
-  auto underTest = RingBufAdapter<TypeParam, int, 3>();
-  underTest.push_back(41);
-  underTest.pop_front();
-  EXPECT_TRUE(underTest.empty());
-  EXPECT_EQ(underTest.size(), 0U);
-
-  for (auto i : {1, 2}) {
-    std::ignore = i;
-    underTest.push_back(42);  // push
-    underTest.push_back(43);  // push
-    underTest.push_back(44);  // push
-    underTest.push_back(45);  // push, 42 rolls off
-    underTest.pop_front();    // pop, 43 rolls off
-
-    EXPECT_EQ(underTest.at(0), 44);
-    EXPECT_EQ(underTest.size(), 2U);
-  }
-}
-
-TYPED_TEST(RingBuf, FrontBack) {
-  auto underTest = RingBufAdapter<TypeParam, int, 3>();
-
-  underTest.push_back(4);
-  underTest.push_back(3);
-  EXPECT_EQ(underTest.front(), 4);
-  EXPECT_EQ(underTest.back(), 3);
-
-  underTest.push_back(2);
-  underTest.push_back(1);
-  EXPECT_EQ(underTest.front(), 3);
-  EXPECT_EQ(underTest.back(), 1);
-
-  underTest.pop_front();
-  EXPECT_EQ(underTest.front(), 2);
-  EXPECT_EQ(underTest.back(), 1);
-}
-
 TYPED_TEST(RingBuf, Comparison) {
   auto a = RingBufAdapter<TypeParam, int, 3>();
   auto b = RingBufAdapter<TypeParam, int, 3>();
@@ -136,16 +54,6 @@ TYPED_TEST(RingBuf, Comparison) {
   c.push_back(2);
   c.push_back(3);
   EXPECT_EQ(a, c);
-}
-
-TYPED_TEST(RingBuf, PushFront) {
-  auto underTest = RingBufAdapter<TypeParam, std::string, 3>();
-  underTest.push_front("one");
-  EXPECT_EQ(underTest.at(0), "one");
-  underTest.push_front("two");
-  EXPECT_EQ(underTest.at(1), "one");
-  EXPECT_EQ(underTest.at(0), "two");
-  EXPECT_EQ(underTest.size(), 2U);
 }
 
 TYPED_TEST(RingBuf, PushFrontOver) {

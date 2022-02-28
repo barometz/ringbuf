@@ -208,6 +208,11 @@ TYPED_TEST(ContainerSequence, Subscript) {
 
 TYPED_TEST(ContainerSequence, At) {
   TypeParam underTest;
+
+  EXPECT_THROW(underTest.at(0), std::out_of_range);
+  EXPECT_THROW(underTest.at(1), std::out_of_range);
+  EXPECT_THROW(underTest.at(4), std::out_of_range);
+
   for (size_t i = 0; i < underTest.max_size() + 2; i++) {
     underTest.push_back(i * 2);
   }
@@ -220,4 +225,12 @@ TYPED_TEST(ContainerSequence, At) {
 
   EXPECT_THROW(underTest.at(5), std::out_of_range);
   EXPECT_THROW(underTest.at(-1), std::out_of_range);
+}
+
+TYPED_TEST(ContainerSequence, AtConstEmpty) {
+  const TypeParam underTest;
+
+  EXPECT_THROW(underTest.at(0), std::out_of_range);
+  EXPECT_THROW(underTest.at(1), std::out_of_range);
+  EXPECT_THROW(underTest.at(4), std::out_of_range);
 }
