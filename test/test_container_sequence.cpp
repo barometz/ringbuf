@@ -130,3 +130,25 @@ TYPED_TEST(ContainerSequence, Back) {
   const auto constUnderTest = underTest;
   EXPECT_EQ(constUnderTest.back(), 9);
 }
+
+TYPED_TEST(ContainerSequence, EmplaceFront) {
+  RingBufAdapter<TypeParam, std::string, 2> underTest;
+  EXPECT_EQ(underTest.emplace_front(5, 'a'), "aaaaa");
+  EXPECT_EQ(underTest.emplace_front(5, 'b'), "bbbbb");
+  EXPECT_EQ(underTest.emplace_front(5, 'c'), "ccccc");
+  EXPECT_THAT(underTest, testing::ElementsAre("ccccc", "bbbbb"));
+
+  underTest.emplace_front(5, 'd') = "haha, nope!";
+  EXPECT_EQ(underTest.front(), "haha, nope!");
+}
+
+TYPED_TEST(ContainerSequence, EmplaceBack) {
+  RingBufAdapter<TypeParam, std::string, 2> underTest;
+  EXPECT_EQ(underTest.emplace_back(5, 'a'), "aaaaa");
+  EXPECT_EQ(underTest.emplace_back(5, 'b'), "bbbbb");
+  EXPECT_EQ(underTest.emplace_back(5, 'c'), "ccccc");
+  EXPECT_THAT(underTest, testing::ElementsAre("bbbbb", "ccccc"));
+
+  underTest.emplace_back(5, 'd') = "haha, nope!";
+  EXPECT_EQ(underTest.back(), "haha, nope!");
+}

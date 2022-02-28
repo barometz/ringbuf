@@ -421,6 +421,8 @@ class RingBuf {
     return iterator(data_, ring_offset_, it - begin());
   }
 
+  reference UncheckedAt(size_type index) { return (*this)[index]; }
+
  public:
   /**
    * Construct a new ring buffer object with a default-constructed allocator,
@@ -716,16 +718,14 @@ class RingBuf {
    *
    * @param value The value to copy into the ring buffer.
    */
-  void push_front(const_reference value) { return emplace_front(value); }
+  void push_front(const_reference value) { emplace_front(value); }
   /**
    * Push a new element at the front of the ring buffer, popping the back if
    * necessary.
    *
    * @param value The value to move into the ring buffer.
    */
-  void push_front(value_type&& value) {
-    return emplace_front(std::move(value));
-  }
+  void push_front(value_type&& value) { emplace_front(std::move(value)); }
   /**
    * Construct a new element in-place before the front of the ring buffer,
    * popping the back if necessary.
@@ -734,10 +734,10 @@ class RingBuf {
    * @param args Arguments to the element constructor.
    */
   template <typename... Args>
-  void emplace_front(Args&&... args) {
+  reference emplace_front(Args&&... args) {
     if (max_size() == 0) {
       // A buffer of size zero is conceptually sound, so let's support it.
-      return;
+      return UncheckedAt(0);
     }
 
     alloc_traits::construct(alloc_, &data_[Decrement(ring_offset_)],
@@ -748,6 +748,7 @@ class RingBuf {
       pop_back();
     }
     GrowFront();
+    return UncheckedAt(0);
   }
 
   /**
@@ -755,13 +756,13 @@ class RingBuf {
    *
    * @param value The value to copy into the ring buffer.
    */
-  void push_back(const_reference value) { return emplace_back(value); }
+  void push_back(const_reference value) { emplace_back(value); }
   /**
    * Push a new element into the ring buffer, popping the front if necessary.
    *
    * @param value The value to move into the ring buffer.
    */
-  void push_back(value_type&& value) { return emplace_back(std::move(value)); }
+  void push_back(value_type&& value) { emplace_back(std::move(value)); }
   /**
    * Construct a new element in-place at the end of the ring buffer, popping the
    * front if necessary.
@@ -770,10 +771,10 @@ class RingBuf {
    * @param args Arguments to the element constructor.
    */
   template <typename... Args>
-  void emplace_back(Args&&... args) {
+  reference emplace_back(Args&&... args) {
     if (max_size() == 0) {
       // A buffer of size zero is conceptually sound, so let's support it.
-      return;
+      return UncheckedAt(0);
     }
 
     alloc_traits::construct(alloc_, &data_[next_], std::forward<Args>(args)...);
@@ -783,6 +784,7 @@ class RingBuf {
       pop_front();
     }
     GrowBack();
+    return UncheckedAt(size() - 1);
   }
 
   /**
