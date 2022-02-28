@@ -1,6 +1,6 @@
+#include "instance_counter.h"
 #include "ringbuf_adapter.h"
 #include "ringbufs.h"
-#include "instance_counter.h"
 
 #include <gmock/gmock-matchers.h>
 
@@ -190,4 +190,34 @@ TYPED_TEST(ContainerSequence, PopBack) {
   }
   underTest.pop_back();
   EXPECT_EQ(underTest.back(), 10);
+}
+
+TYPED_TEST(ContainerSequence, Subscript) {
+  TypeParam underTest;
+  for (size_t i = 0; i < underTest.max_size() + 2; i++) {
+    underTest.push_back(i * 2);
+  }
+  EXPECT_EQ(underTest[0], 4);
+  EXPECT_EQ(underTest[4], 12);
+
+  underTest[1] = 555;
+  const auto constUnderTest = underTest;
+  EXPECT_EQ(underTest[1], 555);
+  EXPECT_NO_THROW(underTest[5]);
+}
+
+TYPED_TEST(ContainerSequence, At) {
+  TypeParam underTest;
+  for (size_t i = 0; i < underTest.max_size() + 2; i++) {
+    underTest.push_back(i * 2);
+  }
+  EXPECT_EQ(underTest.at(0), 4);
+  EXPECT_EQ(underTest.at(4), 12);
+
+  underTest.at(1) = 555;
+  const auto constUnderTest = underTest;
+  EXPECT_EQ(underTest.at(1), 555);
+
+  EXPECT_THROW(underTest.at(5), std::out_of_range);
+  EXPECT_THROW(underTest.at(-1), std::out_of_range);
 }
