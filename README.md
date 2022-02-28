@@ -88,7 +88,7 @@ What can't it do? Well:
 - [x] Support for user-defined/provided allocators.
 - [x] Reverse iterators.
 - [x] Generic tests for the iterators of the different implementations.
-- [ ] Doesn't quite implement
+- [x] Doesn't quite implement
   [SequenceContainer](https://en.cppreference.com/w/cpp/named_req/SequenceContainer).
 - [x] The tests for Container aren't as well organized as they could be either.
 - [x] Needs more ~~cowbell~~ `noexcept`
