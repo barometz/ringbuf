@@ -145,9 +145,15 @@ allocator_type&#160;</td><td class="memItemRight" valign="bottom"><b>get_allocat
 <tr class="memitem:a63eb75839c43f755ed3402aec2717d3a"><td class="memItemLeft" align="right" valign="top"><a id="a63eb75839c43f755ed3402aec2717d3a"></a>
 reference&#160;</td><td class="memItemRight" valign="bottom"><b>front</b> ()</td></tr>
 <tr class="separator:a63eb75839c43f755ed3402aec2717d3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00295da661225e0e16962aa93110d3b0"><td class="memItemLeft" align="right" valign="top"><a id="a00295da661225e0e16962aa93110d3b0"></a>
+const_reference&#160;</td><td class="memItemRight" valign="bottom"><b>front</b> () const</td></tr>
+<tr class="separator:a00295da661225e0e16962aa93110d3b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa043c287cff0b0dca1737eea8c3d1895"><td class="memItemLeft" align="right" valign="top"><a id="aa043c287cff0b0dca1737eea8c3d1895"></a>
 reference&#160;</td><td class="memItemRight" valign="bottom"><b>back</b> ()</td></tr>
 <tr class="separator:aa043c287cff0b0dca1737eea8c3d1895"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf453572faa21d93f1a8f3d72a31ec84"><td class="memItemLeft" align="right" valign="top"><a id="abf453572faa21d93f1a8f3d72a31ec84"></a>
+const_reference&#160;</td><td class="memItemRight" valign="bottom"><b>back</b> () const</td></tr>
+<tr class="separator:abf453572faa21d93f1a8f3d72a31ec84"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a338f389b8194dc7fdad9d41938740382"><td class="memItemLeft" align="right" valign="top"><a id="a338f389b8194dc7fdad9d41938740382"></a>
 reference&#160;</td><td class="memItemRight" valign="bottom"><b>at</b> (size_type index)</td></tr>
 <tr class="separator:a338f389b8194dc7fdad9d41938740382"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -208,26 +214,32 @@ constexpr size_type&#160;</td><td class="memItemRight" valign="bottom"><b>max_si
 <tr class="memitem:a1407b3027b7374811dbf7290a915b673"><td class="memItemLeft" align="right" valign="top"><a id="a1407b3027b7374811dbf7290a915b673"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>clear</b> () noexcept(noexcept(data_.clear()))</td></tr>
 <tr class="separator:a1407b3027b7374811dbf7290a915b673"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8578f44ecc98640bd5137f4ad6f5c7d4"><td class="memItemLeft" align="right" valign="top"><a id="a8578f44ecc98640bd5137f4ad6f5c7d4"></a>
+iterator&#160;</td><td class="memItemRight" valign="bottom"><b>erase</b> (const_iterator pos) noexcept(noexcept(data_.erase(pos)))</td></tr>
+<tr class="separator:a8578f44ecc98640bd5137f4ad6f5c7d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5bfb1ca2593b2a072bc44084425f2e96"><td class="memItemLeft" align="right" valign="top"><a id="a5bfb1ca2593b2a072bc44084425f2e96"></a>
+iterator&#160;</td><td class="memItemRight" valign="bottom"><b>erase</b> (const_iterator first, const_iterator last) noexcept(noexcept(data_.erase(first, last)))</td></tr>
+<tr class="separator:a5bfb1ca2593b2a072bc44084425f2e96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91d798f24eeddfe84f8a982c47331718"><td class="memItemLeft" align="right" valign="top"><a id="a91d798f24eeddfe84f8a982c47331718"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>push_front</b> (const_reference value)</td></tr>
 <tr class="separator:a91d798f24eeddfe84f8a982c47331718"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abd0d431fea418044daa087161ada21a8"><td class="memItemLeft" align="right" valign="top"><a id="abd0d431fea418044daa087161ada21a8"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>push_front</b> (value_type &amp;&amp;value)</td></tr>
 <tr class="separator:abd0d431fea418044daa087161ada21a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab2491592c6175187c2adaea53448364c"><td class="memTemplParams" colspan="2"><a id="ab2491592c6175187c2adaea53448364c"></a>
+<tr class="memitem:abcce11b508ff49c5629a7047f6bab5f3"><td class="memTemplParams" colspan="2"><a id="abcce11b508ff49c5629a7047f6bab5f3"></a>
 template&lt;typename... Args&gt; </td></tr>
-<tr class="memitem:ab2491592c6175187c2adaea53448364c"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>emplace_front</b> (Args... args)</td></tr>
-<tr class="separator:ab2491592c6175187c2adaea53448364c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abcce11b508ff49c5629a7047f6bab5f3"><td class="memTemplItemLeft" align="right" valign="top">reference&#160;</td><td class="memTemplItemRight" valign="bottom"><b>emplace_front</b> (Args &amp;&amp;... args)</td></tr>
+<tr class="separator:abcce11b508ff49c5629a7047f6bab5f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa63cc8fd8f78e2881939afab3f88850e"><td class="memItemLeft" align="right" valign="top"><a id="aa63cc8fd8f78e2881939afab3f88850e"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>push_back</b> (const_reference value)</td></tr>
 <tr class="separator:aa63cc8fd8f78e2881939afab3f88850e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af5cd7a9ad968461b22da8ea45c9f9914"><td class="memItemLeft" align="right" valign="top"><a id="af5cd7a9ad968461b22da8ea45c9f9914"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>push_back</b> (value_type &amp;&amp;value)</td></tr>
 <tr class="separator:af5cd7a9ad968461b22da8ea45c9f9914"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a68b9814193b369e84f9d155fd1abbb3b"><td class="memTemplParams" colspan="2"><a id="a68b9814193b369e84f9d155fd1abbb3b"></a>
+<tr class="memitem:acfe59658610c9a90639aa2ad2c6e5207"><td class="memTemplParams" colspan="2"><a id="acfe59658610c9a90639aa2ad2c6e5207"></a>
 template&lt;typename... Args&gt; </td></tr>
-<tr class="memitem:a68b9814193b369e84f9d155fd1abbb3b"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><b>emplace_back</b> (Args... args)</td></tr>
-<tr class="separator:a68b9814193b369e84f9d155fd1abbb3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acfe59658610c9a90639aa2ad2c6e5207"><td class="memTemplItemLeft" align="right" valign="top">reference&#160;</td><td class="memTemplItemRight" valign="bottom"><b>emplace_back</b> (Args &amp;&amp;... args)</td></tr>
+<tr class="separator:acfe59658610c9a90639aa2ad2c6e5207"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aafc5e195313ec1a77f076d0096dd9601"><td class="memItemLeft" align="right" valign="top"><a id="aafc5e195313ec1a77f076d0096dd9601"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>pop_front</b> () noexcept(noexcept(data_.pop_front()))</td></tr>
 <tr class="separator:aafc5e195313ec1a77f076d0096dd9601"><td class="memSeparator" colspan="2">&#160;</td></tr>
