@@ -56,7 +56,9 @@ class DequeRingBuf {
   allocator_type get_allocator() const { return data_.get_allocator(); }
 
   reference front() { return data_.front(); }
+  const_reference front() const { return data_.front(); }
   reference back() { return data_.back(); }
+  const_reference back() const { return data_.back(); }
   reference at(size_type index) { return data_.at(index); }
   const_reference at(size_type index) const { return data_.at(index); }
   reference operator[](size_type index) { return data_[index]; }

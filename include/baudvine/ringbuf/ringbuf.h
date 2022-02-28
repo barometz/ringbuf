@@ -566,10 +566,20 @@ class RingBuf {
    */
   reference front() { return at(0); }
   /**
+   * Returns the first element in the ring buffer.
+   * @throws std::out_of_range The buffer is empty.
+   */
+  const_reference front() const { return at(0); }
+  /**
    * Returns he last element in the ring buffer.
    * @throws std::out_of_range The buffer is empty.
    */
   reference back() { return at(size() - 1); }
+  /**
+   * Returns he last element in the ring buffer.
+   * @throws std::out_of_range The buffer is empty.
+   */
+  const_reference back() const { return at(size() - 1); }
 
   /**
    * Retrieve an element from the ring buffer without range checking.
