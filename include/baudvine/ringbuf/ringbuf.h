@@ -826,16 +826,6 @@ class RingBuf {
   }
 
   /**
-   * Erase an element.
-   *
-   * @param pos An iterator pointing to the element to erase.
-   * @returns Iterator pointing to the element after @c pos.
-   */
-  iterator erase(const_iterator pos) noexcept(noexcept(erase(pos, pos + 1))) {
-    return erase(pos, pos + 1);
-  }
-
-  /**
    * Erase elements in the range [first, last).
    * @param from The first element to erase.
    * @param to One past the last element to erase.
@@ -873,6 +863,16 @@ class RingBuf {
     }
 
     return end() - trailing;
+  }
+
+  /**
+   * Erase an element.
+   *
+   * @param pos An iterator pointing to the element to erase.
+   * @returns Iterator pointing to the element after @c pos.
+   */
+  iterator erase(const_iterator pos) noexcept(noexcept(erase(pos, pos + 1))) {
+    return erase(pos, pos + 1);
   }
 
   /**
