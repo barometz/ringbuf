@@ -97,7 +97,8 @@ What can't it do? Well:
 - [x] Docs.
 - [ ] Better code examples.
 - [x] Document iterator invalidation.
-- [ ] Compare to `boost::circular_buffer`
+- [x] Compare to `boost::circular_buffer`
+- [ ] Special case for emplace/push members when T is noexcept copy/movable
 
 ### NOT TODO
 What won't it do?
