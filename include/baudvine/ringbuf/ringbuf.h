@@ -348,6 +348,8 @@ class RingBuf {
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
   using difference_type = typename alloc_traits::difference_type;
   using size_type = typename alloc_traits::size_type;
+  using unsigned_difference =
+      typename std::make_unsigned<difference_type>::type;
 
   using self = RingBuf<Elem, Capacity>;
 
@@ -414,6 +416,12 @@ class RingBuf {
     // first)
     size_++;
   }
+
+  iterator UnConstIterator(const_iterator it) const {
+    return iterator(data_, ring_offset_, it - begin());
+  }
+
+  reference UncheckedAt(size_type index) { return (*this)[index]; }
 
  public:
   /**
@@ -560,10 +568,20 @@ class RingBuf {
    */
   reference front() { return at(0); }
   /**
+   * Returns the first element in the ring buffer.
+   * @throws std::out_of_range The buffer is empty.
+   */
+  const_reference front() const { return at(0); }
+  /**
    * Returns he last element in the ring buffer.
    * @throws std::out_of_range The buffer is empty.
    */
   reference back() { return at(size() - 1); }
+  /**
+   * Returns he last element in the ring buffer.
+   * @throws std::out_of_range The buffer is empty.
+   */
+  const_reference back() const { return at(size() - 1); }
 
   /**
    * Retrieve an element from the ring buffer without range checking.
@@ -700,16 +718,14 @@ class RingBuf {
    *
    * @param value The value to copy into the ring buffer.
    */
-  void push_front(const_reference value) { return emplace_front(value); }
+  void push_front(const_reference value) { emplace_front(value); }
   /**
    * Push a new element at the front of the ring buffer, popping the back if
    * necessary.
    *
    * @param value The value to move into the ring buffer.
    */
-  void push_front(value_type&& value) {
-    return emplace_front(std::move(value));
-  }
+  void push_front(value_type&& value) { emplace_front(std::move(value)); }
   /**
    * Construct a new element in-place before the front of the ring buffer,
    * popping the back if necessary.
@@ -718,10 +734,10 @@ class RingBuf {
    * @param args Arguments to the element constructor.
    */
   template <typename... Args>
-  void emplace_front(Args&&... args) {
+  reference emplace_front(Args&&... args) {
     if (max_size() == 0) {
       // A buffer of size zero is conceptually sound, so let's support it.
-      return;
+      return UncheckedAt(0);
     }
 
     alloc_traits::construct(alloc_, &data_[Decrement(ring_offset_)],
@@ -732,6 +748,7 @@ class RingBuf {
       pop_back();
     }
     GrowFront();
+    return UncheckedAt(0);
   }
 
   /**
@@ -739,13 +756,13 @@ class RingBuf {
    *
    * @param value The value to copy into the ring buffer.
    */
-  void push_back(const_reference value) { return emplace_back(value); }
+  void push_back(const_reference value) { emplace_back(value); }
   /**
    * Push a new element into the ring buffer, popping the front if necessary.
    *
    * @param value The value to move into the ring buffer.
    */
-  void push_back(value_type&& value) { return emplace_back(std::move(value)); }
+  void push_back(value_type&& value) { emplace_back(std::move(value)); }
   /**
    * Construct a new element in-place at the end of the ring buffer, popping the
    * front if necessary.
@@ -754,10 +771,10 @@ class RingBuf {
    * @param args Arguments to the element constructor.
    */
   template <typename... Args>
-  void emplace_back(Args&&... args) {
+  reference emplace_back(Args&&... args) {
     if (max_size() == 0) {
       // A buffer of size zero is conceptually sound, so let's support it.
-      return;
+      return UncheckedAt(0);
     }
 
     alloc_traits::construct(alloc_, &data_[next_], std::forward<Args>(args)...);
@@ -767,6 +784,7 @@ class RingBuf {
       pop_front();
     }
     GrowBack();
+    return UncheckedAt(size() - 1);
   }
 
   /**
@@ -805,6 +823,56 @@ class RingBuf {
     while (!empty()) {
       pop_front();
     }
+  }
+
+  /**
+   * Erase elements in the range [first, last).
+   * @param from The first element to erase.
+   * @param to One past the last element to erase.
+   * @returns Iterator pointing to the element after @c to.
+   */
+  iterator erase(const_iterator from, const_iterator to) noexcept(
+      noexcept(pop_front()) && std::is_nothrow_move_assignable<Elem>::value) {
+    if (from == to) {
+      return UnConstIterator(to);
+    }
+
+    const iterator first = UnConstIterator(from);
+    const iterator last = UnConstIterator(to);
+
+    const auto leading = first - begin();
+    const auto trailing = end() - last;
+    if (leading > trailing) {
+      // Move from back towards first
+      for (auto i = 0; i < trailing; i++) {
+        first[i] = std::move(last[i]);
+      }
+      const auto to_pop = last - first;
+      for (auto i = 0; i < to_pop; i++) {
+        pop_back();
+      }
+    } else {
+      // Move from front towards last
+      for (auto i = -1; i >= -leading; i--) {
+        last[i] = std::move(first[i]);
+      }
+      const auto to_pop = last - first;
+      for (auto i = 0; i < to_pop; i++) {
+        pop_front();
+      }
+    }
+
+    return end() - trailing;
+  }
+
+  /**
+   * Erase an element.
+   *
+   * @param pos An iterator pointing to the element to erase.
+   * @returns Iterator pointing to the element after @c pos.
+   */
+  iterator erase(const_iterator pos) noexcept(noexcept(erase(pos, pos + 1))) {
+    return erase(pos, pos + 1);
   }
 
   /**

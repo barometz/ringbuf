@@ -56,7 +56,9 @@ class DequeRingBuf {
   allocator_type get_allocator() const { return data_.get_allocator(); }
 
   reference front() { return data_.front(); }
+  const_reference front() const { return data_.front(); }
   reference back() { return data_.back(); }
+  const_reference back() const { return data_.back(); }
   reference at(size_type index) { return data_.at(index); }
   const_reference at(size_type index) const { return data_.at(index); }
   reference operator[](size_type index) { return data_[index]; }
@@ -80,16 +82,22 @@ class DequeRingBuf {
   constexpr size_type max_size() const { return Capacity; }
 
   void clear() noexcept(noexcept(data_.clear())) { return data_.clear(); }
-
-  void push_front(const_reference value) { return emplace_front(value); }
-  void push_front(value_type&& value) {
-    return emplace_front(std::move(value));
+  iterator erase(const_iterator pos) noexcept(noexcept(data_.erase(pos))) {
+    return data_.erase(pos);
+  }
+  iterator erase(const_iterator first,
+                 const_iterator last) noexcept(noexcept(data_.erase(first,
+                                                                    last))) {
+    return data_.erase(first, last);
   }
 
+  void push_front(const_reference value) { emplace_front(value); }
+  void push_front(value_type&& value) { emplace_front(std::move(value)); }
+
   template <typename... Args>
-  void emplace_front(Args... args) {
+  reference emplace_front(Args&&... args) {
     if (max_size() == 0) {
-      return;
+      return data_.front();
     }
 
     data_.emplace_front(std::forward<Args>(args)...);
@@ -97,15 +105,16 @@ class DequeRingBuf {
     if (size() > max_size()) {
       pop_back();
     }
+    return data_.front();
   }
 
-  void push_back(const_reference value) { return emplace_back(value); }
-  void push_back(value_type&& value) { return emplace_back(std::move(value)); }
+  void push_back(const_reference value) { emplace_back(value); }
+  void push_back(value_type&& value) { emplace_back(std::move(value)); }
 
   template <typename... Args>
-  void emplace_back(Args... args) {
+  reference emplace_back(Args&&... args) {
     if (max_size() == 0) {
-      return;
+      return data_.back();
     }
 
     data_.emplace_back(std::forward<Args>(args)...);
@@ -113,6 +122,7 @@ class DequeRingBuf {
     if (size() > max_size()) {
       pop_front();
     }
+    return data_.back();
   }
 
   void pop_front() noexcept(noexcept(data_.pop_front())) {

@@ -30,8 +30,12 @@ allocator-aware objects (such as strings) can then be allocated through that
 allocator.
 
 RingBuf is mostly a sequence container
-([sequence.reqmts/4](https://timsong-cpp.github.io/cppwp/n4868/sequence.reqmts#4)),
-and thoroughly defining and testing that is next on the list.
+([sequence.reqmts/4](https://timsong-cpp.github.io/cppwp/n4868/sequence.reqmts#4),
+[sequence.reqmts/14](https://timsong-cpp.github.io/cppwp/n4868/sequence.reqmts#14)):
+it contains elements in a (mostly) linear arrangement, and they can be added,
+removed and accessed in that fashion. The range constructors as well as the
+`insert()` and `assign()` members are not included, as those don't have entirely
+obvious behaviour when they exceed the buffer's capacity.
 
 ## Iterator stability {#iterator-stability}
 
