@@ -93,9 +93,11 @@ will be initialized. For some types that doesn't matter, but for others you
 really want to avoid running 65 (or a million) default constructors. And if the
 type *doesn't* have a default constructor you can't create that array at all.
 
-The way to do this with automatic storage duration involves aligned storage and
-allocating space for byte arrays the size of the elements. An implementation
-like that may be added in the future, and maybe even become the norm.
+The way to do this with automatic storage duration involves making an array of
+bytes and using *it* as the backing storage, which means doing a lot of
+accounting by hand that is otherwise handled by the language or components like
+`std::allocator_traits`. An implementation like that may be added in the future,
+and maybe even become the norm.
 
 ## Allocation size {#allocation-size}
 

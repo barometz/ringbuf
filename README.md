@@ -95,9 +95,11 @@ What can't it do? Well:
 - [x] Moved-from RingBuf instances can't be reused.
 - [x] The iterator is not std::random_access_iterator.
 - [x] Docs.
-- [ ] Better code examples.
+- [x] Better code examples.
 - [x] Document iterator invalidation.
-- [ ] Compare to `boost::circular_buffer`
+- [x] Compare to `boost::circular_buffer`
+- [ ] Special case for emplace/push members when T's lifetime doesn't matter (e.g. int)
+- [ ] Compiler warning cleanup
 
 ### NOT TODO
 What won't it do?
