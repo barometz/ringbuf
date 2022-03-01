@@ -49,7 +49,7 @@ TEST(Example, ConsoleLog) {
   std::mutex bufferMutex;
   // Configure the OnLineReceived handler to add the incoming line to the buffer
   source.OnLineReceived([&buffer, &bufferMutex](std::string line) {
-    std::lock_guard lock(bufferMutex);
+    std::lock_guard<std::mutex> lock(bufferMutex);
     buffer.push_front(std::move(line));
   });
 
@@ -59,7 +59,7 @@ TEST(Example, ConsoleLog) {
   baudvine::RingBuf<std::string, 1024> copy;
   {
     // Copy while holding the lock so ConsoleSource doesn't lock up for too long
-    std::lock_guard lock(bufferMutex);
+    std::lock_guard<std::mutex> lock(bufferMutex);
     copy = buffer;
   }
   for (const auto& line : copy) {
