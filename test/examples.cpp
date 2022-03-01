@@ -109,7 +109,7 @@ TEST(Example, SignalHistory) {
     std::cout << entry << std::endl;
   }
 }
-#endif // BAUDVINE_HAVE_VARIANT
+#endif  // BAUDVINE_HAVE_VARIANT
 
 TEST(Example, Indexing) {
   baudvine::RingBuf<int, 3> buffer;
