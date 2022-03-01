@@ -47,7 +47,8 @@ TEST(ContainerReqsAllocIpcScoped, Create) {
       ScopedAllocator(shm.get_segment_manager(), shm.get_segment_manager()));
   EXPECT_EQ(buffer.emplace_back(4).size(), 4);
   EXPECT_EQ(buffer.emplace_back(5).size(), 5);
-  EXPECT_EQ(buffer[0].get_allocator().get_segment_manager(), shm.get_segment_manager());
+  EXPECT_EQ(buffer[0].get_allocator().get_segment_manager(),
+            shm.get_segment_manager());
 }
 
 TYPED_TEST(ContainerReqsAllocIpc, Create) {
