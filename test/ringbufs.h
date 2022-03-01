@@ -7,10 +7,10 @@
 #include <gtest/internal/gtest-type-util.h>
 
 // All implementations including the adapter.
-template <typename T, size_t N>
-using AllRingBufs =
-    testing::Types<baudvine::RingBuf<T, N>, baudvine::DequeRingBuf<T, N>>;
+template <typename T, size_t N, typename Alloc = std::allocator<T>>
+using AllRingBufs = testing::Types<baudvine::RingBuf<T, N, Alloc>,
+                                   baudvine::DequeRingBuf<T, N, Alloc>>;
 
 // All completely local implementations.
-template <typename T, size_t N>
-using OurRingBufs = testing::Types<baudvine::RingBuf<T, N>>;
+template <typename T, size_t N, typename Alloc = std::allocator<T>>
+using OurRingBufs = testing::Types<baudvine::RingBuf<T, N, Alloc>>;

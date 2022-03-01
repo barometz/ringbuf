@@ -4,8 +4,8 @@
 
 #include "at_exit.h"
 #include "instance_counter.h"
+#include "ringbufs.h"
 
-#include <gmock/gmock-matchers.h>
 #include <gtest/gtest.h>
 
 #include <boost/interprocess/allocators/allocator.hpp>
@@ -21,10 +21,7 @@ template <typename T>
 using Allocator =
     ipc::allocator<T, ipc::managed_shared_memory::segment_manager>;
 
-using RingBufs = testing::Types<
-    baudvine::RingBuf<InstanceCounter, 2, Allocator<InstanceCounter>>,
-    baudvine::DequeRingBuf<InstanceCounter, 2, Allocator<InstanceCounter>>>;
-
+using RingBufs = AllRingBufs<InstanceCounter, 2, Allocator<InstanceCounter>>;
 // NOLINTNEXTLINE - clang-tidy complains about missing variadic args
 TYPED_TEST_SUITE(AllocatorElementwise, RingBufs);
 

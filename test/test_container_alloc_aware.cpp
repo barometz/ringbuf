@@ -1,5 +1,4 @@
-#include "baudvine/ringbuf/deque_ringbuf.h"
-#include "baudvine/ringbuf/ringbuf.h"
+#include "ringbufs.h"
 
 #include <gtest/gtest.h>
 
@@ -12,11 +11,11 @@ template <typename RingBuf>
 class ContainerReqsAllocAware : public testing::Test {};
 
 template <typename T>
-using Allocator = std::scoped_allocator_adaptor<std::allocator<T>>;
+using Allocator =
+    std::scoped_allocator_adaptor<std::allocator<T>,
+                                  std::allocator<typename T::value_type>>;
 
-using RingBufs = testing::Types<
-    baudvine::RingBuf<std::string, 2, Allocator<std::string>>,
-    baudvine::DequeRingBuf<std::string, 2, Allocator<std::string>>>;
+using RingBufs = AllRingBufs<std::string, 2, Allocator<std::string>>;
 // NOLINTNEXTLINE - clang-tidy complains about missing variadic args
 TYPED_TEST_SUITE(ContainerReqsAllocAware, RingBufs);
 

@@ -1,16 +1,13 @@
-#include <baudvine/ringbuf/deque_ringbuf.h>
-#include <baudvine/ringbuf/ringbuf.h>
+#include "ringbufs.h"
 
 #include <gtest/gtest.h>
-#include <iterator>
 
 #define EXPECT_TYPE_EQ(T1, T2) EXPECT_TRUE((std::is_same<T1, T2>::value))
 
 template <typename RingBuf>
 class ContainerReversible : public testing::Test {};
 
-using RingBufs =
-    testing::Types<baudvine::RingBuf<int, 2>, baudvine::DequeRingBuf<int, 2>>;
+using RingBufs = AllRingBufs<int, 2>;
 // NOLINTNEXTLINE - clang-tidy complains about missing variadic args
 TYPED_TEST_SUITE(ContainerReversible, RingBufs);
 

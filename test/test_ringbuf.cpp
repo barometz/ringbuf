@@ -1,5 +1,6 @@
 #include "instance_counter.h"
 #include "ringbuf_adapter.h"
+#include "ringbufs.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -10,8 +11,7 @@
 template <typename T>
 class RingBuf : public testing::Test {};
 
-using RingBufs =
-    testing::Types<baudvine::RingBuf<int, 2>, baudvine::DequeRingBuf<int, 2>>;
+using RingBufs = AllRingBufs<int, 2>;
 // NOLINTNEXTLINE - clang-tidy complains about missing variadic args
 TYPED_TEST_SUITE(RingBuf, RingBufs);
 

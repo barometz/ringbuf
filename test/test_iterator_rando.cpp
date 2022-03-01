@@ -1,4 +1,5 @@
 #include "ringbuf_adapter.h"
+#include "ringbufs.h"
 
 #include <gtest/gtest.h>
 
@@ -29,8 +30,7 @@ class IteratorRando : public testing::Test {
   D n_;
 };
 
-using RingBufs =
-    testing::Types<baudvine::RingBuf<int, 4>, baudvine::DequeRingBuf<int, 4>>;
+using RingBufs = AllRingBufs<int, 4>;
 // NOLINTNEXTLINE - clang-tidy complains about missing variadic args
 TYPED_TEST_SUITE(IteratorRando, RingBufs);
 

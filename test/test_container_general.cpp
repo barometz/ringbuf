@@ -1,7 +1,6 @@
-#include "baudvine/ringbuf/deque_ringbuf.h"
-#include "baudvine/ringbuf/ringbuf.h"
 #include "instance_counter.h"
 #include "ringbuf_adapter.h"
+#include "ringbufs.h"
 
 #include <gmock/gmock-matchers.h>
 #include <gtest/gtest.h>
@@ -37,8 +36,7 @@ class ContainerReqsGeneral : public testing::Test {
   RingBuf&& rv_ = std::move(r_);
 };
 
-using RingBufs =
-    testing::Types<baudvine::RingBuf<int, 2>, baudvine::DequeRingBuf<int, 2>>;
+using RingBufs = AllRingBufs<int, 2>;
 // NOLINTNEXTLINE - clang-tidy complains about missing variadic args
 TYPED_TEST_SUITE(ContainerReqsGeneral, RingBufs);
 
