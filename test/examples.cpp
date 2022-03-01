@@ -5,6 +5,9 @@
 
 #include <chrono>
 #include <mutex>
+#ifdef BAUDVINE_HAVE_VARIANT
+#include <variant>
+#endif
 
 TEST(Example, PushPop) {
   baudvine::RingBuf<std::string, 3> buffer;
