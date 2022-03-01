@@ -67,6 +67,7 @@ TEST(Example, ConsoleLog) {
   }
 }
 
+#ifdef BAUDVINE_HAVE_VARIANT
 struct SignalEntry {
   SignalEntry(const std::chrono::system_clock::time_point& timestamp,
               const std::string& description,
@@ -108,6 +109,7 @@ TEST(Example, SignalHistory) {
     std::cout << entry << std::endl;
   }
 }
+#endif // BAUDVINE_HAVE_VARIANT
 
 TEST(Example, Indexing) {
   baudvine::RingBuf<int, 3> buffer;
