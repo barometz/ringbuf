@@ -25,6 +25,10 @@ var NAVTREE =
   [ "baudvine::RingBuf", "index.html", [
     [ "Usage", "index.html#usage", null ],
     [ "Building", "index.html#building", null ],
+    [ "Comparison to other implementations", "md__home_runner_work_ringbuf_ringbuf_docs_comparison.html", [
+      [ "boost::circular_buffer", "md__home_runner_work_ringbuf_ringbuf_docs_comparison.html#autotoc_md1", null ],
+      [ "boost::circular_buffer_space_optimized", "md__home_runner_work_ringbuf_ringbuf_docs_comparison.html#autotoc_md2", null ]
+    ] ],
     [ "Design notes", "design-notes.html", [
       [ "STL compatibility", "design-notes.html#stl-compat", null ],
       [ "Iterator stability", "design-notes.html#iterator-stability", null ],

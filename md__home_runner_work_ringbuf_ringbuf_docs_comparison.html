@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.17"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>baudvine::RingBuf: Related Pages</title>
+<title>baudvine::RingBuf: Comparison to other implementations</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -63,7 +63,7 @@ $(function() {
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
-$(document).ready(function(){initNavTree('pages.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('md__home_runner_work_ringbuf_ringbuf_docs_comparison.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -81,19 +81,31 @@ $(document).ready(function(){initNavTree('pages.html',''); initResizable(); });
 </iframe>
 </div>
 
-<div class="header">
+<div class="PageDoc"><div class="header">
   <div class="headertitle">
-<div class="title">Related Pages</div>  </div>
+<div class="title">Comparison to other implementations </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock">Here is a list of all related documentation pages:</div><div class="directory">
-<table class="directory">
-<tr id="row_0_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a class="el" href="md__home_runner_work_ringbuf_ringbuf_docs_comparison.html" target="_self">Comparison to other implementations</a></td><td class="desc"></td></tr>
-<tr id="row_1_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a class="el" href="design-notes.html" target="_self">Design notes</a></td><td class="desc"></td></tr>
-<tr id="row_2_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a class="el" href="todo.html" target="_self">Todo List</a></td><td class="desc"></td></tr>
-</table>
-</div><!-- directory -->
-</div><!-- contents -->
+<div class="textblock"><p>This is limited to implementations with similar STL-compatibility goals, since that restricts the design a bunch.</p>
+<h1><a class="anchor" id="autotoc_md1"></a>
+boost::circular_buffer</h1>
+<p>Boost's Circular Buffer library is a header-only ring buffer with continuous backing storage.</p>
+<ul>
+<li>No "spare" element to provide a strong exception guarantee when insertion fails <br  />
+ This is intentional, or at least the documentation <a href="https://www.boost.org/doc/libs/1_78_0/doc/html/circular_buffer/implementation.html">describes</a> the choice of using copying for overwriting at the end of a full buffer, as opposed to <code>allocator_traits::destroy</code> and <code>allocator_traits::construct</code>.</li>
+<li>No <code>emplace_front()</code> or <code>emplace_back()</code></li>
+<li>The capacity is not a template parameter, so it can be resized.</li>
+<li>Supports <code>insert()</code> member functions, and declares that elements closer to <code>end()</code> get knocked off when that overfills the buffer.</li>
+<li>Supports <code>assign()</code> member functions.</li>
+<li>Several useful circular-buffer-specific member functions such as <code>linearize()</code>.</li>
+<li>Rather more extensive documentation.</li>
+</ul>
+<p>For simple values (integer samples, for example), <code>boost::circular_buffer</code> is likely more performant than <code><a class="el" href="classbaudvine_1_1_ring_buf.html" title="An STL-like ring buffer with dynamic allocation and compile-time capacity limits.">baudvine::RingBuf</a></code>.</p>
+<h1><a class="anchor" id="autotoc_md2"></a>
+boost::circular_buffer_space_optimized</h1>
+<p>An adapter around the plain <code>circular_buffer</code> with one extra feature: it only allocates what it needs right now, much like <code>std::vector</code> does. If its capacity is 100 but there are only 2 elements, it probably has 2 elements' worth of memory allocated. </p>
+</div></div><!-- contents -->
+</div><!-- PageDoc -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

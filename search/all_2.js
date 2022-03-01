@@ -5,5 +5,6 @@ var searchData=
   ['clear_7',['clear',['../classbaudvine_1_1_ring_buf.html#ae9bb23f80106526237aeaa897b8c1021',1,'baudvine::RingBuf']]],
   ['copy_8',['copy',['../namespacebaudvine.html#aa5699b409ce7f3e8064d889175884d5f',1,'baudvine']]],
   ['crbegin_9',['crbegin',['../classbaudvine_1_1_ring_buf.html#a1d7a139f845ed67757372e41b6865b75',1,'baudvine::RingBuf']]],
-  ['crend_10',['crend',['../classbaudvine_1_1_ring_buf.html#af1935d0c803e5c515f01e4f98e4225a8',1,'baudvine::RingBuf']]]
+  ['crend_10',['crend',['../classbaudvine_1_1_ring_buf.html#af1935d0c803e5c515f01e4f98e4225a8',1,'baudvine::RingBuf']]],
+  ['comparison_20to_20other_20implementations_11',['Comparison to other implementations',['../md__home_runner_work_ringbuf_ringbuf_docs_comparison.html',1,'']]]
 ];

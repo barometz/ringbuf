@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['baudvine_46',['baudvine',['../namespacebaudvine.html',1,'']]]
+  ['baudvine_47',['baudvine',['../namespacebaudvine.html',1,'']]]
 ];
