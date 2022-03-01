@@ -15,7 +15,7 @@ TYPED_TEST_SUITE(ContainerSequence, RingBufs);
 
 TYPED_TEST(ContainerSequence, EraseSingle) {
   TypeParam underTest;
-  for (size_t i = 0; i < underTest.max_size() + 2; i++) {
+  for (uint16_t i = 0; i < underTest.max_size() + 2; i++) {
     underTest.push_back(i * 2);
   }
 
@@ -43,7 +43,7 @@ TYPED_TEST(ContainerSequence, EraseSingle) {
 TYPED_TEST(ContainerSequence, EraseRange) {
   TypeParam original;
   // 4 6 8 10 12
-  for (size_t i = 0; i < original.max_size() + 2; i++) {
+  for (uint16_t i = 0; i < original.max_size() + 2; i++) {
     original.push_back(i * 2);
   }
 
@@ -82,7 +82,7 @@ TYPED_TEST(ContainerSequence, EraseRange) {
 
 TYPED_TEST(ContainerSequence, EraseSmallRangeInLowerMiddle) {
   RingBufAdapter<TypeParam, int, 7> underTest;
-  for (size_t i = 0; i < underTest.max_size() + 2; i++) {
+  for (uint16_t i = 0; i < underTest.max_size() + 2; i++) {
     underTest.push_back(i * 2);
   }
   // the important bit here is that the range is in the bottom half, and shorter
@@ -94,7 +94,7 @@ TYPED_TEST(ContainerSequence, EraseSmallRangeInLowerMiddle) {
 
 TYPED_TEST(ContainerSequence, EraseSmallRangeInUpperMiddle) {
   RingBufAdapter<TypeParam, int, 7> underTest;
-  for (size_t i = 0; i < underTest.max_size() + 2; i++) {
+  for (uint16_t i = 0; i < underTest.max_size() + 2; i++) {
     underTest.push_back(i * 2);
   }
   // the important bit here is that the range is in the upper half, and shorter
@@ -106,7 +106,7 @@ TYPED_TEST(ContainerSequence, EraseSmallRangeInUpperMiddle) {
 
 TYPED_TEST(ContainerSequence, Front) {
   TypeParam underTest;
-  for (size_t i = 0; i < underTest.max_size() + 2; i++) {
+  for (uint16_t i = 0; i < underTest.max_size() + 2; i++) {
     underTest.push_back(i * 2);
   }
 
@@ -121,7 +121,7 @@ TYPED_TEST(ContainerSequence, Front) {
 
 TYPED_TEST(ContainerSequence, Back) {
   TypeParam underTest;
-  for (size_t i = 0; i < underTest.max_size() + 2; i++) {
+  for (uint16_t i = 0; i < underTest.max_size() + 2; i++) {
     underTest.push_back(i * 2);
   }
 
@@ -176,7 +176,7 @@ TYPED_TEST(ContainerSequence, PushBack) {
 
 TYPED_TEST(ContainerSequence, PopFront) {
   TypeParam underTest;
-  for (size_t i = 0; i < underTest.max_size() + 2; i++) {
+  for (uint16_t i = 0; i < underTest.max_size() + 2; i++) {
     underTest.push_back(i * 2);
   }
   underTest.pop_front();
@@ -185,7 +185,7 @@ TYPED_TEST(ContainerSequence, PopFront) {
 
 TYPED_TEST(ContainerSequence, PopBack) {
   TypeParam underTest;
-  for (size_t i = 0; i < underTest.max_size() + 2; i++) {
+  for (uint16_t i = 0; i < underTest.max_size() + 2; i++) {
     underTest.push_back(i * 2);
   }
   underTest.pop_back();
@@ -194,7 +194,7 @@ TYPED_TEST(ContainerSequence, PopBack) {
 
 TYPED_TEST(ContainerSequence, Subscript) {
   TypeParam underTest;
-  for (size_t i = 0; i < underTest.max_size() + 2; i++) {
+  for (uint16_t i = 0; i < underTest.max_size() + 2; i++) {
     underTest.push_back(i * 2);
   }
   EXPECT_EQ(underTest[0], 4);
@@ -213,7 +213,7 @@ TYPED_TEST(ContainerSequence, At) {
   EXPECT_THROW(underTest.at(1), std::out_of_range);
   EXPECT_THROW(underTest.at(4), std::out_of_range);
 
-  for (size_t i = 0; i < underTest.max_size() + 2; i++) {
+  for (uint16_t i = 0; i < underTest.max_size() + 2; i++) {
     underTest.push_back(i * 2);
   }
   EXPECT_EQ(underTest.at(0), 4);
