@@ -26,8 +26,9 @@ var NAVTREE =
     [ "Usage", "index.html#usage", null ],
     [ "Building", "index.html#building", null ],
     [ "Comparison to other implementations", "md__home_runner_work_ringbuf_ringbuf_docs_comparison.html", [
-      [ "boost::circular_buffer", "md__home_runner_work_ringbuf_ringbuf_docs_comparison.html#autotoc_md1", null ],
-      [ "boost::circular_buffer_space_optimized", "md__home_runner_work_ringbuf_ringbuf_docs_comparison.html#autotoc_md2", null ]
+      [ "<a href=\"https://www.boost.org/doc/libs/1_78_0/doc/html/circular_buffer.html\">boost::circular_buffer</a>", "md__home_runner_work_ringbuf_ringbuf_docs_comparison.html#autotoc_md1", null ],
+      [ "boost::circular_buffer_space_optimized", "md__home_runner_work_ringbuf_ringbuf_docs_comparison.html#autotoc_md2", null ],
+      [ "<a href=\"https://www.boost.org/doc/libs/1_78_0/doc/html/lockfree.html\">boost::lockfree::spsc_queue</a>", "md__home_runner_work_ringbuf_ringbuf_docs_comparison.html#autotoc_md3", null ]
     ] ],
     [ "Design notes", "design-notes.html", [
       [ "STL compatibility", "design-notes.html#stl-compat", null ],

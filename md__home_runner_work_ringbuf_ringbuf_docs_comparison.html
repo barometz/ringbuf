@@ -86,9 +86,8 @@ $(document).ready(function(){initNavTree('md__home_runner_work_ringbuf_ringbuf_d
 <div class="title">Comparison to other implementations </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>This is limited to implementations with similar STL-compatibility goals, since that restricts the design a bunch.</p>
-<h1><a class="anchor" id="autotoc_md1"></a>
-boost::circular_buffer</h1>
+<div class="textblock"><h1><a class="anchor" id="autotoc_md1"></a>
+&lt;a href="https://www.boost.org/doc/libs/1_78_0/doc/html/circular_buffer.html"&gt;boost::circular_buffer&lt;/a&gt;</h1>
 <p>Boost's Circular Buffer library is a header-only ring buffer with continuous backing storage.</p>
 <ul>
 <li>No "spare" element to provide a strong exception guarantee when insertion fails <br  />
@@ -103,7 +102,11 @@ boost::circular_buffer</h1>
 <p>For simple values (integer samples, for example), <code>boost::circular_buffer</code> is likely more performant than <code><a class="el" href="classbaudvine_1_1_ring_buf.html" title="An STL-like ring buffer with dynamic allocation and compile-time capacity limits.">baudvine::RingBuf</a></code>.</p>
 <h1><a class="anchor" id="autotoc_md2"></a>
 boost::circular_buffer_space_optimized</h1>
-<p>An adapter around the plain <code>circular_buffer</code> with one extra feature: it only allocates what it needs right now, much like <code>std::vector</code> does. If its capacity is 100 but there are only 2 elements, it probably has 2 elements' worth of memory allocated. </p>
+<p>An adapter around the plain <code>circular_buffer</code> with one extra feature: it only allocates what it needs right now, much like <code>std::vector</code> does. If its capacity is 100 but there are only 2 elements, it probably has 2 elements' worth of memory allocated.</p>
+<h1><a class="anchor" id="autotoc_md3"></a>
+&lt;a href="https://www.boost.org/doc/libs/1_78_0/doc/html/lockfree.html"&gt;boost::lockfree::spsc_queue&lt;/a&gt;</h1>
+<p>A lock-free implementation of a single-producer, single-consumer queue with circular-buffer-like behaviour. This not an STL-style container - it only has <code>push()</code>, <code>pop()</code>, and <code>reset()</code>, and no notion of an iterator. Which makes sense, because anything more doesn't really gel with the lock-free feature.</p>
+<p>If you have a single producer and a single consumer, and don't need it to play nice with <code>&lt;algorithm&gt;</code>, this is probably a pretty good bet. It does use the circular buffer concept a little differently: <code>push()</code> onto a full queue has no effect. It also doesn't have vector-like element lifetimes. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
