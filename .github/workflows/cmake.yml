@@ -64,12 +64,13 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Configure CMake
-      # The /EHsc compiler flag is set by default unless you set CMAKE_CXX_FLAGS
+      # The /EHsc /GR flags are ~ the default value of CMAKE_CXX_FLAGS.
+      # https://gitlab.kitware.com/cmake/cmake/-/issues/20610
       run: >
         cmake -B ${{github.workspace}}/build
         -A ${{matrix.platform}}
         -DCMAKE_CXX_STANDARD=${{matrix.cxx_version}}
-        -DCMAKE_CXX_FLAGS="/WX /EHsc"
+        -DCMAKE_CXX_FLAGS="/WX /GR /EHsc"
         -Dgtest_force_shared_crt=ON
 
     - name: Build
