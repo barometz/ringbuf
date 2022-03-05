@@ -498,7 +498,7 @@ class FlexRingBuf {
    * @todo Use memcpy/std::copy if Elem is POD
    */
   FlexRingBuf(const FlexRingBuf& other, const allocator_type& allocator)
-      : FlexRingBuf(allocator) {
+      : FlexRingBuf(other.max_size(), allocator) {
     clear();
 
     for (const auto& value : other) {
@@ -512,7 +512,7 @@ class FlexRingBuf {
    * @param other The FlexRingBuf to move the data out of.
    */
   FlexRingBuf(FlexRingBuf&& other) noexcept
-      : FlexRingBuf(std::move(other.alloc_)) {
+      : FlexRingBuf(other.max_size(), std::move(other.get_allocator())) {
     Swap(other);
   }
   /**
@@ -525,7 +525,7 @@ class FlexRingBuf {
    * @param allocator The allocator to use for storage and element construction.
    */
   FlexRingBuf(FlexRingBuf&& other, const allocator_type& allocator)
-      : FlexRingBuf(allocator) {
+      : FlexRingBuf(other.max_size(), allocator) {
     if (other.alloc_ == allocator) {
       Swap(other);
     } else {
@@ -999,79 +999,5 @@ OutputIt copy(const detail::flexible_ringbuf::Iterator<Ptr, AllocTraits>& begin,
               OutputIt out) {
   return detail::flexible_ringbuf::copy(begin, end, out);
 }
-
-template <typename Elem,
-          std::size_t Capacity,
-          typename Allocator = std::allocator<Elem>>
-class FlexRingBufX : public FlexRingBuf<Elem, Allocator> {
- public:
-  using allocator_type = Allocator;
-  using alloc_traits = std::allocator_traits<allocator_type>;
-  using value_type = Elem;
-  using pointer = typename alloc_traits::pointer;
-  using const_pointer = typename alloc_traits::const_pointer;
-  using reference = decltype(*pointer{});
-  using const_reference = decltype(*const_pointer{});
-  using iterator = detail::flexible_ringbuf::Iterator<pointer, alloc_traits>;
-  using const_iterator =
-      detail::flexible_ringbuf::Iterator<const_pointer, alloc_traits>;
-  using reverse_iterator = std::reverse_iterator<iterator>;
-  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-  using difference_type = typename alloc_traits::difference_type;
-  using size_type = typename alloc_traits::size_type;
-  using unsigned_difference =
-      typename std::make_unsigned<difference_type>::type;
-
-  /**
-   * Construct a new ring buffer object with a default-constructed allocator,
-   * and allocate the required memory.
-   *
-   * Allocates capacity_ + 1 to allow for strong exception guarantees in
-   * emplace_front/back.
-   */
-  FlexRingBufX() : FlexRingBuf<Elem, Allocator>(Capacity){};
-
-  /**
-   * Construct a new ring buffer object with the provided allocator, and
-   * allocate the required memory.
-   *
-   * Allocates capacity_ + 1 to allow for strong exception guarantees in
-   * emplace_front/back.
-   *
-   * @param allocator The allocator to use for storage and element construction.
-   */
-  explicit FlexRingBufX(const allocator_type& allocator)
-      : FlexRingBuf<Elem, Allocator>(Capacity, allocator) {}
-
-  FlexRingBufX(const FlexRingBufX& other)
-      : FlexRingBuf<Elem, Allocator>(Capacity, other.get_allocator()) {
-    *this = other;
-  }
-
-  FlexRingBufX(const FlexRingBufX& other, const allocator_type& allocator)
-      : FlexRingBuf<Elem, Allocator>(Capacity, allocator) {
-    *this = other;
-  }
-
-  FlexRingBufX(FlexRingBufX&& other)
-      : FlexRingBuf<Elem, Allocator>(Capacity, other.get_allocator()) {
-    *this = std::move(other);
-  }
-
-  FlexRingBufX(FlexRingBufX&& other, const allocator_type& allocator)
-      : FlexRingBuf<Elem, Allocator>(Capacity, allocator) {
-    *this = std::move(other);
-  }
-
-  FlexRingBufX& operator=(FlexRingBufX&& other) {
-    static_cast<FlexRingBuf<Elem, Allocator>>(*this) = std::move(other);
-    return *this;
-  }
-
-  FlexRingBufX& operator=(const FlexRingBufX& other) {
-    static_cast<FlexRingBuf<Elem, Allocator>>(*this) = other;
-    return *this;
-  }
-};
 
 }  // namespace baudvine

@@ -1,6 +1,7 @@
 #include "baudvine/deque_ringbuf.h"
 #include "baudvine/ringbuf.h"
-#include "baudvine/flexible_ringbuf.h"
+
+#include "unflex_ringbuf.h"
 
 #include <gtest/gtest.h>
 
@@ -30,7 +31,7 @@ std::chrono::system_clock::duration TimeIt(const std::function<void()>& fn) {
 
 TEST(Speed, PushBackToFull) {
   baudvine::RingBuf<uint64_t, kTestSize> standard;
-  baudvine::FlexRingBufX<uint64_t, kTestSize> flex;
+  UnFlexRingBuf<uint64_t, kTestSize> flex;
   baudvine::DequeRingBuf<uint64_t, kTestSize> deque;
 
   // Preload everything once so all the memory is definitely allocated.
@@ -73,7 +74,7 @@ TEST(Speed, PushBackToFull) {
 
 TEST(Speed, PushBackOverFull) {
   baudvine::RingBuf<uint64_t, 3> standard;
-  baudvine::FlexRingBufX<uint64_t, 3> flex;
+  UnFlexRingBuf<uint64_t, 3> flex;
   baudvine::DequeRingBuf<uint64_t, 3> deque;
 
   auto standardDuration = TimeIt([&standard] {
@@ -102,7 +103,7 @@ TEST(Speed, PushBackOverFull) {
 
 TEST(Speed, IterateOver) {
   baudvine::RingBuf<uint64_t, kTestSize> standard;
-  baudvine::FlexRingBufX<uint64_t, kTestSize> flex;
+  UnFlexRingBuf<uint64_t, kTestSize> flex;
   baudvine::DequeRingBuf<uint64_t, kTestSize> deque;
 
   for (uint32_t i = 0; i < standard.max_size(); i++) {
