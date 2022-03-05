@@ -281,11 +281,14 @@ class Iterator {
 
  private:
   pointer data_{};
-  // Keeping both ring_offset_ and ring_index_ around is algorithmically
-  // redundant (you could add them once and then increment the sum in
-  // operator++), but the unchanging ring_offset_ appears to help the compiler
-  // optimize RingWrap calls.
+
+  // Keeping both ring_offset_ and ring_index_ around is a little redundant,
+  // algorithmically, but it makes it much easier to express iterator-mutating
+  // operations.
+
+  // Physical index of begin().
   size_type ring_offset_{};
+  // Logical index of this iterator.
   size_type ring_index_{};
 };
 
@@ -315,7 +318,6 @@ OutputIt copy(const Iterator<Ptr, AllocTraits, Capacity>& begin,
 
   return out;
 }
-
 }  // namespace ringbuf
 }  // namespace detail
 
