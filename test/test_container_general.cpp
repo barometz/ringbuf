@@ -200,16 +200,16 @@ TYPED_TEST(ContainerReqsGeneral, CopyAssignment) {
 TYPED_TEST(ContainerReqsGeneral, Size) {
   this->a_.clear();
   EXPECT_EQ(0, std::distance(this->a_.begin(), this->a_.end()));
-  EXPECT_EQ(0, this->a_.size());
+  EXPECT_EQ(0U, this->a_.size());
   this->a_.push_back(10);
   EXPECT_EQ(1, std::distance(this->a_.begin(), this->a_.end()));
-  EXPECT_EQ(1, this->a_.size());
+  EXPECT_EQ(1U, this->a_.size());
   this->a_.push_back(20);
   EXPECT_EQ(2, std::distance(this->a_.begin(), this->a_.end()));
-  EXPECT_EQ(2, this->a_.size());
+  EXPECT_EQ(2U, this->a_.size());
   this->a_.push_back(30);
   EXPECT_EQ(2, std::distance(this->a_.begin(), this->a_.end()));
-  EXPECT_EQ(2, this->a_.size());
+  EXPECT_EQ(2U, this->a_.size());
 }
 
 TYPED_TEST(ContainerReqsGeneral, MaxSize) {
