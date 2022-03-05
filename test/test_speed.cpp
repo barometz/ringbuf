@@ -7,6 +7,8 @@
 
 #include <chrono>
 
+// TODO: use black-box method to prevent inconvenient compiler optimizations
+
 // Speed comparison between deque and standard. Standard should generally be at
 // least as fast as deque, but in practice we're not the only process so there's
 // going to be some noise.
@@ -147,22 +149,29 @@ TEST(Speed, IterateOver) {
 TEST(Speed, Copy) {
   // baudvine::copy should be faster than std::copy as std::copy doesn't know
   // that there are at most two contiguous sections.
-  baudvine::RingBuf<int, kTestSize> underTest;
-  std::fill_n(std::back_inserter(underTest), kTestSize, 55);
+  baudvine::RingBuf<int, kTestSize> fixed;
+  std::fill_n(std::back_inserter(fixed), kTestSize, 55);
+  baudvine::FlexRingBuf<int> flex(kTestSize);
+  std::fill_n(std::back_inserter(flex), kTestSize, 55);
 
   std::vector<int> copy;
   copy.reserve(kTestSize);
   std::fill_n(std::back_inserter(copy), kTestSize, 44);
 
-  auto customTime = TimeIt([&underTest, &copy] {
-    baudvine::copy(underTest.begin(), underTest.end(), copy.begin());
+  auto customTime = TimeIt([&fixed, &copy] {
+    baudvine::copy(fixed.begin(), fixed.end(), copy.begin());
   });
 
-  auto standardTime = TimeIt([&underTest, &copy] {
-    std::copy(underTest.begin(), underTest.end(), copy.begin());
+  auto customTimeFlex = TimeIt([&flex, &copy] {
+    baudvine::copy(flex.begin(), flex.end(), copy.begin());
+  });
+
+  auto standardTime = TimeIt([&fixed, &copy] {
+    std::copy(fixed.begin(), fixed.end(), copy.begin());
   });
 
   EXPECT_LT(customTime, standardTime);
-  std::cout << "baudvine::copy: " << customTime << std::endl;
-  std::cout << "std::copy:      " << standardTime << std::endl;
+  std::cout << "baudvine::copy (fixed): " << customTime << std::endl;
+  std::cout << "baudvine::copy (flex):  " << customTimeFlex << std::endl;
+  std::cout << "std::copy:              " << standardTime << std::endl;
 }

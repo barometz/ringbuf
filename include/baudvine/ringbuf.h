@@ -83,7 +83,6 @@ class Iterator : public BaseIterator<Ptr,
                                      AllocTraits,
                                      Iterator<Ptr, AllocTraits, Capacity>> {
  public:
-  // TODO: see if Self is still necessary in RingBuf
   using Base = BaseIterator<Ptr, AllocTraits, Iterator>;
   using typename Base::difference_type;
   using typename Base::pointer;
@@ -234,12 +233,11 @@ OutputIt copy(const Iterator<Ptr, AllocTraits, Capacity>& begin,
 template <typename Elem,
           std::size_t Capacity,
           typename Allocator = std::allocator<Elem>>
-class RingBuf : public detail::BaseRingBuf<Elem,
-                                           Allocator,
-                                           RingBuf<Elem, Capacity, Allocator>> {
+class RingBuf
+    : public detail::ringbuf::
+          BaseRingBuf<Elem, Allocator, RingBuf<Elem, Capacity, Allocator>> {
  public:
-  using Self = RingBuf<Elem, Capacity, Allocator>;
-  using Base = detail::BaseRingBuf<Elem, Allocator, Self>;
+  using Base = detail::ringbuf::BaseRingBuf<Elem, Allocator, RingBuf>;
 
   using typename Base::alloc_traits;
   using typename Base::allocator_type;
@@ -423,7 +421,7 @@ class RingBuf : public detail::BaseRingBuf<Elem,
   RingBuf& operator=(const RingBuf& other) {
     clear();
 
-    detail::CopyAllocator(alloc_, other.alloc_);
+    detail::ringbuf::CopyAllocator(alloc_, other.alloc_);
 
     for (const auto& value : other) {
       push_back(value);
@@ -446,7 +444,7 @@ class RingBuf : public detail::BaseRingBuf<Elem,
         alloc_ == other.alloc_) {
       // We're either getting the other's allocator or they're already the same,
       // so swap data in one go.
-      detail::MoveAllocator(alloc_, other.alloc_);
+      detail::ringbuf::MoveAllocator(alloc_, other.alloc_);
       Swap(other);
     } else {
       // Different allocators and can't swap them, so move elementwise.
@@ -618,7 +616,7 @@ class RingBuf : public detail::BaseRingBuf<Elem,
    * buffer.
    */
   void pop_front() noexcept {
-    if (size() == 0) {  // TODO: replace all of these with empty()
+    if (empty()) {
       return;
     }
 
@@ -630,7 +628,7 @@ class RingBuf : public detail::BaseRingBuf<Elem,
    * buffer.
    */
   void pop_back() noexcept {
-    if (size() == 0) {
+    if (empty()) {
       return;
     }
 
@@ -696,7 +694,7 @@ class RingBuf : public detail::BaseRingBuf<Elem,
    * @param other The RingBuf to swap with.
    */
   void swap(RingBuf& other) noexcept {
-    detail::SwapAllocator(alloc_, other.alloc_);
+    detail::ringbuf::SwapAllocator(alloc_, other.alloc_);
     Swap(other);
   }
 };

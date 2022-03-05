@@ -50,7 +50,6 @@
 namespace baudvine {
 namespace detail {
 namespace flexible_ringbuf {
-
 /**
  * Wrap a physical position into an array of size capacity_.
  *
@@ -79,10 +78,11 @@ constexpr std::size_t RingWrap(const std::size_t capacity,
  *                  buffer.
  */
 template <typename Ptr, typename AllocTraits>
-class Iterator
-    : public BaseIterator<Ptr, AllocTraits, Iterator<Ptr, AllocTraits>> {
+class Iterator : public ringbuf::BaseIterator<Ptr,
+                                              AllocTraits,
+                                              Iterator<Ptr, AllocTraits>> {
  public:
-  using Base = BaseIterator<Ptr, AllocTraits, Iterator>;
+  using Base = ringbuf::BaseIterator<Ptr, AllocTraits, Iterator>;
   using typename Base::difference_type;
   using typename Base::pointer;
   using typename Base::reference;
@@ -167,7 +167,6 @@ class Iterator
   friend bool operator<(const Iterator& lhs, const Iterator& rhs) noexcept {
     // Comparison via std::tie uses std::tuple::operator<, which compares its
     // elements lexicographically.
-    // TODO: capacity
     return std::tie(lhs.data_, lhs.ring_offset_, lhs.ring_index_) <
            std::tie(rhs.data_, rhs.ring_offset_, rhs.ring_index_);
   }
@@ -202,7 +201,8 @@ template <typename Ptr, typename AllocTraits, typename OutputIt>
 OutputIt copy(const Iterator<Ptr, AllocTraits>& begin,
               const Iterator<Ptr, AllocTraits>& end,
               OutputIt out) {
-  assert(begin <= end);
+  assert(begin <=
+         end);  // TODO: not sure an assert is appropriate here, throw instead?
 
   if (begin == end) {
     // Empty range, pass
@@ -231,12 +231,11 @@ OutputIt copy(const Iterator<Ptr, AllocTraits>& begin,
            construction.
  */
 template <typename Elem, typename Allocator = std::allocator<Elem>>
-class FlexRingBuf : public detail::BaseRingBuf<Elem,
-                                               Allocator,
-                                               FlexRingBuf<Elem, Allocator>> {
+class FlexRingBuf
+    : public detail::ringbuf::
+          BaseRingBuf<Elem, Allocator, FlexRingBuf<Elem, Allocator>> {
  public:
-  using Self = FlexRingBuf<Elem, Allocator>;
-  using Base = detail::BaseRingBuf<Elem, Allocator, Self>;
+  using Base = detail::ringbuf::BaseRingBuf<Elem, Allocator, FlexRingBuf>;
 
   using typename Base::alloc_traits;
   using typename Base::allocator_type;
@@ -444,7 +443,7 @@ class FlexRingBuf : public detail::BaseRingBuf<Elem,
   FlexRingBuf& operator=(const FlexRingBuf& other) {
     clear();
 
-    detail::CopyAllocator(alloc_, other.alloc_);
+    detail::ringbuf::CopyAllocator(alloc_, other.alloc_);
 
     for (const auto& value : other) {
       push_back(value);
@@ -467,7 +466,7 @@ class FlexRingBuf : public detail::BaseRingBuf<Elem,
         alloc_ == other.alloc_) {
       // We're either getting the other's allocator or they're already the same,
       // so swap data in one go.
-      detail::MoveAllocator(alloc_, other.alloc_);
+      detail::ringbuf::MoveAllocator(alloc_, other.alloc_);
       Swap(other);
     } else {
       // Different allocators and can't swap them, so move elementwise.
@@ -645,7 +644,7 @@ class FlexRingBuf : public detail::BaseRingBuf<Elem,
    * buffer.
    */
   void pop_front() noexcept {
-    if (size() == 0) {
+    if (empty()) {
       return;
     }
 
@@ -657,7 +656,7 @@ class FlexRingBuf : public detail::BaseRingBuf<Elem,
    * buffer.
    */
   void pop_back() noexcept {
-    if (size() == 0) {
+    if (empty()) {
       return;
     }
 
@@ -723,7 +722,7 @@ class FlexRingBuf : public detail::BaseRingBuf<Elem,
    * @param other The FlexRingBuf to swap with.
    */
   void swap(FlexRingBuf& other) noexcept {
-    detail::SwapAllocator(alloc_, other.alloc_);
+    detail::ringbuf::SwapAllocator(alloc_, other.alloc_);
     Swap(other);
   }
 };
@@ -748,7 +747,6 @@ class FlexRingBuf : public detail::BaseRingBuf<Elem,
  */
 template <typename Ptr,
           typename AllocTraits,
-          std::size_t capacity_,  // TODO: fix this copy, or write generic impl
           typename OutputIt>
 OutputIt copy(const detail::flexible_ringbuf::Iterator<Ptr, AllocTraits>& begin,
               const detail::flexible_ringbuf::Iterator<Ptr, AllocTraits>& end,

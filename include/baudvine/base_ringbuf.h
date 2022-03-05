@@ -27,7 +27,9 @@
 
 namespace baudvine {
 namespace detail {
-// TODO: move these into ringbuf ns
+namespace ringbuf {
+// sense but moving all public impl classes into bv::rb is deeper than
+// necessary.
 /** @private */
 template <typename Allocator>
 void MoveAllocator(Allocator& lhs,
@@ -330,5 +332,6 @@ class BaseRingBuf {
     return !(lhs == rhs);
   }
 };
+}  // namespace ringbuf
 }  // namespace detail
 }  // namespace baudvine
