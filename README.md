@@ -99,7 +99,7 @@ What can't it do? Well:
 - [x] Document iterator invalidation.
 - [x] Compare to `boost::circular_buffer`
 - [ ] Special case for emplace/push members when T's lifetime doesn't matter (e.g. int)
-- [ ] Compiler warning cleanup
+- [x] Compiler warning cleanup
 - [ ] Compare to boost's spsc queue, which has optional ring buffer semantics.
 
 ### NOT TODO
