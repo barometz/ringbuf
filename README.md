@@ -98,7 +98,9 @@ What can't it do? Well:
 - [x] Better code examples.
 - [x] Document iterator invalidation.
 - [x] Compare to `boost::circular_buffer`
-- [ ] Special case for emplace/push members when T's lifetime doesn't matter (e.g. int)
+- [ ] ~~Special case for emplace/push members when T's lifetime doesn't matter (e.g. int)~~  
+  The performance benefit turned out to be hard to measure -
+  `std::allocator_traits` is probably reasonably smart about this. 
 - [x] Compiler warning cleanup
 - [x] Compare to boost's spsc queue
 
