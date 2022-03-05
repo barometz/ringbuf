@@ -1,5 +1,6 @@
 #include "baudvine/deque_ringbuf.h"
 #include "baudvine/ringbuf.h"
+#include "baudvine/flexible_ringbuf.h"
 
 #include <gtest/gtest.h>
 
@@ -29,13 +30,18 @@ std::chrono::system_clock::duration TimeIt(const std::function<void()>& fn) {
 
 TEST(Speed, PushBackToFull) {
   baudvine::RingBuf<uint64_t, kTestSize> standard;
+  baudvine::FlexRingBufX<uint64_t, kTestSize> flex;
   baudvine::DequeRingBuf<uint64_t, kTestSize> deque;
 
-  // Preload everything once so all the memory is definitely allocated
+  // Preload everything once so all the memory is definitely allocated.
   for (uint32_t i = 0; i < standard.max_size(); i++) {
     standard.push_back(0);
   }
   standard.clear();
+  for (uint32_t i = 0; i < flex.max_size(); i++) {
+    flex.push_back(0);
+  }
+  flex.clear();
   for (uint32_t i = 0; i < deque.max_size(); i++) {
     deque.push_back(0);
   }
@@ -47,6 +53,12 @@ TEST(Speed, PushBackToFull) {
     }
   });
 
+  auto flexDuration = TimeIt([&flex] {
+    for (uint32_t i = 0; i < flex.max_size(); i++) {
+      flex.push_back(0);
+    }
+  });
+
   auto dequeDuration = TimeIt([&deque] {
     for (uint32_t i = 0; i < deque.max_size(); i++) {
       deque.push_back(0);
@@ -55,16 +67,24 @@ TEST(Speed, PushBackToFull) {
 
   EXPECT_LT(standardDuration, dequeDuration);
   std::cout << "RingBuf:      " << standardDuration << std::endl;
+  std::cout << "FlexRingBuf:  " << flexDuration << std::endl;
   std::cout << "DequeRingBuf: " << dequeDuration << std::endl;
 }
 
 TEST(Speed, PushBackOverFull) {
   baudvine::RingBuf<uint64_t, 3> standard;
+  baudvine::FlexRingBufX<uint64_t, 3> flex;
   baudvine::DequeRingBuf<uint64_t, 3> deque;
 
   auto standardDuration = TimeIt([&standard] {
     for (uint32_t i = 0; i < kTestSize; i++) {
       standard.push_back(0);
+    }
+  });
+
+  auto flexDuration = TimeIt([&flex] {
+    for (uint32_t i = 0; i < kTestSize; i++) {
+      flex.push_back(0);
     }
   });
 
@@ -76,24 +96,35 @@ TEST(Speed, PushBackOverFull) {
 
   EXPECT_LT(standardDuration, dequeDuration);
   std::cout << "RingBuf:      " << standardDuration << std::endl;
+  std::cout << "FlexRingBuf:  " << flexDuration << std::endl;
   std::cout << "DequeRingBuf: " << dequeDuration << std::endl;
 }
 
 TEST(Speed, IterateOver) {
   baudvine::RingBuf<uint64_t, kTestSize> standard;
+  baudvine::FlexRingBufX<uint64_t, kTestSize> flex;
   baudvine::DequeRingBuf<uint64_t, kTestSize> deque;
 
   for (uint32_t i = 0; i < standard.max_size(); i++) {
     standard.push_back(i);
   }
-
+  for (uint32_t i = 0; i < flex.max_size(); i++) {
+    flex.push_back(i);
+  }
   for (uint32_t i = 0; i < deque.max_size(); i++) {
     deque.push_back(i);
   }
 
   // Do a little math so the compiler doesn't optimize the test away in a
   // release build.
+
   uint64_t acc{};
+  auto flexDuration = TimeIt([&flex, &acc] {
+    for (auto& x : flex) {
+      acc += x;
+    }
+  });
+
   auto standardDuration = TimeIt([&standard, &acc] {
     for (auto& x : standard) {
       acc += x;
@@ -108,6 +139,7 @@ TEST(Speed, IterateOver) {
 
   EXPECT_LT(standardDuration, dequeDuration);
   std::cout << "RingBuf:      " << standardDuration << std::endl;
+  std::cout << "FlexRingBuf:  " << flexDuration << std::endl;
   std::cout << "DequeRingBuf: " << dequeDuration << std::endl;
 }
 
