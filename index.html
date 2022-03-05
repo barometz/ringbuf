@@ -97,7 +97,7 @@ $(document).ready(function(){initNavTree('index.html',''); initResizable(); });
 <p><a class="el" href="classbaudvine_1_1_deque_ring_buf.html">baudvine::DequeRingBuf</a> is included primarily for testing purposes. Because it's based on <code>std::deque</code> it's a bit less efficient (time, memory fragmentation) than the array-based one, but it's also a lot easier to trust since all the hairy math and allocation happens in the standard library.</p>
 <h1><a class="anchor" id="usage"></a>
 Usage</h1>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;<a class="code" href="ringbuf_8h.html">baudvine/ringbuf/ringbuf.h</a>&gt;</span></div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;baudvine/ringbuf/ringbuf.h&gt;</span></div>
 <div class="line"> </div>
 <div class="line"><span class="keywordtype">void</span> demo()</div>
 <div class="line">{</div>
@@ -111,7 +111,7 @@ Usage</h1>
 </div><!-- fragment --><p>See test/examples.cpp for further usage examples. The high-level pitch is this: you can use it as an STL container, except it wraps like a ring buffer. You get iterators, <code>front()</code>, <code>back()</code>, <code>push_back()</code>, <code>pop_front()</code>, <code>emplace_back()</code>, range-for, all* the things you expect from a standard library container.</p>
 <h1><a class="anchor" id="building"></a>
 Building</h1>
-<p>The project is header-only, so you only have to copy <code><a class="el" href="ringbuf_8h.html">include/baudvine/ringbuf/ringbuf.h</a></code> into your project. You should also be able to include it as a CMake subproject, but that's untested.</p>
+<p>The project is header-only, so you only have to copy <code>include/baudvine/ringbuf/ringbuf.h</code> into your project. You should also be able to include it as a CMake subproject, but that's untested.</p>
 <p>To build and run the tests, install <a href="https://cmake.org/">CMake</a>, then run:</p>
 <div class="fragment"><div class="line">mkdir build</div>
 <div class="line">cmake -S . -B build</div>
@@ -125,7 +125,6 @@ Building</h1>
 <div class="ttc" id="aclassbaudvine_1_1_ring_buf_html_a53f0dd41b28cd5f4bc561aff6385fac1"><div class="ttname"><a href="classbaudvine_1_1_ring_buf.html#a53f0dd41b28cd5f4bc561aff6385fac1">baudvine::RingBuf::front</a></div><div class="ttdeci">reference front()</div><div class="ttdoc">Returns the first element in the ring buffer.</div><div class="ttdef"><b>Definition:</b> <a href="ringbuf_8h_source.html#l00569">ringbuf.h:569</a></div></div>
 <div class="ttc" id="aclassbaudvine_1_1_ring_buf_html"><div class="ttname"><a href="classbaudvine_1_1_ring_buf.html">baudvine::RingBuf</a></div><div class="ttdoc">An STL-like ring buffer with dynamic allocation and compile-time capacity limits.</div><div class="ttdef"><b>Definition:</b> <a href="ringbuf_8h_source.html#l00335">ringbuf.h:335</a></div></div>
 <div class="ttc" id="aclassbaudvine_1_1_ring_buf_html_af4c7c7438341ce5eb9ca74a7d926984b"><div class="ttname"><a href="classbaudvine_1_1_ring_buf.html#af4c7c7438341ce5eb9ca74a7d926984b">baudvine::RingBuf::push_back</a></div><div class="ttdeci">void push_back(const_reference value)</div><div class="ttdoc">Push a new element into the ring buffer, popping the front if necessary.</div><div class="ttdef"><b>Definition:</b> <a href="ringbuf_8h_source.html#l00759">ringbuf.h:759</a></div></div>
-<div class="ttc" id="aringbuf_8h_html"><div class="ttname"><a href="ringbuf_8h.html">ringbuf.h</a></div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
