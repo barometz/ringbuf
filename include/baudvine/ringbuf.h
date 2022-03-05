@@ -41,7 +41,6 @@
 
 #include "base_ringbuf.h"
 
-#include <cassert>
 #include <cstddef>
 #include <iterator>
 #include <tuple>
@@ -118,20 +117,27 @@ class Iterator : public BaseIterator<Ptr,
   }
 
   reference operator*() const {
+    static_assert(std::is_unsigned<decltype(ring_index_)>::value, "Expected ring_index_ to be unsigned.");
+    BAUDVINE_RINGBUF_ASSERT(ring_index_ <= Capacity);
     return data_[RingWrap<Capacity>(ring_offset_ + ring_index_)];
   }
 
   using Base::operator->;
+  using Base::operator[];
   using Base::operator++;
+  using Base::operator--;
 
-  // TODO: minimal doc comments
+  /**
+   * Prefix increment.
+   */
   Iterator& operator++() noexcept {
     ++ring_index_;
     return *this;
   }
 
-  using Base::operator--;
-
+  /**
+   * Prefix decrement.
+   */
   Iterator& operator--() noexcept {
     --ring_index_;
     return *this;
@@ -154,8 +160,6 @@ class Iterator : public BaseIterator<Ptr,
   Iterator operator-(difference_type n) const noexcept {
     return Iterator(data_, ring_offset_, ring_index_ - n);
   }
-
-  reference operator[](difference_type n) const { return *(*this + n); }
 
   friend difference_type operator-(const Iterator& lhs,
                                    const Iterator& rhs) noexcept {
@@ -202,8 +206,6 @@ template <typename Ptr,
 OutputIt copy(const Iterator<Ptr, AllocTraits, Capacity>& begin,
               const Iterator<Ptr, AllocTraits, Capacity>& end,
               OutputIt out) {
-  assert(begin <= end);
-
   if (begin == end) {
     // Empty range, pass
   } else if (&*end > &*begin) {

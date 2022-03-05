@@ -25,6 +25,19 @@
 #include <stdexcept>
 #include <type_traits>
 
+// `assert` for user errors. In this house, actually asserting and aborting the
+// user's application is considered impolite.
+#ifdef NDEBUG
+#define BAUDVINE_RINGBUF_ASSERT(statement)
+#else
+#define BAUDVINE_RINGBUF_ASSERT(statement)                          \
+  do {                                                              \
+    if (!(statement)) {                                             \
+      throw std::runtime_error("Assertion " #statement " failed."); \
+    }                                                               \
+  } while (false)
+#endif  // NDEBUG
+
 namespace baudvine {
 namespace detail {
 namespace ringbuf {
@@ -104,7 +117,7 @@ template <typename Ptr, typename AllocTraits, typename Iterator>
 class BaseIterator {
  protected:
   using difference_type = typename AllocTraits::difference_type;
-  using size_type = typename AllocTraits::difference_type;
+  using size_type = typename AllocTraits::size_type;
   using value_type = typename AllocTraits::value_type;
   using pointer = Ptr;
   using reference = decltype(*pointer{});
@@ -115,16 +128,39 @@ class BaseIterator {
   }
 
   pointer operator->() const noexcept { return &**Impl(); }
+  reference operator[](difference_type n) const { return *(*Impl() + n); }
 
+  /**
+   * Prefix increment.
+   */
+  Iterator& operator++() noexcept {
+    *Impl() += 1;
+    return *Impl();
+  }
+
+  /**
+   * Postfix increment.
+   */
   Iterator operator++(int) noexcept {
     Iterator copy(*Impl());
-    ++(*Impl());
+    ++*Impl();
     return copy;
   }
 
+  /**
+   * Prefix decrement.
+   */
+  Iterator& operator--() noexcept {
+    *Impl() -= 1;
+    return *Impl();
+  }
+
+  /**
+   * Postfix decrement.
+   */
   Iterator operator--(int) noexcept {
-    Iterator copy(*this);
-    ++(*Impl());
+    Iterator copy(*Impl());
+    --*Impl();
     return copy;
   }
 

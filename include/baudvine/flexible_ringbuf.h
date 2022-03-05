@@ -41,7 +41,6 @@
 
 #include "base_ringbuf.h"
 
-#include <cassert>
 #include <cstddef>
 #include <iterator>
 #include <tuple>
@@ -119,23 +118,15 @@ class Iterator : public ringbuf::BaseIterator<Ptr,
   }
 
   reference operator*() const {
+    static_assert(std::is_unsigned<decltype(ring_index_)>::value, "Expected ring_index_ to be unsigned.");
+    BAUDVINE_RINGBUF_ASSERT(ring_index_ <= capacity_);
     return data_[RingWrap(capacity_, ring_offset_ + ring_index_)];
   }
 
   using Base::operator->;
+  using Base::operator[];
   using Base::operator++;
-
-  Iterator& operator++() noexcept {
-    ++ring_index_;
-    return *this;
-  }
-
   using Base::operator--;
-
-  Iterator& operator--() noexcept {
-    --ring_index_;
-    return *this;
-  }
 
   Iterator& operator+=(difference_type n) noexcept {
     ring_index_ += n;
@@ -154,8 +145,6 @@ class Iterator : public ringbuf::BaseIterator<Ptr,
   Iterator operator-(difference_type n) const noexcept {
     return Iterator(data_, capacity_, ring_offset_, ring_index_ - n);
   }
-
-  reference operator[](difference_type n) const { return *(*this + n); }
 
   friend difference_type operator-(const Iterator& lhs,
                                    const Iterator& rhs) noexcept {
@@ -201,9 +190,6 @@ template <typename Ptr, typename AllocTraits, typename OutputIt>
 OutputIt copy(const Iterator<Ptr, AllocTraits>& begin,
               const Iterator<Ptr, AllocTraits>& end,
               OutputIt out) {
-  assert(begin <=
-         end);  // TODO: not sure an assert is appropriate here, throw instead?
-
   if (begin == end) {
     // Empty range, pass
   } else if (&*end > &*begin) {
@@ -745,9 +731,7 @@ class FlexRingBuf
  * @param out Start of the destination range.
  * @returns One past the last copied element in the destination range.
  */
-template <typename Ptr,
-          typename AllocTraits,
-          typename OutputIt>
+template <typename Ptr, typename AllocTraits, typename OutputIt>
 OutputIt copy(const detail::flexible_ringbuf::Iterator<Ptr, AllocTraits>& begin,
               const detail::flexible_ringbuf::Iterator<Ptr, AllocTraits>& end,
               OutputIt out) {
