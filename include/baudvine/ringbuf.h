@@ -735,7 +735,9 @@ class RingBuf {
    * @tparam Args Arguments to the element constructor.
    * @param args Arguments to the element constructor.
    */
-  template <typename... Args>
+  template <typename... Args,
+            typename E = Elem,
+            typename std::enable_if<!std::is_trivial<E>::value, int>::type = 0>
   reference emplace_front(Args&&... args) {
     if (max_size() == 0) {
       // A buffer of size zero is conceptually sound, so let's support it.
@@ -748,6 +750,30 @@ class RingBuf {
     // If required, make room for next time.
     if (size() == max_size()) {
       pop_back();
+    }
+    GrowFront();
+    return UncheckedAt(0);
+  }
+  /**
+   * Construct a new element in-place before the front of the ring buffer,
+   * popping the back if necessary.
+   *
+   * This overload is selected when Elem is trivial.
+   *
+   * @tparam Args Arguments to the element constructor.
+   * @param args Arguments to the element constructor.
+   */
+  template <typename... Args,
+            typename E = Elem,
+            typename std::enable_if<std::is_trivial<E>::value, int>::type = 0>
+  reference emplace_front(Args&&... args) {
+    if (max_size() == 0) {
+      return UncheckedAt(0);
+    }
+
+    data_[Decrement(ring_offset_)] = Elem(std::forward<Args>(args)...);
+    if (size() == max_size()) {
+      ShrinkBack();
     }
     GrowFront();
     return UncheckedAt(0);
@@ -772,7 +798,9 @@ class RingBuf {
    * @tparam Args Arguments to the element constructor.
    * @param args Arguments to the element constructor.
    */
-  template <typename... Args>
+  template <typename... Args,
+            typename E = Elem,
+            typename std::enable_if<!std::is_trivial<E>::value, int>::type = 0>
   reference emplace_back(Args&&... args) {
     if (max_size() == 0) {
       // A buffer of size zero is conceptually sound, so let's support it.
@@ -788,11 +816,37 @@ class RingBuf {
     GrowBack();
     return UncheckedAt(size() - 1);
   }
+  /**
+   * Construct a new element in-place at the end of the ring buffer, popping the
+   * front if necessary.
+   *
+   * This overload is selected when Elem is trivial.
+   *
+   * @tparam Args Arguments to the element constructor.
+   * @param args Arguments to the element constructor.
+   */
+  template <typename... Args,
+            typename E = Elem,
+            typename std::enable_if<std::is_trivial<E>::value, int>::type = 0>
+  reference emplace_back(Args&&... args) {
+    if (max_size() == 0) {
+      return UncheckedAt(0);
+    }
+
+    data_[next_] = Elem(std::forward<Args>(args)...);
+    if (size() == max_size()) {
+      pop_front();
+    }
+    GrowBack();
+    return UncheckedAt(size() - 1);
+  }
 
   /**
    * Pop an element off the front, destroying the first element in the ring
    * buffer.
    */
+  template <typename E = Elem,
+            typename std::enable_if<!std::is_trivial<E>::value, int>::type = 0>
   void pop_front() noexcept {
     if (size() == 0) {
       return;
@@ -802,9 +856,26 @@ class RingBuf {
     ShrinkFront();
   }
   /**
+   * Pop an element off the front, destroying the first element in the ring
+   * buffer.
+   *
+   * This overload is selected when Elem is trivial.
+   */
+  template <typename E = Elem,
+            typename std::enable_if<std::is_trivial<E>::value, int>::type = 0>
+  void pop_front() noexcept {
+    if (size() == 0) {
+      return;
+    }
+
+    ShrinkFront();
+  }
+  /**
    * Pop an element off the back, destroying the last element in the ring
    * buffer.
    */
+  template <typename E = Elem,
+            typename std::enable_if<!std::is_trivial<E>::value, int>::type = 0>
   void pop_back() noexcept {
     if (size() == 0) {
       return;
@@ -812,6 +883,15 @@ class RingBuf {
 
     ShrinkBack();
     alloc_traits::destroy(alloc_, &data_[next_]);
+  }
+  template <typename E = Elem,
+            typename std::enable_if<std::is_trivial<E>::value, int>::type = 0>
+  void pop_back() noexcept {
+    if (size() == 0) {
+      return;
+    }
+
+    ShrinkBack();
   }
   /**
    * Remove all elements from the ring buffer, destroying each one starting at
