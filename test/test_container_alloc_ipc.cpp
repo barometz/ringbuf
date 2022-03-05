@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 
 #include <boost/interprocess/allocators/allocator.hpp>
+#include <boost/interprocess/containers/string.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 
 #include <scoped_allocator>
@@ -22,7 +23,7 @@ using Allocator =
 
 // In a real application, this would be
 // std::scoped_allocator<
-//  Allocator<std::basic_string<char, std::char_traits<char>, Allocator<char>>>,
+//  Allocator<ipc::basic_string<char, std::char_traits<char>, Allocator<char>>>,
 //  Allocator<char>>
 // so the string contents are also allocated in the shared memory. The generated
 // test names are long enough as it is.
@@ -33,7 +34,10 @@ TYPED_TEST_SUITE(ContainerReqsAllocIpc, RingBufs);
 
 TEST(ContainerReqsAllocIpcScoped, Create) {
   // one-off, demonstrate that it works with scoped_allocator.
-  using Elem = std::vector<int, Allocator<int>>;
+  // This does *not* work with std::string, but it's fine with (for example) a
+  // vector<vector<int>>. For some reason you need boost's IPC string type to
+  // make this work.
+  using Elem = ipc::basic_string<char, std::char_traits<char>, Allocator<char>>;
   using ScopedAllocator =
       std::scoped_allocator_adaptor<Allocator<Elem>, Allocator<int>>;
   using RingBuf = baudvine::RingBuf<Elem, 4, ScopedAllocator>;
@@ -45,8 +49,8 @@ TEST(ContainerReqsAllocIpcScoped, Create) {
 
   RingBuf buffer(
       ScopedAllocator(shm.get_segment_manager(), shm.get_segment_manager()));
-  EXPECT_EQ(buffer.emplace_back(4).size(), 4);
-  EXPECT_EQ(buffer.emplace_back(5).size(), 5);
+  EXPECT_EQ(buffer.emplace_back("Jaffa"), "Jaffa");
+  EXPECT_EQ(buffer.emplace_back("Kree"), "Kree");
   EXPECT_EQ(buffer[0].get_allocator().get_segment_manager(),
             shm.get_segment_manager());
 }
