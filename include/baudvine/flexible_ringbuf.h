@@ -19,7 +19,7 @@
 // SOFTWARE.
 
 /**
- * @file ringbuf.h
+ * @file flexible_ringbuf.h
  * @author Dominic van Berkel
  * @copyright MIT License
  *
@@ -39,14 +39,12 @@
 
 #pragma once
 
-#include <algorithm>
+#include "base_ringbuf.h"
+
 #include <cassert>
 #include <cstddef>
 #include <iterator>
-#include <memory>
-#include <stdexcept>
 #include <tuple>
-#include <type_traits>
 
 /** The baudvine "project". */
 namespace baudvine {
@@ -334,26 +332,28 @@ OutputIt copy(const Iterator<Ptr, AllocTraits>& begin,
            construction.
  */
 template <typename Elem, typename Allocator = std::allocator<Elem>>
-class FlexRingBuf {
+class FlexRingBuf : public detail::BaseRingBuf<Elem,
+                                               Allocator,
+                                               FlexRingBuf<Elem, Allocator>> {
  public:
-  using allocator_type = Allocator;
-  using alloc_traits = std::allocator_traits<allocator_type>;
-  using value_type = Elem;
-  using pointer = typename alloc_traits::pointer;
-  using const_pointer = typename alloc_traits::const_pointer;
-  using reference = decltype(*pointer{});
-  using const_reference = decltype(*const_pointer{});
+  using Self = FlexRingBuf<Elem, Allocator>;
+  using Base = detail::BaseRingBuf<Elem, Allocator, Self>;
+
+  using typename Base::alloc_traits;
+  using typename Base::allocator_type;
+  using typename Base::const_pointer;
+  using typename Base::const_reference;
+  using typename Base::pointer;
+  using typename Base::reference;
+  using typename Base::value_type;
   using iterator = detail::flexible_ringbuf::Iterator<pointer, alloc_traits>;
   using const_iterator =
       detail::flexible_ringbuf::Iterator<const_pointer, alloc_traits>;
   using reverse_iterator = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-  using difference_type = typename alloc_traits::difference_type;
-  using size_type = typename alloc_traits::size_type;
-  using unsigned_difference =
-      typename std::make_unsigned<difference_type>::type;
-
-  using self = FlexRingBuf<Elem>;
+  using typename Base::difference_type;
+  using typename Base::size_type;
+  using typename Base::unsigned_difference;
 
  private:
   // The allocator is used to allocate memory, and to construct and destroy
@@ -425,8 +425,6 @@ class FlexRingBuf {
   iterator UnConstIterator(const_iterator it) const {
     return iterator(data_, capacity_, ring_offset_, it - begin());
   }
-
-  reference UncheckedAt(size_type index) { return (*this)[index]; }
 
  public:
   /**
@@ -588,26 +586,8 @@ class FlexRingBuf {
    */
   allocator_type get_allocator() const { return alloc_; }
 
-  /**
-   * Returns the first element in the ring buffer.
-   * @throws std::out_of_range The buffer is empty.
-   */
-  reference front() { return at(0); }
-  /**
-   * Returns the first element in the ring buffer.
-   * @throws std::out_of_range The buffer is empty.
-   */
-  const_reference front() const { return at(0); }
-  /**
-   * Returns he last element in the ring buffer.
-   * @throws std::out_of_range The buffer is empty.
-   */
-  reference back() { return at(size() - 1); }
-  /**
-   * Returns he last element in the ring buffer.
-   * @throws std::out_of_range The buffer is empty.
-   */
-  const_reference back() const { return at(size() - 1); }
+  using Base::front;
+  using Base::back;
 
   /**
    * Retrieve an element from the ring buffer without range checking.
@@ -633,34 +613,8 @@ class FlexRingBuf {
     return data_[detail::flexible_ringbuf::RingWrap(capacity_,
                                                     ring_offset_ + index)];
   }
-  /**
-   * Retrieve an element from the ring buffer with range checking.
-   *
-   * @param index The logical index into the ring buffer. Must be in range
-   *              [0, size()).
-   * @returns A const reference to the element.
-   * @throw std::out_of_range The index is out of range.
-   */
-  const_reference at(const size_type index) const {
-    if (index >= size()) {
-      throw std::out_of_range("FlexRingBuf::at: index >= Size");
-    }
-    return (*this)[index];
-  }
-  /**
-   * Retrieve an element from the ring buffer with range checking.
-   *
-   * @param index The logical index into the ring buffer. Must be in range
-   *              [0, size()).
-   * @returns A reference to the element.
-   * @throws std::out_of_range The index is out of range.
-   */
-  reference at(const size_type index) {
-    if (index >= size()) {
-      throw std::out_of_range("FlexRingBuf::at: index >= Size");
-    }
-    return (*this)[index];
-  }
+
+  using Base::at;
 
   /**
    * Get an iterator pointing to the first element.
@@ -689,15 +643,11 @@ class FlexRingBuf {
   /**
    * Get a const iterator pointing to the first element.
    */
-  const_iterator cbegin() const noexcept {
-    return const_cast<self const&>(*this).begin();
-  }
+  const_iterator cbegin() const noexcept { return begin(); }
   /**
    * Get a const iterator pointing to one past the last element.
    */
-  const_iterator cend() const noexcept {
-    return const_cast<self const&>(*this).end();
-  }
+  const_iterator cend() const noexcept { return end(); }
   /**
    * Get a reverse iterator pointing to the last element.
    */
@@ -721,20 +671,14 @@ class FlexRingBuf {
   /**
    * Get a const reverse iterator pointing to the last element.
    */
-  const_reverse_iterator crbegin() const noexcept {
-    return const_cast<self const&>(*this).rbegin();
-  }
+  const_reverse_iterator crbegin() const noexcept { return rbegin(); }
   /**
    * Get a const reverse iterator pointing to one before the first element.
    */
-  const_reverse_iterator crend() const noexcept {
-    return const_cast<self const&>(*this).rend();
-  }
+  const_reverse_iterator crend() const noexcept { return rend(); }
 
-  /**
-   * Get whether the ring buffer is empty (size() == 0)
-   */
-  bool empty() const noexcept { return size() == 0; }
+  using Base::empty;
+
   /**
    * Get the number of elements in the ring buffer.
    */
@@ -744,20 +688,8 @@ class FlexRingBuf {
    */
   constexpr size_type max_size() const noexcept { return capacity_; }
 
-  /**
-   * Push a new element at the front of the ring buffer, popping the back if
-   * necessary.
-   *
-   * @param value The value to copy into the ring buffer.
-   */
-  void push_front(const_reference value) { emplace_front(value); }
-  /**
-   * Push a new element at the front of the ring buffer, popping the back if
-   * necessary.
-   *
-   * @param value The value to move into the ring buffer.
-   */
-  void push_front(value_type&& value) { emplace_front(std::move(value)); }
+  using Base::push_front;
+
   /**
    * Construct a new element in-place before the front of the ring buffer,
    * popping the back if necessary.
@@ -769,7 +701,7 @@ class FlexRingBuf {
   reference emplace_front(Args&&... args) {
     if (max_size() == 0) {
       // A buffer of size zero is conceptually sound, so let's support it.
-      return UncheckedAt(0);
+      return Base::UncheckedAt(0);
     }
 
     alloc_traits::construct(alloc_, &data_[Decrement(ring_offset_)],
@@ -780,21 +712,11 @@ class FlexRingBuf {
       pop_back();
     }
     GrowFront();
-    return UncheckedAt(0);
+    return Base::UncheckedAt(0);
   }
 
-  /**
-   * Push a new element into the ring buffer, popping the front if necessary.
-   *
-   * @param value The value to copy into the ring buffer.
-   */
-  void push_back(const_reference value) { emplace_back(value); }
-  /**
-   * Push a new element into the ring buffer, popping the front if necessary.
-   *
-   * @param value The value to move into the ring buffer.
-   */
-  void push_back(value_type&& value) { emplace_back(std::move(value)); }
+  using Base::push_back;
+
   /**
    * Construct a new element in-place at the end of the ring buffer, popping the
    * front if necessary.
@@ -806,7 +728,7 @@ class FlexRingBuf {
   reference emplace_back(Args&&... args) {
     if (max_size() == 0) {
       // A buffer of size zero is conceptually sound, so let's support it.
-      return UncheckedAt(0);
+      return Base::UncheckedAt(0);
     }
 
     alloc_traits::construct(alloc_, &data_[next_], std::forward<Args>(args)...);
@@ -816,7 +738,7 @@ class FlexRingBuf {
       pop_front();
     }
     GrowBack();
-    return UncheckedAt(size() - 1);
+    return Base::UncheckedAt(size() - 1);
   }
 
   /**
@@ -843,19 +765,8 @@ class FlexRingBuf {
     ShrinkBack();
     alloc_traits::destroy(alloc_, &data_[next_]);
   }
-  /**
-   * Remove all elements from the ring buffer, destroying each one starting at
-   * the front.
-   *
-   * After clear(), size() == 0.
-   */
-  void clear() noexcept(noexcept(pop_front())) {
-    // It might be fractionally more efficient to iterate through begin..end and
-    // allocator::destroy each one, but this is a lot nicer to read.
-    while (!empty()) {
-      pop_front();
-    }
-  }
+
+  using Base::clear;
 
   /**
    * Erase elements in the range [first, last).
@@ -915,60 +826,6 @@ class FlexRingBuf {
   void swap(FlexRingBuf& other) noexcept {
     detail::flexible_ringbuf::SwapAllocator(alloc_, other.alloc_);
     Swap(other);
-  }
-
-  /**
-   * Elementwise lexicographical comparison of two ring buffers.
-   *
-   * @returns True if the left-hand side compares as less than the right.
-   */
-  friend bool operator<(const FlexRingBuf& lhs, const FlexRingBuf& rhs) {
-    return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(),
-                                        rhs.end());
-  }
-  /**
-   * Elementwise lexicographical comparison of two ring buffers.
-   *
-   * @returns True if the left-hand side compares as more than the right.
-   */
-  friend bool operator>(const FlexRingBuf& lhs, const FlexRingBuf& rhs) {
-    return rhs < lhs;
-  }
-  /**
-   * Elementwise comparison of two ring buffers.
-   *
-   * @returns True if @c lhs is equal to @c rhs.
-   */
-  friend bool operator==(const FlexRingBuf& lhs, const FlexRingBuf& rhs) {
-    if (lhs.size() != rhs.size()) {
-      return false;
-    }
-
-    return std::equal(lhs.begin(), lhs.end(), rhs.begin());
-  }
-  /**
-   * Elementwise comparison of two ring buffers.
-   *
-   * @returns True if @c lhs is greater than or equal to @c rhs.
-   */
-  friend bool operator>=(const FlexRingBuf& lhs, const FlexRingBuf& rhs) {
-    return !(lhs < rhs);
-  }
-  /**
-   * Elementwise comparison of two ring buffers.
-   *
-   * @returns True if @c lhs is less than or equal to @c rhs.
-   */
-  friend bool operator<=(const FlexRingBuf& lhs, const FlexRingBuf& rhs) {
-    return !(lhs > rhs);
-  }
-  /**
-   * Elementwise comparison of two ring buffers.
-   *
-   * @returns True if @c lhs is not equal to @c rhs.
-   */
-  friend bool operator!=(const FlexRingBuf& lhs, const FlexRingBuf& rhs) {
-    return !(lhs == rhs);
   }
 };
 
