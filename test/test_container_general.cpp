@@ -58,9 +58,11 @@ TYPED_TEST(ContainerReqsGeneral, TypeAliases) {
   EXPECT_TYPE_EQ(difference_type, typename const_iterator::difference_type);
 
   using size_type = typename TypeParam::size_type;
+  using unsigned_difference_type =
+      typename std::make_unsigned<difference_type>::type;
   EXPECT_TRUE(std::is_unsigned<size_type>::value);
   EXPECT_TRUE(std::numeric_limits<size_type>::max() >=
-              std::numeric_limits<difference_type>::max());
+              std::numeric_limits<unsigned_difference_type>::max());
 }
 
 TYPED_TEST(ContainerReqsGeneral, DefaultInitialized) {

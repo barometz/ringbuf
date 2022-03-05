@@ -224,7 +224,8 @@ TYPED_TEST(ContainerSequence, At) {
   EXPECT_EQ(underTest.at(1), 555);
 
   EXPECT_THROW(underTest.at(5), std::out_of_range);
-  EXPECT_THROW(underTest.at(-1), std::out_of_range);
+  EXPECT_THROW(underTest.at(static_cast<typename TypeParam::size_type>(-1)),
+               std::out_of_range);
 }
 
 TYPED_TEST(ContainerSequence, AtConstEmpty) {
