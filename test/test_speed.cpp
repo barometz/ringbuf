@@ -58,7 +58,7 @@ TEST(Speed, PushBackToFull) {
   std::cout << "DequeRingBuf: " << dequeDuration << std::endl;
 }
 
-TEST(Speed, PushBackOverFull) {
+TEST(Speed, PushBackOverFullTrivial) {
   baudvine::RingBuf<uint64_t, 3> standard;
   baudvine::DequeRingBuf<uint64_t, 3> deque;
 
@@ -71,6 +71,27 @@ TEST(Speed, PushBackOverFull) {
   auto dequeDuration = TimeIt([&deque] {
     for (uint32_t i = 0; i < kTestSize; i++) {
       deque.push_back(0);
+    }
+  });
+
+  EXPECT_LT(standardDuration, dequeDuration);
+  std::cout << "RingBuf:      " << standardDuration << std::endl;
+  std::cout << "DequeRingBuf: " << dequeDuration << std::endl;
+}
+
+TEST(Speed, PushBackOverFullString) {
+  baudvine::RingBuf<std::string, 3> standard;
+  baudvine::DequeRingBuf<std::string, 3> deque;
+
+  auto standardDuration = TimeIt([&standard] {
+    for (uint32_t i = 0; i < kTestSize; i++) {
+      standard.push_back({});
+    }
+  });
+
+  auto dequeDuration = TimeIt([&deque] {
+    for (uint32_t i = 0; i < kTestSize; i++) {
+      deque.push_back({});
     }
   });
 
