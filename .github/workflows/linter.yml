@@ -24,6 +24,7 @@ jobs:
         cmake -B ${{github.workspace}}/build
         -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        -DCMAKE_CXX_STANDARD=11
 
     - name: Run clang-tidy
       run: >

@@ -1,4 +1,5 @@
 #include "ringbuf_adapter.h"
+#include "ringbufs.h"
 
 #include <gtest/gtest.h>
 
@@ -11,8 +12,8 @@ class IteratorRando : public testing::Test {
  protected:
   void SetUp() override {
     // Add some extra so end() is before begin() in the backing storage
-    const int count = ringbuf_.max_size() + 3;
-    for (int i = 0; i < count; i++) {
+    const size_t count = ringbuf_.max_size() + 3;
+    for (uint16_t i = 0; i < count; i++) {
       ringbuf_.push_back(i);
     }
     a_ = ringbuf_.begin();
@@ -29,8 +30,7 @@ class IteratorRando : public testing::Test {
   D n_;
 };
 
-using RingBufs =
-    testing::Types<baudvine::RingBuf<int, 4>, baudvine::DequeRingBuf<int, 4>>;
+using RingBufs = AllRingBufs<int, 4>;
 // NOLINTNEXTLINE - clang-tidy complains about missing variadic args
 TYPED_TEST_SUITE(IteratorRando, RingBufs);
 

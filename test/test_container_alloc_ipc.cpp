@@ -1,14 +1,15 @@
 #ifdef BAUDVINE_HAVE_BOOST_IPC
-#include "baudvine/ringbuf/deque_ringbuf.h"
-#include "baudvine/ringbuf/ringbuf.h"
-
 #include "at_exit.h"
+#include "ringbufs.h"
 
 #include <gmock/gmock-matchers.h>
 #include <gtest/gtest.h>
 
 #include <boost/interprocess/allocators/allocator.hpp>
+#include <boost/interprocess/containers/string.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
+
+#include <scoped_allocator>
 
 // Allocator tests using Boost's shared memory allocator.
 template <typename RingBuf>
@@ -20,15 +21,39 @@ template <typename T>
 using Allocator =
     ipc::allocator<T, ipc::managed_shared_memory::segment_manager>;
 
-// In a real application, std::string would also need that allocator so the
-// actual string ends up in shared memory as well - but the generated test names
-// are long enough as it is.
-using RingBufs = testing::Types<
-    baudvine::RingBuf<std::string, 2, Allocator<std::string>>,
-    baudvine::DequeRingBuf<std::string, 2, Allocator<std::string>>>;
+// In a real application, this would be
+// std::scoped_allocator<
+//  Allocator<ipc::basic_string<char, std::char_traits<char>, Allocator<char>>>,
+//  Allocator<char>>
+// so the string contents are also allocated in the shared memory. The generated
+// test names are long enough as it is.
+using RingBufs = AllRingBufs<std::string, 2, Allocator<std::string>>;
 
 // NOLINTNEXTLINE - clang-tidy complains about missing variadic args
 TYPED_TEST_SUITE(ContainerReqsAllocIpc, RingBufs);
+
+TEST(ContainerReqsAllocIpcScoped, Create) {
+  // one-off, demonstrate that it works with scoped_allocator.
+  // This does *not* work with std::string, but it's fine with (for example) a
+  // vector<vector<int>>. For some reason you need boost's IPC string type to
+  // make this work.
+  using Elem = ipc::basic_string<char, std::char_traits<char>, Allocator<char>>;
+  using ScopedAllocator =
+      std::scoped_allocator_adaptor<Allocator<Elem>, Allocator<int>>;
+  using RingBuf = baudvine::RingBuf<Elem, 4, ScopedAllocator>;
+
+  std::string name = std::string("Ipc-Scoped");
+  ipc::shared_memory_object::remove(name.c_str());
+  AtExit remove_shmem([&] { ipc::shared_memory_object::remove(name.c_str()); });
+  ipc::managed_shared_memory shm(ipc::create_only, name.c_str(), 1024);
+
+  RingBuf buffer(
+      ScopedAllocator(shm.get_segment_manager(), shm.get_segment_manager()));
+  EXPECT_EQ(buffer.emplace_back("Jaffa"), "Jaffa");
+  EXPECT_EQ(buffer.emplace_back("Kree"), "Kree");
+  EXPECT_EQ(buffer[0].get_allocator().get_segment_manager(),
+            shm.get_segment_manager());
+}
 
 TYPED_TEST(ContainerReqsAllocIpc, Create) {
   std::string name = std::string("Ipc-") + typeid(TypeParam).name();

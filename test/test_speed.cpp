@@ -24,7 +24,7 @@ std::chrono::system_clock::duration TimeIt(const std::function<void()>& fn) {
   const auto start = std::chrono::system_clock::now();
   fn();
   return std::chrono::system_clock::now() - start;
-};
+}
 }  // namespace
 
 TEST(Speed, PushBackToFull) {
