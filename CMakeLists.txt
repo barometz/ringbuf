@@ -22,7 +22,7 @@ endif ()
 # Install configuration
 set_target_properties(baudvine-ringbuf
         PROPERTIES
-        PUBLIC_HEADER include/baudvine/ringbuf/ringbuf.h
+        PUBLIC_HEADER include/baudvine/ringbuf.h
         )
 include(GNUInstallDirs)
 install(

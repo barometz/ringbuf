@@ -1,7 +1,7 @@
 #pragma once
 
-#include "baudvine/ringbuf/deque_ringbuf.h"
-#include "baudvine/ringbuf/ringbuf.h"
+#include "baudvine/deque_ringbuf.h"
+#include "baudvine/ringbuf.h"
 
 // Adapt any ringbuf type T<U, S> to T<Elem, Capacity>. This way the test can be
 // parametrized with T<int, 2> but individual tests can change the element type

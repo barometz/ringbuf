@@ -45,7 +45,7 @@ since all the hairy math and allocation happens in the standard library.
 ### Using
 
 ```c++
-#include <baudvine/ringbuf/ringbuf.h>
+#include <baudvine/ringbuf.h>
 
 void demo()
 {
@@ -66,7 +66,7 @@ standard library container.
 
 ### Building
 The project is header-only, so you only have to copy
-`include/baudvine/ringbuf/ringbuf.h` into your project. You should also be able
+`include/baudvine/ringbuf.h` into your project. You should also be able
 to include it as a CMake subproject, but that's untested.
 
 To build and run the tests, install [CMake](https://cmake.org/), then run:

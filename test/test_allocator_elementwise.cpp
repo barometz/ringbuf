@@ -1,6 +1,4 @@
 #ifdef BAUDVINE_HAVE_BOOST_IPC
-#include "baudvine/ringbuf/deque_ringbuf.h"
-#include "baudvine/ringbuf/ringbuf.h"
 
 #include "at_exit.h"
 #include "instance_counter.h"

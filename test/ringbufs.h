@@ -1,7 +1,7 @@
 #pragma once
 
-#include <baudvine/ringbuf/deque_ringbuf.h>
-#include <baudvine/ringbuf/ringbuf.h>
+#include "baudvine/deque_ringbuf.h"
+#include "baudvine/ringbuf.h"
 
 #include <gtest/gtest.h>
 #include <gtest/internal/gtest-type-util.h>

@@ -1,4 +1,4 @@
-#include <baudvine/ringbuf/ringbuf.h>
+#include "baudvine/ringbuf.h"
 
 #include <gmock/gmock-matchers.h>
 #include <gtest/gtest.h>
