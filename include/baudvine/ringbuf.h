@@ -79,13 +79,17 @@ constexpr std::size_t RingWrap(const std::size_t ring_index) {
  *                  buffer.
  */
 template <typename Ptr, typename AllocTraits, std::size_t Capacity>
-class Iterator {
+class Iterator : public BaseIterator<Ptr,
+                                     AllocTraits,
+                                     Iterator<Ptr, AllocTraits, Capacity>> {
  public:
-  using difference_type = typename AllocTraits::difference_type;
-  using size_type = typename AllocTraits::difference_type;
-  using value_type = typename AllocTraits::value_type;
-  using pointer = Ptr;
-  using reference = decltype(*pointer{});
+  // TODO: see if Self is still necessary in RingBuf
+  using Base = BaseIterator<Ptr, AllocTraits, Iterator>;
+  using typename Base::difference_type;
+  using typename Base::pointer;
+  using typename Base::reference;
+  using typename Base::size_type;
+  using typename Base::value_type;
   using iterator_category = std::random_access_iterator_tag;
 
   constexpr Iterator() noexcept = default;
@@ -118,24 +122,16 @@ class Iterator {
     return data_[RingWrap<Capacity>(ring_offset_ + ring_index_)];
   }
 
-  pointer operator->() const noexcept { return &**this; }
+  using Base::operator->;
+  using Base::operator++;
 
-  Iterator operator++(int) noexcept {
-    Iterator copy(*this);
-    operator++();
-    return copy;
-  }
-
+  // TODO: minimal doc comments
   Iterator& operator++() noexcept {
     ++ring_index_;
     return *this;
   }
 
-  Iterator operator--(int) noexcept {
-    Iterator copy(*this);
-    operator--();
-    return copy;
-  }
+  using Base::operator--;
 
   Iterator& operator--() noexcept {
     --ring_index_;
@@ -169,35 +165,11 @@ class Iterator {
                : -(rhs.ring_index_ - lhs.ring_index_);
   }
 
-  friend Iterator operator+(difference_type lhs, const Iterator& rhs) noexcept {
-    return rhs + lhs;
-  }
-
   friend bool operator<(const Iterator& lhs, const Iterator& rhs) noexcept {
     // Comparison via std::tie uses std::tuple::operator<, which compares its
     // elements lexicographically.
     return std::tie(lhs.data_, lhs.ring_offset_, lhs.ring_index_) <
            std::tie(rhs.data_, rhs.ring_offset_, rhs.ring_index_);
-  }
-
-  friend bool operator>(const Iterator& lhs, const Iterator& rhs) noexcept {
-    return rhs < lhs;
-  }
-
-  friend bool operator<=(const Iterator& lhs, const Iterator& rhs) noexcept {
-    return !(rhs < lhs);
-  }
-
-  friend bool operator>=(const Iterator& lhs, const Iterator& rhs) noexcept {
-    return !(lhs < rhs);
-  }
-
-  friend bool operator==(const Iterator& lhs, const Iterator& rhs) noexcept {
-    return &*lhs == &*rhs;
-  }
-
-  friend bool operator!=(const Iterator& lhs, const Iterator& rhs) noexcept {
-    return !(lhs == rhs);
   }
 
   template <typename P, typename A, std::size_t C, typename OutputIt>

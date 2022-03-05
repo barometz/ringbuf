@@ -98,6 +98,59 @@ void CopyAllocator(Allocator& lhs, const Allocator& rhs) {
   CopyAllocator(lhs, rhs, Propagate{});
 }
 
+template <typename Ptr, typename AllocTraits, typename Iterator>
+class BaseIterator {
+ protected:
+  using difference_type = typename AllocTraits::difference_type;
+  using size_type = typename AllocTraits::difference_type;
+  using value_type = typename AllocTraits::value_type;
+  using pointer = Ptr;
+  using reference = decltype(*pointer{});
+
+  Iterator* Impl() noexcept { return static_cast<Iterator*>(this); }
+  const Iterator* Impl() const noexcept {
+    return static_cast<const Iterator*>(this);
+  }
+
+  pointer operator->() const noexcept { return &**Impl(); }
+
+  Iterator operator++(int) noexcept {
+    Iterator copy(*Impl());
+    ++(*Impl());
+    return copy;
+  }
+
+  Iterator operator--(int) noexcept {
+    Iterator copy(*this);
+    ++(*Impl());
+    return copy;
+  }
+
+  friend Iterator operator+(difference_type lhs, const Iterator& rhs) noexcept {
+    return rhs + lhs;
+  }
+
+  friend bool operator>(const Iterator& lhs, const Iterator& rhs) noexcept {
+    return rhs < lhs;
+  }
+
+  friend bool operator<=(const Iterator& lhs, const Iterator& rhs) noexcept {
+    return !(rhs < lhs);
+  }
+
+  friend bool operator>=(const Iterator& lhs, const Iterator& rhs) noexcept {
+    return !(lhs < rhs);
+  }
+
+  friend bool operator==(const Iterator& lhs, const Iterator& rhs) noexcept {
+    return &*lhs == &*rhs;
+  }
+
+  friend bool operator!=(const Iterator& lhs, const Iterator& rhs) noexcept {
+    return !(lhs == rhs);
+  }
+};
+
 template <typename Elem, typename Allocator, typename RingBuf>
 class BaseRingBuf {
  protected:

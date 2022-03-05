@@ -79,13 +79,15 @@ constexpr std::size_t RingWrap(const std::size_t capacity,
  *                  buffer.
  */
 template <typename Ptr, typename AllocTraits>
-class Iterator {
+class Iterator
+    : public BaseIterator<Ptr, AllocTraits, Iterator<Ptr, AllocTraits>> {
  public:
-  using difference_type = typename AllocTraits::difference_type;
-  using size_type = typename AllocTraits::difference_type;
-  using value_type = typename AllocTraits::value_type;
-  using pointer = Ptr;
-  using reference = decltype(*pointer{});
+  using Base = BaseIterator<Ptr, AllocTraits, Iterator>;
+  using typename Base::difference_type;
+  using typename Base::pointer;
+  using typename Base::reference;
+  using typename Base::size_type;
+  using typename Base::value_type;
   using iterator_category = std::random_access_iterator_tag;
 
   constexpr Iterator() noexcept = default;
@@ -120,24 +122,15 @@ class Iterator {
     return data_[RingWrap(capacity_, ring_offset_ + ring_index_)];
   }
 
-  pointer operator->() const noexcept { return &**this; }
-
-  Iterator operator++(int) noexcept {
-    Iterator copy(*this);
-    operator++();
-    return copy;
-  }
+  using Base::operator->;
+  using Base::operator++;
 
   Iterator& operator++() noexcept {
     ++ring_index_;
     return *this;
   }
 
-  Iterator operator--(int) noexcept {
-    Iterator copy(*this);
-    operator--();
-    return copy;
-  }
+  using Base::operator--;
 
   Iterator& operator--() noexcept {
     --ring_index_;
@@ -171,36 +164,12 @@ class Iterator {
                : -(rhs.ring_index_ - lhs.ring_index_);
   }
 
-  friend Iterator operator+(difference_type lhs, const Iterator& rhs) noexcept {
-    return rhs + lhs;
-  }
-
   friend bool operator<(const Iterator& lhs, const Iterator& rhs) noexcept {
     // Comparison via std::tie uses std::tuple::operator<, which compares its
     // elements lexicographically.
     // TODO: capacity
     return std::tie(lhs.data_, lhs.ring_offset_, lhs.ring_index_) <
            std::tie(rhs.data_, rhs.ring_offset_, rhs.ring_index_);
-  }
-
-  friend bool operator>(const Iterator& lhs, const Iterator& rhs) noexcept {
-    return rhs < lhs;
-  }
-
-  friend bool operator<=(const Iterator& lhs, const Iterator& rhs) noexcept {
-    return !(rhs < lhs);
-  }
-
-  friend bool operator>=(const Iterator& lhs, const Iterator& rhs) noexcept {
-    return !(lhs < rhs);
-  }
-
-  friend bool operator==(const Iterator& lhs, const Iterator& rhs) noexcept {
-    return &*lhs == &*rhs;
-  }
-
-  friend bool operator!=(const Iterator& lhs, const Iterator& rhs) noexcept {
-    return !(lhs == rhs);
   }
 
   template <typename P, typename A, typename OutputIt>
@@ -516,8 +485,8 @@ class FlexRingBuf : public detail::BaseRingBuf<Elem,
    */
   allocator_type get_allocator() const { return alloc_; }
 
-  using Base::front;
   using Base::back;
+  using Base::front;
 
   /**
    * Retrieve an element from the ring buffer without range checking.
@@ -779,7 +748,7 @@ class FlexRingBuf : public detail::BaseRingBuf<Elem,
  */
 template <typename Ptr,
           typename AllocTraits,
-          std::size_t capacity_, // TODO: fix this copy, or write generic impl
+          std::size_t capacity_,  // TODO: fix this copy, or write generic impl
           typename OutputIt>
 OutputIt copy(const detail::flexible_ringbuf::Iterator<Ptr, AllocTraits>& begin,
               const detail::flexible_ringbuf::Iterator<Ptr, AllocTraits>& end,
