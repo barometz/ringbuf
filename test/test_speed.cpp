@@ -166,9 +166,8 @@ TEST(Speed, Copy) {
     baudvine::copy(flex.begin(), flex.end(), copy.begin());
   });
 
-  auto standardTime = TimeIt([&fixed, &copy] {
-    std::copy(fixed.begin(), fixed.end(), copy.begin());
-  });
+  auto standardTime = TimeIt(
+      [&fixed, &copy] { std::copy(fixed.begin(), fixed.end(), copy.begin()); });
 
   EXPECT_LT(customTime, standardTime);
   std::cout << "baudvine::copy (fixed): " << customTime << std::endl;

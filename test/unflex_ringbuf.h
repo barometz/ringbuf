@@ -30,11 +30,11 @@ class UnFlexRingBuf : public baudvine::FlexRingBuf<Elem, Allocator> {
   UnFlexRingBuf(const UnFlexRingBuf& other) : Base(other) {}
   UnFlexRingBuf(const UnFlexRingBuf& other, const allocator_type& allocator)
       : Base(other, allocator) {}
-  UnFlexRingBuf(UnFlexRingBuf&& other) : Base(std::move(other)) {}
+  UnFlexRingBuf(UnFlexRingBuf&& other) noexcept : Base(std::move(other)) {}
   UnFlexRingBuf(UnFlexRingBuf&& other, const allocator_type& allocator)
       : Base(std::move(other), allocator) {}
 
-  UnFlexRingBuf& operator=(UnFlexRingBuf&& other) {
+  UnFlexRingBuf& operator=(UnFlexRingBuf&& other) noexcept {
     // TODO: resize
     static_cast<Base&>(*this) = std::move(static_cast<Base&>(other));
     return *this;

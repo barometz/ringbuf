@@ -16,5 +16,5 @@ using AllRingBufs = testing::Types<baudvine::RingBuf<T, N, Alloc>,
 
 // All completely local implementations.
 template <typename T, size_t N, typename Alloc = std::allocator<T>>
-using OurRingBufs = testing::Types<baudvine::RingBuf<T, N, Alloc>,
-                                   UnFlexRingBuf<T, N, Alloc>>;
+using OurRingBufs =
+    testing::Types<baudvine::RingBuf<T, N, Alloc>, UnFlexRingBuf<T, N, Alloc>>;
