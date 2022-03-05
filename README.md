@@ -109,6 +109,8 @@ What won't it do?
 
 - Don't want to bother with optional features based on C++ version. Strictly C++11.
 - Runtime checks are limited to the occasional `assert`.
+- Doesn't have `insert()` or range constructors (`RingBuf(other.begin(), other.end())`),
+  because that'd require choosing what to discard in case of overflow.
 
 ### MAYBE TODO
 
