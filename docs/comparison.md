@@ -1,9 +1,6 @@
 # Comparison to other implementations
 
-This is limited to implementations with similar STL-compatibility goals, since
-that restricts the design a bunch.
-
-## boost::circular_buffer
+## [boost::circular_buffer](https://www.boost.org/doc/libs/1_78_0/doc/html/circular_buffer.html)
 
 Boost's Circular Buffer library is a header-only ring buffer with continuous
 backing storage.
@@ -31,3 +28,15 @@ An adapter around the plain `circular_buffer` with one extra feature: it only
 allocates what it needs right now, much like `std::vector` does. If its capacity
 is 100 but there are only 2 elements, it probably has 2 elements' worth of
 memory allocated.
+
+## [boost::lockfree::spsc_queue](https://www.boost.org/doc/libs/1_78_0/doc/html/lockfree.html)
+
+A lock-free implementation of a single-producer, single-consumer queue with
+circular-buffer-like behaviour. This not an STL-style container - it only has
+`push()`, `pop()`, and `reset()`, and no notion of an iterator. Which makes
+sense, because anything more doesn't really gel with the lock-free feature.
+
+If you have a single producer and a single consumer, and don't need it to play
+nice with `<algorithm>`, this is probably a pretty good bet. It does use the
+circular buffer concept a little differently: `push()` onto a full queue has no
+effect. It also doesn't have vector-like element lifetimes.
