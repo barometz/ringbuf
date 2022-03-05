@@ -27,6 +27,77 @@
 
 namespace baudvine {
 namespace detail {
+// TODO: move these into ringbuf ns
+/** @private */
+template <typename Allocator>
+void MoveAllocator(Allocator& lhs,
+                   Allocator& rhs,
+                   std::true_type /*propagate*/) {
+  // Swap instead of move-assign because data_ & co are also swapped, and the
+  // moved-from ringbuf will need to be able to clean that up.
+  std::swap(lhs, rhs);
+}
+
+/** @private */
+template <typename Allocator>
+void MoveAllocator(Allocator& /*lhs*/,
+                   Allocator& /*rhs*/,
+                   std::false_type /*propagate*/) noexcept {}
+
+/** @private */
+template <typename Allocator>
+void MoveAllocator(Allocator& lhs, Allocator& rhs) {
+  using AllocTraits = std::allocator_traits<Allocator>;
+  using Propagate =
+      typename AllocTraits::propagate_on_container_move_assignment;
+  MoveAllocator(lhs, rhs, Propagate{});
+}
+
+/** @private */
+template <typename Allocator>
+void SwapAllocator(Allocator& lhs,
+                   Allocator& rhs,
+                   std::true_type /*propagate*/) {
+  std::swap(lhs, rhs);
+}
+
+/** @private */
+template <typename Allocator>
+void SwapAllocator(Allocator& /*lhs*/,
+                   Allocator& /*rhs*/,
+                   std::false_type /*propagate*/) {}
+
+/** @private */
+template <typename Allocator>
+void SwapAllocator(Allocator& lhs, Allocator& rhs) {
+  using AllocTraits = std::allocator_traits<Allocator>;
+  using Propagate = typename AllocTraits::propagate_on_container_swap;
+  SwapAllocator(lhs, rhs, Propagate{});
+}
+
+/** @private */
+template <typename Allocator>
+void CopyAllocator(Allocator& lhs,
+                   const Allocator& rhs,
+                   std::true_type /*propagate*/) {
+  lhs = rhs;
+}
+
+/** @private */
+template <typename Allocator>
+void CopyAllocator(Allocator& /*lhs*/,
+                   const Allocator& /*rhs*/,
+                   std::false_type /*propagate*/) {}
+
+/** @private */
+template <typename Allocator>
+void CopyAllocator(Allocator& lhs, const Allocator& rhs) {
+  using AllocTraits = std::allocator_traits<Allocator>;
+  using Propagate =
+      typename AllocTraits::propagate_on_container_copy_assignment;
+  CopyAllocator(lhs, rhs, Propagate{});
+}
+
 template <typename Elem, typename Allocator, typename RingBuf>
 class BaseRingBuf {
  protected:
