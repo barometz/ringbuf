@@ -213,7 +213,7 @@ TYPED_TEST(ContainerReqsGeneral, Size) {
 }
 
 TYPED_TEST(ContainerReqsGeneral, MaxSize) {
-  EXPECT_EQ(this->a_.max_size(), 2);
+  EXPECT_EQ(this->a_.max_size(), 2U);
 }
 
 TYPED_TEST(ContainerReqsGeneral, Empty) {
