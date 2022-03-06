@@ -174,10 +174,7 @@ class Iterator : public BaseIterator<Ptr,
   }
 
   friend bool operator<(const Iterator& lhs, const Iterator& rhs) noexcept {
-    // Comparison via std::tie uses std::tuple::operator<, which compares its
-    // elements lexicographically.
-    return std::tie(lhs.data_, lhs.ring_offset_, lhs.ring_index_) <
-           std::tie(rhs.data_, rhs.ring_offset_, rhs.ring_index_);
+    return lhs.ring_index_ < rhs.ring_index_;
   }
 
   template <typename P, typename A, std::size_t C, typename OutputIt>
