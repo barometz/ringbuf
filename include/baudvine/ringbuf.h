@@ -164,9 +164,13 @@ class Iterator : public BaseIterator<Ptr,
 
   friend difference_type operator-(const Iterator& lhs,
                                    const Iterator& rhs) noexcept {
-    return lhs.ring_index_ > rhs.ring_index_
-               ? lhs.ring_index_ - rhs.ring_index_
-               : -(rhs.ring_index_ - lhs.ring_index_);
+    if (lhs.ring_index_ > rhs.ring_index_) {
+      const difference_type distance = lhs.ring_index_ - rhs.ring_index_;
+      return distance;
+    } else {
+      const difference_type distance = rhs.ring_index_ - lhs.ring_index_;
+      return -distance;
+    }
   }
 
   friend bool operator<(const Iterator& lhs, const Iterator& rhs) noexcept {
