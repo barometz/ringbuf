@@ -18,4 +18,4 @@ TYPED_TEST(Iterator, OutOfBounds) {
   EXPECT_THROW(*(buffer.begin() - 1), std::runtime_error);
   EXPECT_THROW(*(buffer.end() + 1), std::runtime_error);
 }
-#endif // NDEBUG
+#endif  // NDEBUG
