@@ -127,39 +127,17 @@ class Iterator : public BaseIterator<Ptr,
   using Base::operator[];
   using Base::operator++;
   using Base::operator--;
-
-  /**
-   * Prefix increment.
-   */
-  Iterator& operator++() noexcept {
-    ++ring_index_;
-    return *this;
-  }
-
-  /**
-   * Prefix decrement.
-   */
-  Iterator& operator--() noexcept {
-    --ring_index_;
-    return *this;
-  }
+  using Base::operator-;
+  using Base::operator+;
 
   Iterator& operator+=(difference_type n) noexcept {
     ring_index_ += n;
     return *this;
   }
 
-  Iterator operator+(difference_type n) const noexcept {
-    return Iterator(data_, ring_offset_, ring_index_ + n);
-  }
-
   Iterator& operator-=(difference_type n) noexcept {
     ring_index_ -= n;
     return *this;
-  }
-
-  Iterator operator-(difference_type n) const noexcept {
-    return Iterator(data_, ring_offset_, ring_index_ - n);
   }
 
   friend difference_type operator-(const Iterator& lhs,

@@ -143,7 +143,7 @@ class BaseIterator {
    */
   Iterator operator++(int) noexcept {
     Iterator copy(*Impl());
-    ++*Impl();
+    *Impl() += 1;
     return copy;
   }
 
@@ -160,7 +160,19 @@ class BaseIterator {
    */
   Iterator operator--(int) noexcept {
     Iterator copy(*Impl());
-    --*Impl();
+    *Impl() -= 1;
+    return copy;
+  }
+
+  Iterator operator+(difference_type n) const noexcept {
+    Iterator copy(*Impl());
+    copy += n;
+    return copy;
+  }
+
+  Iterator operator-(difference_type n) const noexcept {
+    Iterator copy(*Impl());
+    copy -= n;
     return copy;
   }
 

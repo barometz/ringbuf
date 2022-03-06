@@ -128,23 +128,17 @@ class Iterator : public ringbuf::BaseIterator<Ptr,
   using Base::operator[];
   using Base::operator++;
   using Base::operator--;
+  using Base::operator-;
+  using Base::operator+;
 
   Iterator& operator+=(difference_type n) noexcept {
     ring_index_ += n;
     return *this;
   }
 
-  Iterator operator+(difference_type n) const noexcept {
-    return Iterator(data_, capacity_, ring_offset_, ring_index_ + n);
-  }
-
   Iterator& operator-=(difference_type n) noexcept {
     ring_index_ -= n;
     return *this;
-  }
-
-  Iterator operator-(difference_type n) const noexcept {
-    return Iterator(data_, capacity_, ring_offset_, ring_index_ - n);
   }
 
   friend difference_type operator-(const Iterator& lhs,
