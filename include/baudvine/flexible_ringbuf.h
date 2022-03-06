@@ -118,8 +118,6 @@ class Iterator : public ringbuf::BaseIterator<Ptr,
   }
 
   reference operator*() const {
-    static_assert(std::is_unsigned<decltype(ring_index_)>::value,
-                  "Expected ring_index_ to be unsigned.");
     BAUDVINE_RINGBUF_ASSERT(ring_index_ <= capacity_);
     return data_[RingWrap(capacity_, ring_offset_ + ring_index_)];
   }

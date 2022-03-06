@@ -30,11 +30,12 @@
 #ifdef NDEBUG
 #define BAUDVINE_RINGBUF_ASSERT(statement)
 #else
-#define BAUDVINE_RINGBUF_ASSERT(statement)                          \
-  do {                                                              \
-    if (!(statement)) {                                             \
-      throw std::runtime_error("Assertion " #statement " failed."); \
-    }                                                               \
+#define BAUDVINE_RINGBUF_ASSERT(statement)                                \
+  do {                                                                    \
+    if (!(statement)) {                                                   \
+      throw std::runtime_error("baudvine::ringbuf: assertion " #statement \
+                               " failed.");                               \
+    }                                                                     \
   } while (false)
 #endif  // NDEBUG
 
