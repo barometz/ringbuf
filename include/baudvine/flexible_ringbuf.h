@@ -189,7 +189,6 @@ OutputIt copy(const Iterator<Ptr, AllocTraits>& begin,
   if (begin == end) {
     // Empty range, pass
   } else if (&end[0] > &begin[0]) {
-    // TODO: all &*<iterator> should be &<iterator>[0]
     // Fully contiguous range.
     out = std::copy(&begin[0], &end[0], out);
   } else {
