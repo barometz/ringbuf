@@ -20,17 +20,20 @@ TYPED_TEST(RingBuf, Zero) {
   // just doesn't do anything useful. Consistency is king.
   auto underTest = RingBufAdapter<TypeParam, int, 0>();
 
-  EXPECT_EQ(underTest.max_size(), 0U);
+  if (std::is_same<TypeParam, baudvine::RingBuf<int, 0>>::value) {
+    EXPECT_EQ(underTest.max_size(), 0U);
+  }
+  EXPECT_EQ(underTest.capacity(), 0U);
   EXPECT_EQ(underTest.size(), 0U);
   EXPECT_NO_THROW(underTest.push_back(53));
   EXPECT_EQ(underTest.size(), 0U);
 }
 
 TYPED_TEST(RingBuf, Capacity) {
-  EXPECT_EQ((RingBufAdapter<TypeParam, char, 128>()).max_size(), 128U);
-  EXPECT_EQ((RingBufAdapter<TypeParam, int, 1>()).max_size(), 1U);
-  EXPECT_EQ((RingBufAdapter<TypeParam, int, 128>()).max_size(), 128U);
-  EXPECT_EQ((RingBufAdapter<TypeParam, int, 500>()).max_size(), 500U);
+  EXPECT_EQ((RingBufAdapter<TypeParam, char, 128>()).capacity(), 128U);
+  EXPECT_EQ((RingBufAdapter<TypeParam, int, 1>()).capacity(), 1U);
+  EXPECT_EQ((RingBufAdapter<TypeParam, int, 128>()).capacity(), 128U);
+  EXPECT_EQ((RingBufAdapter<TypeParam, int, 500>()).capacity(), 500U);
 }
 
 TYPED_TEST(RingBuf, Comparison) {

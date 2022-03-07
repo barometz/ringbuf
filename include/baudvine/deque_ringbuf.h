@@ -80,6 +80,7 @@ class DequeRingBuf {
   bool empty() const { return data_.empty(); }
   size_type size() const { return data_.size(); }
   constexpr size_type max_size() const { return Capacity; }
+  constexpr size_type capacity() const { return Capacity; }
 
   void clear() noexcept(noexcept(data_.clear())) { return data_.clear(); }
   iterator erase(const_iterator pos) noexcept(noexcept(data_.erase(pos))) {

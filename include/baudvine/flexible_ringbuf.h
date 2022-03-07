@@ -19,7 +19,7 @@
 // SOFTWARE.
 
 /**
- * @file ringbuf.h
+ * @file flexible_ringbuf.h
  * @copyright MIT License
  *
  * A ring buffer for C++11, with an STL-like interface.
@@ -27,12 +27,12 @@
  * The comments frequently refer to "physical" and "logical" indices. This is
  * meant to make explicit the distinction between:
  *
- * - The backing array of RingBuf, which is always of size Capacity + 1 and is
- *   allocated once during RingBuf construction. Physical indices are relative
- *   to the start of this array.
+ * - The backing array of FlexRingBuf, which is always of size capacity_ + 1 and
+ * is allocated once during FlexRingBuf construction. Physical indices are
+ * relative to the start of this array.
  * - The conceptual ring buffer, which moves around in the backing array and has
  *   a variable length. Logical indices are relative to its start
- *   ("ring_offset"), and ring_offset + index may exceed Capacity (before
+ *   ("ring_offset"), and ring_offset + index may exceed capacity_ (before
  *   wrapping).
  */
 
@@ -42,46 +42,46 @@
 
 #include <cstddef>
 #include <iterator>
+#include <limits>
 #include <tuple>
 
 /** The baudvine "project". */
 namespace baudvine {
 namespace detail {
-namespace ringbuf {
-
+namespace flexible_ringbuf {
 /**
- * Wrap a physical position into an array of size Capacity.
+ * Wrap a physical position into an array of size capacity_.
  *
- * Precondition: ring_index < 2 * Capacity + 1.
+ * Precondition: ring_index < 2 * capacity_ + 1.
  *
- * @tparam Capacity The backing array size.
+ * @param capacity The backing array size.
  * @param ring_index The physical index into the backing array.
- * @returns The ring_index wrapped to [0..Capacity].
+ * @returns The ring_index wrapped to [0..capacity_].
  * @private
  */
-template <std::size_t Capacity>
-constexpr std::size_t RingWrap(const std::size_t ring_index) {
-  // This is a bit faster than `return ring_index % Capacity` (~40% reduction in
-  // Speed.PushBackOverFull test)
-  return (ring_index <= Capacity) ? ring_index : ring_index - Capacity - 1;
+constexpr std::size_t RingWrap(const std::size_t capacity,
+                               const std::size_t ring_index) {
+  // This is a bit faster than `return ring_index % capacity_` (~40% reduction
+  // in Speed.PushBackOverFull test)
+  return (ring_index <= capacity) ? ring_index : ring_index - capacity - 1;
 }
 
 /**
- * An iterator into RingBuf.
+ * An iterator into FlexRingBuf.
  *
  * @tparam Ptr The pointer type, which determines constness.
  * @tparam AllocTraits The allocator traits for the container, used for
  *                     size/difference_type and const_pointer (for auto
  *                     conversion to const iterator).
- * @tparam Capacity The size of the backing array, and maximum size of the ring
+ * @tparam capacity_ The size of the backing array, and maximum size of the ring
  *                  buffer.
  */
-template <typename Ptr, typename AllocTraits, std::size_t Capacity>
-class Iterator : public BaseIterator<Ptr,
-                                     AllocTraits,
-                                     Iterator<Ptr, AllocTraits, Capacity>> {
+template <typename Ptr, typename AllocTraits>
+class Iterator : public ringbuf::BaseIterator<Ptr,
+                                              AllocTraits,
+                                              Iterator<Ptr, AllocTraits>> {
  public:
-  using Base = BaseIterator<Ptr, AllocTraits, Iterator>;
+  using Base = ringbuf::BaseIterator<Ptr, AllocTraits, Iterator>;
   using typename Base::difference_type;
   using typename Base::pointer;
   using typename Base::reference;
@@ -93,31 +93,33 @@ class Iterator : public BaseIterator<Ptr,
   /**
    * Construct a new iterator object.
    *
-   * @param data Pointer to the start of the RingBuf's backing array.
+   * @param data Pointer to the start of the FlexRingBuf's backing array.
    * @param ring_offset Physical index of the start of the ring buffer.
    * @param ring_index Logical index in the ring buffer: when the iterator is at
    *                   ring_offset, ring_index is 0.
    */
   Iterator(pointer data,
+           const size_type capacity,
            const size_type ring_offset,
            const size_type ring_index)
-      : data_(data), ring_offset_(ring_offset), ring_index_(ring_index) {}
+      : data_(data),
+        capacity_{capacity},
+        ring_offset_(ring_offset),
+        ring_index_(ring_index) {}
 
   /**
    * Convert an iterator into a const iterator.
    *
    * @returns A const iterator pointing to the same place.
    */
-  operator Iterator<typename AllocTraits::const_pointer,
-                    AllocTraits,
-                    Capacity>() const {
-    return Iterator<typename AllocTraits::const_pointer, AllocTraits, Capacity>(
-        data_, ring_offset_, ring_index_);
+  operator Iterator<typename AllocTraits::const_pointer, AllocTraits>() const {
+    return Iterator<typename AllocTraits::const_pointer, AllocTraits>(
+        data_, capacity_, ring_offset_, ring_index_);
   }
 
   reference operator*() const {
-    BAUDVINE_RINGBUF_ASSERT(ring_index_ <= Capacity);
-    return data_[RingWrap<Capacity>(ring_offset_ + ring_index_)];
+    BAUDVINE_RINGBUF_ASSERT(ring_index_ <= capacity_);
+    return data_[RingWrap(capacity_, ring_offset_ + ring_index_)];
   }
 
   using Base::operator->;
@@ -154,11 +156,11 @@ class Iterator : public BaseIterator<Ptr,
     return lhs.ring_index_ < rhs.ring_index_;
   }
 
-  template <typename P, typename A, std::size_t C, typename OutputIt>
+  template <typename P, typename A, typename OutputIt>
   // https://github.com/llvm/llvm-project/issues/47430
   // NOLINTNEXTLINE(readability-redundant-declaration)
-  friend OutputIt copy(const Iterator<P, A, C>& begin,
-                       const Iterator<P, A, C>& end,
+  friend OutputIt copy(const Iterator<P, A>& begin,
+                       const Iterator<P, A>& end,
                        OutputIt out);
 
  private:
@@ -168,6 +170,8 @@ class Iterator : public BaseIterator<Ptr,
   // algorithmically, but it makes it much easier to express iterator-mutating
   // operations.
 
+  // Maximum number of elements in the container.
+  size_type capacity_{};
   // Physical index of begin().
   size_type ring_offset_{};
   // Logical index of this iterator.
@@ -178,12 +182,9 @@ class Iterator : public BaseIterator<Ptr,
  * @see baudvine::copy
  * @private
  */
-template <typename Ptr,
-          typename AllocTraits,
-          std::size_t Capacity,
-          typename OutputIt>
-OutputIt copy(const Iterator<Ptr, AllocTraits, Capacity>& begin,
-              const Iterator<Ptr, AllocTraits, Capacity>& end,
+template <typename Ptr, typename AllocTraits, typename OutputIt>
+OutputIt copy(const Iterator<Ptr, AllocTraits>& begin,
+              const Iterator<Ptr, AllocTraits>& end,
               OutputIt out) {
   if (begin == end) {
     // Empty range, pass
@@ -192,13 +193,13 @@ OutputIt copy(const Iterator<Ptr, AllocTraits, Capacity>& begin,
     out = std::copy(&begin[0], &end[0], out);
   } else {
     // Copy in two sections.
-    out = std::copy(&begin[0], &begin.data_[Capacity + 1], out);
+    out = std::copy(&begin[0], &begin.data_[begin.capacity_ + 1], out);
     out = std::copy(end.data_, &end[0], out);
   }
 
   return out;
 }
-}  // namespace ringbuf
+}  // namespace flexible_ringbuf
 }  // namespace detail
 
 /**
@@ -206,30 +207,28 @@ OutputIt copy(const Iterator<Ptr, AllocTraits, Capacity>& begin,
  * limits.
  *
  * @tparam Elem The type of elements contained by the ring buffer.
- * @tparam Capacity The maximum size of the ring buffer, and the fixed size of
+ * @tparam capacity_ The maximum size of the ring buffer, and the fixed size of
  *         the backing array.
  * @tparam Allocator The allocator type to use for storage and element
            construction.
  */
-template <typename Elem,
-          std::size_t Capacity,
-          typename Allocator = std::allocator<Elem>>
-class RingBuf
+template <typename Elem, typename Allocator = std::allocator<Elem>>
+class FlexRingBuf
     : public detail::ringbuf::
-          BaseRingBuf<Elem, Allocator, RingBuf<Elem, Capacity, Allocator>> {
+          BaseRingBuf<Elem, Allocator, FlexRingBuf<Elem, Allocator>> {
  public:
-  using Base = detail::ringbuf::BaseRingBuf<Elem, Allocator, RingBuf>;
+  using Base = detail::ringbuf::BaseRingBuf<Elem, Allocator, FlexRingBuf>;
 
   using typename Base::alloc_traits;
   using typename Base::allocator_type;
   using typename Base::const_pointer;
+  using typename Base::const_reference;
   using typename Base::pointer;
   using typename Base::reference;
   using typename Base::value_type;
-  using const_reference = decltype(*const_pointer{});
-  using iterator = detail::ringbuf::Iterator<pointer, alloc_traits, Capacity>;
+  using iterator = detail::flexible_ringbuf::Iterator<pointer, alloc_traits>;
   using const_iterator =
-      detail::ringbuf::Iterator<const_pointer, alloc_traits, Capacity>;
+      detail::flexible_ringbuf::Iterator<const_pointer, alloc_traits>;
   using reverse_iterator = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
   using typename Base::difference_type;
@@ -243,6 +242,8 @@ class RingBuf
   // elements.
   allocator_type alloc_{};
 
+  // The number of elements that may be stored.
+  size_type capacity_{0U};
   // The start of the dynamically allocated backing array.
   pointer data_{nullptr};
   // The next position to write to for push_back().
@@ -254,18 +255,19 @@ class RingBuf
   // end()).
   size_type size_{0U};
 
-  constexpr static size_type Decrement(const size_type index) {
-    return index > 0 ? index - 1 : Capacity;
+  size_type Decrement(const size_type index) const {
+    return index > 0 ? index - 1 : capacity_;
   }
 
-  constexpr static size_type Increment(const size_type index) {
-    return index < (Capacity) ? index + 1 : 0;
+  size_type Increment(const size_type index) const {
+    return index < (capacity_) ? index + 1 : 0;
   }
 
   // Swap everything but the allocator - caller has to figure that out
   // separately.
-  void Swap(RingBuf& other) noexcept {
+  void Swap(FlexRingBuf& other) noexcept {
     std::swap(data_, other.data_);
+    std::swap(capacity_, other.capacity_);
     std::swap(next_, other.next_);
     std::swap(ring_offset_, other.ring_offset_);
     std::swap(size_, other.size_);
@@ -289,7 +291,7 @@ class RingBuf
   void GrowFront() noexcept {
     // Move ring_offset_ down, and possibly around
     ring_offset_ = Decrement(ring_offset_);
-    // Precondition: size != Capacity (when it is, emplace_front pop_backs
+    // Precondition: size != capacity_ (when it is, emplace_front pop_backs
     // first.)
     size_++;
   }
@@ -297,7 +299,7 @@ class RingBuf
   // Move things around after emplace_back.
   void GrowBack() noexcept {
     next_ = Increment(next_);
-    // Precondition: size != Capacity (when it is, emplace_back pop_fronts
+    // Precondition: size != capacity_ (when it is, emplace_back pop_fronts
     // first)
     size_++;
   }
@@ -316,62 +318,80 @@ class RingBuf
   }
 
   iterator UnConstIterator(const_iterator it) const {
-    return iterator(data_, ring_offset_, it - begin());
+    return iterator(data_, capacity_, ring_offset_, it - begin());
   }
 
  public:
   /**
    * Construct a new ring buffer object with a default-constructed allocator,
+   * and no capacity.
+   */
+  FlexRingBuf() : FlexRingBuf(allocator_type{}){};
+
+  /**
+   * Construct a new ring buffer object with a default-constructed allocator,
    * and allocate the required memory.
    *
-   * Allocates Capacity + 1 to allow for strong exception guarantees in
+   * Allocates capacity_ + 1 to allow for strong exception guarantees in
    * emplace_front/back.
    */
-  RingBuf() : RingBuf(allocator_type{}){};
+  explicit FlexRingBuf(size_type capacity)
+      : FlexRingBuf(capacity, allocator_type{}){};
+
+  /**
+   * Construct a new ring buffer object with the provided allocator, and
+   * no capacity.
+   *
+   * @param allocator The allocator to use for storage and element construction.
+   */
+  explicit FlexRingBuf(const allocator_type& allocator)
+      : FlexRingBuf(0, allocator) {}
+
   /**
    * Construct a new ring buffer object with the provided allocator, and
    * allocate the required memory.
    *
-   * Allocates Capacity + 1 to allow for strong exception guarantees in
+   * Allocates capacity_ + 1 to allow for strong exception guarantees in
    * emplace_front/back.
    *
    * @param allocator The allocator to use for storage and element construction.
    */
-  explicit RingBuf(const allocator_type& allocator)
+  FlexRingBuf(size_type capacity, const allocator_type& allocator)
       : alloc_(allocator),
-        data_(alloc_traits::allocate(alloc_, Capacity + 1)) {}
+        capacity_(capacity),
+        data_(alloc_traits::allocate(alloc_, capacity_ + 1)) {}
 
   /**
    * Destroy the ring buffer object.
    *
    * Destroys the active elements via clear() and deallocates the backing array.
    */
-  ~RingBuf() {
+  ~FlexRingBuf() {
     clear();
-    alloc_traits::deallocate(alloc_, data_, Capacity + 1);
+    alloc_traits::deallocate(alloc_, data_, capacity_ + 1);
   }
   /**
-   * Construct a new RingBuf object out of another, using elementwise
+   * Construct a new FlexRingBuf object out of another, using elementwise
    * copy assignment.
    *
-   * @param other The RingBuf to copy values from.
+   * @param other The FlexRingBuf to copy values from.
    * @todo maybe allow other (smaller) sizes as input?
    */
-  RingBuf(const RingBuf& other)
-      : RingBuf(
+  FlexRingBuf(const FlexRingBuf& other)
+      : FlexRingBuf(
             other,
             alloc_traits::select_on_container_copy_construction(other.alloc_)) {
   }
   /**
    * Allocator-extended copy constructor.
    *
-   * @param other The RingBuf to copy values from.
+   * @param other The FlexRingBuf to copy values from.
    * @param allocator The allocator to use for storage and element construction.
    * @todo maybe allow other (smaller) sizes as input?
    * @todo Use memcpy/std::copy if Elem is POD
    */
-  RingBuf(const RingBuf& other, const allocator_type& allocator)
-      : RingBuf(allocator) {
+  FlexRingBuf(const FlexRingBuf& other, const allocator_type& allocator)
+      : FlexRingBuf(other.capacity(), allocator) {
     clear();
 
     for (const auto& value : other) {
@@ -379,11 +399,13 @@ class RingBuf
     }
   }
   /**
-   * Construct a new RingBuf object out of another, using bulk move assignment.
+   * Construct a new FlexRingBuf object out of another, using bulk move
+   * assignment.
    *
-   * @param other The RingBuf to move the data out of.
+   * @param other The FlexRingBuf to move the data out of.
    */
-  RingBuf(RingBuf&& other) noexcept : RingBuf(std::move(other.alloc_)) {
+  FlexRingBuf(FlexRingBuf&& other) noexcept
+      : FlexRingBuf(other.capacity(), std::move(other.get_allocator())) {
     Swap(other);
   }
   /**
@@ -392,11 +414,11 @@ class RingBuf
    * May move elementwise if the provided allocator and other's allocator are
    * not the same.
    *
-   * @param other The RingBuf to move the data out of.
+   * @param other The FlexRingBuf to move the data out of.
    * @param allocator The allocator to use for storage and element construction.
    */
-  RingBuf(RingBuf&& other, const allocator_type& allocator)
-      : RingBuf(allocator) {
+  FlexRingBuf(FlexRingBuf&& other, const allocator_type& allocator)
+      : FlexRingBuf(other.capacity(), allocator) {
     if (other.alloc_ == allocator) {
       Swap(other);
     } else {
@@ -407,14 +429,15 @@ class RingBuf
   }
 
   /**
-   * Copy a RingBuf into this one.
+   * Copy a FlexRingBuf into this one.
    *
-   * First clear()s this RingBuf, and then copies @c other element by element.
+   * First clear()s this FlexRingBuf, and then copies @c other element by
+   * element.
    *
-   * @param other The RingBuf to copy from.
-   * @returns This RingBuf.
+   * @param other The FlexRingBuf to copy from.
+   * @returns This FlexRingBuf.
    */
-  RingBuf& operator=(const RingBuf& other) {
+  FlexRingBuf& operator=(const FlexRingBuf& other) {
     clear();
 
     detail::ringbuf::CopyAllocator(alloc_, other.alloc_);
@@ -425,15 +448,15 @@ class RingBuf
     return *this;
   }
   /**
-   * Move a RingBuf into this one.
+   * Move a FlexRingBuf into this one.
    *
    * If the allocator is the same or can be moved as well, no elementwise moves
    * are performed.
    *
-   * @param other The RingBuf to copy from.
-   * @returns This RingBuf.
+   * @param other The FlexRingBuf to copy from.
+   * @returns This FlexRingBuf.
    */
-  RingBuf& operator=(RingBuf&& other) noexcept(
+  FlexRingBuf& operator=(FlexRingBuf&& other) noexcept(
       alloc_traits::propagate_on_container_move_assignment::value ||
       std::is_nothrow_move_constructible<value_type>::value) {
     if (alloc_traits::propagate_on_container_move_assignment::value ||
@@ -454,7 +477,7 @@ class RingBuf
   }
 
   /**
-   * Get a copy of the allocator used by this RingBuf.
+   * Get a copy of the allocator used by this FlexRingBuf.
    */
   allocator_type get_allocator() const { return alloc_; }
 
@@ -470,7 +493,8 @@ class RingBuf
    * @returns A const reference to the element.
    */
   const_reference operator[](const size_type index) const {
-    return data_[detail::ringbuf::RingWrap<Capacity>(ring_offset_ + index)];
+    return data_[detail::flexible_ringbuf::RingWrap(capacity_,
+                                                    ring_offset_ + index)];
   }
   /**
    * Retrieve an element from the ring buffer without range checking.
@@ -481,7 +505,8 @@ class RingBuf
    * @returns A reference to the element.
    */
   reference operator[](const size_type index) {
-    return data_[detail::ringbuf::RingWrap<Capacity>(ring_offset_ + index)];
+    return data_[detail::flexible_ringbuf::RingWrap(capacity_,
+                                                    ring_offset_ + index)];
   }
 
   using Base::at;
@@ -489,22 +514,26 @@ class RingBuf
   /**
    * Get an iterator pointing to the first element.
    */
-  iterator begin() noexcept { return iterator(&data_[0], ring_offset_, 0); }
+  iterator begin() noexcept {
+    return iterator(&data_[0], capacity_, ring_offset_, 0);
+  }
   /**
    * Get an iterator pointing to one past the last element.
    */
-  iterator end() noexcept { return iterator(&data_[0], ring_offset_, size()); }
+  iterator end() noexcept {
+    return iterator(&data_[0], capacity_, ring_offset_, size());
+  }
   /**
    * Get a const iterator pointing to the first element.
    */
   const_iterator begin() const noexcept {
-    return const_iterator(&data_[0], ring_offset_, 0);
+    return const_iterator(&data_[0], capacity_, ring_offset_, 0);
   }
   /**
    * Get a const iterator pointing to one past the last element.
    */
   const_iterator end() const noexcept {
-    return const_iterator(&data_[0], ring_offset_, size());
+    return const_iterator(&data_[0], capacity_, ring_offset_, size());
   }
   /**
    * Get a const iterator pointing to the first element.
@@ -550,14 +579,22 @@ class RingBuf
    */
   size_type size() const noexcept { return size_; }
   /**
-   * Get the maximum number of elements in this ring buffer (Capacity).
+   * Get the maximum number of elements in this ring buffer.
    */
-  constexpr size_type max_size() const noexcept { return Capacity; }
+  const size_type max_size() const noexcept {
+    // Either the numeric limit for end() - begin()
+    constexpr auto max_distance =
+        std::numeric_limits<difference_type>::max() / sizeof(Elem);
+    // .. or the allocator's limit
+    // -1, because there's one spare index between end and begin.
+    const auto max_alloc = alloc_traits::max_size(alloc_) - 1;
+    return std::min(max_distance, max_alloc);
+  }
   /**
-   * Get the number of elements that can be contained without having to drop
-   * any.
+   * Get the number of elements that can currently be contained without having
+   * to drop any.
    */
-  constexpr size_type capacity() const noexcept { return Capacity; }
+  size_type capacity() const noexcept { return capacity_; }
 
   using Base::emplace_back;
   using Base::emplace_front;
@@ -644,9 +681,9 @@ class RingBuf
   /**
    * Swap this ring buffer with another using std::swap.
    *
-   * @param other The RingBuf to swap with.
+   * @param other The FlexRingBuf to swap with.
    */
-  void swap(RingBuf& other) noexcept {
+  void swap(FlexRingBuf& other) noexcept {
     detail::ringbuf::SwapAllocator(alloc_, other.alloc_);
     Swap(other);
   }
@@ -664,21 +701,17 @@ class RingBuf
  *
  * @tparam Ptr The pointer type of the input iterator.
  * @tparam AllocTraits The allocator traits of the input iterator.
- * @tparam Capacity The capacity of the input iterator.
+ * @tparam capacity_ The capacity of the input iterator.
  * @param begin Start of the source range.
  * @param end End of the source range, one past the last element to copy.
  * @param out Start of the destination range.
  * @returns One past the last copied element in the destination range.
  */
-template <typename Ptr,
-          typename AllocTraits,
-          std::size_t Capacity,
-          typename OutputIt>
-OutputIt copy(
-    const detail::ringbuf::Iterator<Ptr, AllocTraits, Capacity>& begin,
-    const detail::ringbuf::Iterator<Ptr, AllocTraits, Capacity>& end,
-    OutputIt out) {
-  return detail::ringbuf::copy(begin, end, out);
+template <typename Ptr, typename AllocTraits, typename OutputIt>
+OutputIt copy(const detail::flexible_ringbuf::Iterator<Ptr, AllocTraits>& begin,
+              const detail::flexible_ringbuf::Iterator<Ptr, AllocTraits>& end,
+              OutputIt out) {
+  return detail::flexible_ringbuf::copy(begin, end, out);
 }
 
 }  // namespace baudvine

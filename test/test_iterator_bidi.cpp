@@ -31,7 +31,8 @@ TYPED_TEST(IteratorBidi, Deref) {
   auto buf = GetBuf<TypeParam>();
   EXPECT_EQ(*buf.begin(), 10);
 }
-
+// TODO: decrement, post and prefix
+// TODO: increment postfix
 TYPED_TEST(IteratorBidi, Increment) {
   auto buf = GetBuf<TypeParam>();
   auto underTest = buf.begin();
