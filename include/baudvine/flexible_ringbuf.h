@@ -188,14 +188,14 @@ OutputIt copy(const Iterator<Ptr, AllocTraits>& begin,
               OutputIt out) {
   if (begin == end) {
     // Empty range, pass
-  } else if (&*end > &*begin) {
+  } else if (&end[0] > &begin[0]) {
     // TODO: all &*<iterator> should be &<iterator>[0]
     // Fully contiguous range.
-    out = std::copy(&*begin, &*end, out);
+    out = std::copy(&begin[0], &end[0], out);
   } else {
     // Copy in two sections.
-    out = std::copy(&*begin, &begin.data_[begin.capacity_ + 1], out);
-    out = std::copy(end.data_, &*end, out);
+    out = std::copy(&begin[0], &begin.data_[begin.capacity_ + 1], out);
+    out = std::copy(end.data_, &end[0], out);
   }
 
   return out;
