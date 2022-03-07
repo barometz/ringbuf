@@ -12,7 +12,7 @@ class IteratorRando : public testing::Test {
  protected:
   void SetUp() override {
     // Add some extra so end() is before begin() in the backing storage
-    const size_t count = ringbuf_.max_size() + 3;
+    const size_t count = ringbuf_.capacity() + 3;
     for (uint16_t i = 0; i < count; i++) {
       ringbuf_.push_back(i);
     }

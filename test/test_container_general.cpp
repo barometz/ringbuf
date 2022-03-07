@@ -213,7 +213,15 @@ TYPED_TEST(ContainerReqsGeneral, Size) {
 }
 
 TYPED_TEST(ContainerReqsGeneral, MaxSize) {
-  EXPECT_EQ(this->a_.max_size(), 2U);
+  if (std::is_same_v<TypeParam, baudvine::RingBuf<int, 2>>)
+    EXPECT_EQ(this->a_.max_size(), 2U);
+  else if (std::is_same_v<TypeParam, UnFlexRingBuf<int, 2>>)
+    EXPECT_EQ(this->a_.max_size(), std::numeric_limits<ptrdiff_t>::max() / sizeof(int) - 1);
+  else if (std::is_same_v<TypeParam, baudvine::DequeRingBuf<int, 2>>)
+    // TODO: fix capacity for DequeRingBuf once that's resizeable
+    EXPECT_EQ(this->a_.max_size(), 2U);
+  else
+    FAIL() << "Undefined";
 }
 
 TYPED_TEST(ContainerReqsGeneral, Empty) {

@@ -37,33 +37,33 @@ TEST(Speed, PushBackToFull) {
   baudvine::DequeRingBuf<uint64_t, kTestSize> deque;
 
   // Preload everything once so all the memory is definitely allocated.
-  for (uint32_t i = 0; i < standard.max_size(); i++) {
+  for (uint32_t i = 0; i < standard.capacity(); i++) {
     standard.push_back(0);
   }
   standard.clear();
-  for (uint32_t i = 0; i < flex.max_size(); i++) {
+  for (uint32_t i = 0; i < flex.capacity(); i++) {
     flex.push_back(0);
   }
   flex.clear();
-  for (uint32_t i = 0; i < deque.max_size(); i++) {
+  for (uint32_t i = 0; i < deque.capacity(); i++) {
     deque.push_back(0);
   }
   deque.clear();
 
   auto standardDuration = TimeIt([&standard] {
-    for (uint32_t i = 0; i < standard.max_size(); i++) {
+    for (uint32_t i = 0; i < standard.capacity(); i++) {
       standard.push_back(0);
     }
   });
 
   auto flexDuration = TimeIt([&flex] {
-    for (uint32_t i = 0; i < flex.max_size(); i++) {
+    for (uint32_t i = 0; i < flex.capacity(); i++) {
       flex.push_back(0);
     }
   });
 
   auto dequeDuration = TimeIt([&deque] {
-    for (uint32_t i = 0; i < deque.max_size(); i++) {
+    for (uint32_t i = 0; i < deque.capacity(); i++) {
       deque.push_back(0);
     }
   });
@@ -108,13 +108,13 @@ TEST(Speed, IterateOver) {
   UnFlexRingBuf<uint64_t, kTestSize> flex;
   baudvine::DequeRingBuf<uint64_t, kTestSize> deque;
 
-  for (uint32_t i = 0; i < standard.max_size(); i++) {
+  for (uint32_t i = 0; i < standard.capacity(); i++) {
     standard.push_back(i);
   }
-  for (uint32_t i = 0; i < flex.max_size(); i++) {
+  for (uint32_t i = 0; i < flex.capacity(); i++) {
     flex.push_back(i);
   }
-  for (uint32_t i = 0; i < deque.max_size(); i++) {
+  for (uint32_t i = 0; i < deque.capacity(); i++) {
     deque.push_back(i);
   }
 

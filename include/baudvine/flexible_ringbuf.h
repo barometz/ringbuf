@@ -20,7 +20,6 @@
 
 /**
  * @file flexible_ringbuf.h
- * @author Dominic van Berkel
  * @copyright MIT License
  *
  * A ring buffer for C++11, with an STL-like interface.
@@ -43,6 +42,7 @@
 
 #include <cstddef>
 #include <iterator>
+#include <limits>
 #include <tuple>
 
 /** The baudvine "project". */
@@ -392,7 +392,7 @@ class FlexRingBuf
    * @todo Use memcpy/std::copy if Elem is POD
    */
   FlexRingBuf(const FlexRingBuf& other, const allocator_type& allocator)
-      : FlexRingBuf(other.max_size(), allocator) {
+      : FlexRingBuf(other.capacity(), allocator) {
     clear();
 
     for (const auto& value : other) {
@@ -406,7 +406,7 @@ class FlexRingBuf
    * @param other The FlexRingBuf to move the data out of.
    */
   FlexRingBuf(FlexRingBuf&& other) noexcept
-      : FlexRingBuf(other.max_size(), std::move(other.get_allocator())) {
+      : FlexRingBuf(other.capacity(), std::move(other.get_allocator())) {
     Swap(other);
   }
   /**
@@ -419,7 +419,7 @@ class FlexRingBuf
    * @param allocator The allocator to use for storage and element construction.
    */
   FlexRingBuf(FlexRingBuf&& other, const allocator_type& allocator)
-      : FlexRingBuf(other.max_size(), allocator) {
+      : FlexRingBuf(other.capacity(), allocator) {
     if (other.alloc_ == allocator) {
       Swap(other);
     } else {
@@ -580,9 +580,22 @@ class FlexRingBuf
    */
   size_type size() const noexcept { return size_; }
   /**
-   * Get the maximum number of elements in this ring buffer (capacity_).
+   * Get the maximum number of elements in this ring buffer.
    */
-  constexpr size_type max_size() const noexcept { return capacity_; }
+  const size_type max_size() const noexcept {
+    // Either the numeric limit for end() - begin()
+    constexpr auto max_distance =
+        std::numeric_limits<difference_type>::max() / sizeof(Elem);
+    // .. or the allocator's limit
+    // -1, because there's one spare index between end and begin.
+    const auto max_alloc = alloc_traits::max_size(alloc_) - 1;
+    return std::min(max_distance, max_alloc);
+  }
+  /**
+   * Get the number of elements that can currently be contained without having
+   * to drop any.
+   */
+  size_type capacity() const noexcept { return capacity_; }
 
   using Base::emplace_back;
   using Base::emplace_front;

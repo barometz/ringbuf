@@ -20,8 +20,18 @@
 
 #pragma once
 
-// TODO: doc text for file
-// TODO: document which functions a derived class must provide
+/**
+ * @file base_ringbuf.h
+ * @copyright MIT License
+ *
+ * Base implementations for all ring buffers (except the deque-wrapping one).
+ * Both BaseIterator and BaseRingBuf use CRTP to implement functionality that
+ * composes implementation-specific functions. For example, an iterator only has
+ * to implement operator+= and operator-=, and the other arithmetic operations
+ * are composed out of those.
+ *
+ * @todo document which functions a derived class must provide.
+ */
 
 #include <algorithm>
 #include <memory>
@@ -312,8 +322,7 @@ class BaseRingBuf {
    */
   template <typename... Args>
   reference emplace_front(Args&&... args) {
-    if (Impl()->max_size() ==
-        0) {  // TODO: most uses of max_size should be capacity instead
+    if (Impl()->capacity() == 0) {
       // A buffer of size zero is conceptually sound, so let's support it.
       return UncheckedAt(0);
     }
@@ -321,7 +330,7 @@ class BaseRingBuf {
     Impl()->ConstructFront(std::forward<Args>(args)...);
 
     // If required, make room for next time.
-    if (Impl()->size() == Impl()->max_size()) {
+    if (Impl()->size() == Impl()->capacity()) {
       Impl()->pop_back();
     }
     Impl()->GrowFront();
@@ -350,7 +359,7 @@ class BaseRingBuf {
    */
   template <typename... Args>
   reference emplace_back(Args&&... args) {
-    if (Impl()->max_size() == 0) {
+    if (Impl()->capacity() == 0) {
       // A buffer of size zero is conceptually sound, so let's support it.
       return UncheckedAt(0);
     }
@@ -358,7 +367,7 @@ class BaseRingBuf {
     Impl()->ConstructBack(std::forward<Args>(args)...);
 
     // If required, make room for next time.
-    if (Impl()->size() == Impl()->max_size()) {
+    if (Impl()->size() == Impl()->capacity()) {
       Impl()->pop_front();
     }
     Impl()->GrowBack();

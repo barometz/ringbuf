@@ -20,7 +20,6 @@
 
 /**
  * @file ringbuf.h
- * @author Dominic van Berkel
  * @copyright MIT License
  *
  * A ring buffer for C++11, with an STL-like interface.
@@ -554,6 +553,11 @@ class RingBuf
    * Get the maximum number of elements in this ring buffer (Capacity).
    */
   constexpr size_type max_size() const noexcept { return Capacity; }
+  /**
+   * Get the number of elements that can be contained without having to drop
+   * any.
+   */
+  constexpr size_type capacity() const noexcept { return Capacity; }
 
   using Base::emplace_back;
   using Base::emplace_front;
