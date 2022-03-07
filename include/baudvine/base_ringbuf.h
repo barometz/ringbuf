@@ -1,4 +1,4 @@
-// Copyright © 2021 Dominic van Berkel <dominic@baudvine.net>
+// Copyright © 2022 Dominic van Berkel <dominic@baudvine.net>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,13 +20,16 @@
 
 #pragma once
 
+// TODO: doc text for file
+// TODO: document which functions a derived class must provide
+
 #include <algorithm>
 #include <memory>
 #include <stdexcept>
 #include <type_traits>
 
-// `assert` for user errors. In this house, actually asserting and aborting the
-// user's application is considered impolite.
+// `assert` for user errors. In this house, actually assert()ing and aborting
+// the user's application is considered impolite.
 #ifdef NDEBUG
 #define BAUDVINE_RINGBUF_ASSERT(statement)
 #else
@@ -301,6 +304,31 @@ class BaseRingBuf {
   }
 
   /**
+   * Construct a new element in-place before the front of the ring buffer,
+   * popping the back if necessary.
+   *
+   * @tparam Args Arguments to the element constructor.
+   * @param args Arguments to the element constructor.
+   */
+  template <typename... Args>
+  reference emplace_front(Args&&... args) {
+    if (Impl()->max_size() ==
+        0) {  // TODO: most uses of max_size should be capacity instead
+      // A buffer of size zero is conceptually sound, so let's support it.
+      return UncheckedAt(0);
+    }
+
+    Impl()->ConstructFront(std::forward<Args>(args)...);
+
+    // If required, make room for next time.
+    if (Impl()->size() == Impl()->max_size()) {
+      Impl()->pop_back();
+    }
+    Impl()->GrowFront();
+    return UncheckedAt(0);
+  }
+
+  /**
    * Push a new element into the ring buffer, popping the front if necessary.
    *
    * @param value The value to copy into the ring buffer.
@@ -312,6 +340,30 @@ class BaseRingBuf {
    * @param value The value to move into the ring buffer.
    */
   void push_back(value_type&& value) { Impl()->emplace_back(std::move(value)); }
+
+  /**
+   * Construct a new element in-place at the end of the ring buffer, popping the
+   * front if necessary.
+   *
+   * @tparam Args Arguments to the element constructor.
+   * @param args Arguments to the element constructor.
+   */
+  template <typename... Args>
+  reference emplace_back(Args&&... args) {
+    if (Impl()->max_size() == 0) {
+      // A buffer of size zero is conceptually sound, so let's support it.
+      return UncheckedAt(0);
+    }
+
+    Impl()->ConstructBack(std::forward<Args>(args)...);
+
+    // If required, make room for next time.
+    if (Impl()->size() == Impl()->max_size()) {
+      Impl()->pop_front();
+    }
+    Impl()->GrowBack();
+    return UncheckedAt(Impl()->size() - 1);
+  }
 
   /**
    * Remove all elements from the ring buffer, destroying each one starting at

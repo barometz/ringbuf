@@ -238,6 +238,8 @@ class RingBuf
   using typename Base::unsigned_difference;
 
  private:
+  friend Base;
+
   // The allocator is used to allocate memory, and to construct and destroy
   // elements.
   allocator_type alloc_{};
@@ -299,6 +301,19 @@ class RingBuf
     // Precondition: size != Capacity (when it is, emplace_back pop_fronts
     // first)
     size_++;
+  }
+
+  // Construct an element before front().
+  template <typename... Args>
+  void ConstructFront(Args&&... args) {
+    alloc_traits::construct(alloc_, &data_[Decrement(ring_offset_)],
+                            std::forward<Args>(args)...);
+  }
+
+  // Construct an element after back().
+  template <typename... Args>
+  void ConstructBack(Args&&... args) {
+    alloc_traits::construct(alloc_, &data_[next_], std::forward<Args>(args)...);
   }
 
   iterator UnConstIterator(const_iterator it) const {
@@ -540,58 +555,10 @@ class RingBuf
    */
   constexpr size_type max_size() const noexcept { return Capacity; }
 
-  using Base::push_front;
-
-  /**
-   * Construct a new element in-place before the front of the ring buffer,
-   * popping the back if necessary.
-   *
-   * @tparam Args Arguments to the element constructor.
-   * @param args Arguments to the element constructor.
-   */
-  template <typename... Args>
-  reference emplace_front(Args&&... args) {
-    if (max_size() == 0) {
-      // A buffer of size zero is conceptually sound, so let's support it.
-      return Base::UncheckedAt(0);
-    }
-
-    alloc_traits::construct(alloc_, &data_[Decrement(ring_offset_)],
-                            std::forward<Args>(args)...);
-
-    // If required, make room for next time.
-    if (size() == max_size()) {
-      pop_back();
-    }
-    GrowFront();
-    return Base::UncheckedAt(0);
-  }
-
+  using Base::emplace_back;
+  using Base::emplace_front;
   using Base::push_back;
-
-  /**
-   * Construct a new element in-place at the end of the ring buffer, popping the
-   * front if necessary.
-   *
-   * @tparam Args Arguments to the element constructor.
-   * @param args Arguments to the element constructor.
-   */
-  template <typename... Args>
-  reference emplace_back(Args&&... args) {
-    if (max_size() == 0) {
-      // A buffer of size zero is conceptually sound, so let's support it.
-      return Base::UncheckedAt(0);
-    }
-
-    alloc_traits::construct(alloc_, &data_[next_], std::forward<Args>(args)...);
-
-    // If required, make room for next time.
-    if (size() == max_size()) {
-      pop_front();
-    }
-    GrowBack();
-    return Base::UncheckedAt(size() - 1);
-  }
+  using Base::push_front;
 
   /**
    * Pop an element off the front, destroying the first element in the ring
