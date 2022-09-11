@@ -1,6 +1,8 @@
 #include "baudvine/deque_ringbuf.h"
 #include "baudvine/ringbuf.h"
 
+#include "black_box.h"
+
 #include <gtest/gtest.h>
 
 #include <chrono>
@@ -33,24 +35,26 @@ TEST(Speed, PushBackToFull) {
 
   // Preload everything once so all the memory is definitely allocated
   for (uint32_t i = 0; i < standard.max_size(); i++) {
-    standard.push_back(0);
+    standard.push_back(black_box(i));
   }
   standard.clear();
   for (uint32_t i = 0; i < deque.max_size(); i++) {
-    deque.push_back(0);
+    deque.push_back(black_box(i));
   }
   deque.clear();
 
   auto standardDuration = TimeIt([&standard] {
     for (uint32_t i = 0; i < standard.max_size(); i++) {
-      standard.push_back(0);
+      standard.push_back(black_box(i));
     }
+    do_nothing(&standard);
   });
 
   auto dequeDuration = TimeIt([&deque] {
     for (uint32_t i = 0; i < deque.max_size(); i++) {
-      deque.push_back(0);
+      deque.push_back(black_box(i));
     }
+    do_nothing(&deque);
   });
 
   EXPECT_LT(standardDuration, dequeDuration);
@@ -64,14 +68,16 @@ TEST(Speed, PushBackOverFull) {
 
   auto standardDuration = TimeIt([&standard] {
     for (uint32_t i = 0; i < kTestSize; i++) {
-      standard.push_back(0);
+      standard.push_back(black_box(i));
     }
+    do_nothing(&standard);
   });
 
   auto dequeDuration = TimeIt([&deque] {
     for (uint32_t i = 0; i < kTestSize; i++) {
-      deque.push_back(0);
+      deque.push_back(black_box(i));
     }
+    do_nothing(&deque);
   });
 
   EXPECT_LT(standardDuration, dequeDuration);
@@ -84,25 +90,22 @@ TEST(Speed, IterateOver) {
   baudvine::DequeRingBuf<uint64_t, kTestSize> deque;
 
   for (uint32_t i = 0; i < standard.max_size(); i++) {
-    standard.push_back(i);
+    standard.push_back(black_box(i));
   }
 
   for (uint32_t i = 0; i < deque.max_size(); i++) {
-    deque.push_back(i);
+    deque.push_back(black_box(i));
   }
 
-  // Do a little math so the compiler doesn't optimize the test away in a
-  // release build.
-  uint64_t acc{};
-  auto standardDuration = TimeIt([&standard, &acc] {
+  auto standardDuration = TimeIt([&standard] {
     for (auto& x : standard) {
-      acc += x;
+      black_box(x);
     }
   });
 
-  auto dequeDuration = TimeIt([&deque, &acc] {
+  auto dequeDuration = TimeIt([&deque] {
     for (auto& x : deque) {
-      acc += x;
+      black_box(x);
     }
   });
 
@@ -123,10 +126,12 @@ TEST(Speed, Copy) {
 
   auto customTime = TimeIt([&underTest, &copy] {
     baudvine::copy(underTest.begin(), underTest.end(), copy.begin());
+    do_nothing(&copy);
   });
 
   auto standardTime = TimeIt([&underTest, &copy] {
     std::copy(underTest.begin(), underTest.end(), copy.begin());
+    do_nothing(&copy);
   });
 
   EXPECT_LT(customTime, standardTime);
