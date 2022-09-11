@@ -131,19 +131,18 @@ comparisons between `RingBuf` and `DequeRingBuf`. Some typical (but completely
 unscientific) results:
 
 - Hardware: Intel Core i5-7600 @ 3.5 GHz
-- GCC: 11.2, `-O3 -DNDEBUG`
-- Clang: 11.1, `-O3 -DNDEBUG`
+- GCC: 12.2, `-O3 -DNDEBUG`
+- Clang: 14.0, `-O3 -DNDEBUG`
 
 | Name | Description | RingBuf (GCC) (ms) | RingBuf (Clang) (ms) | DequeRingBuf (GCC) (ms) | DequeRingBuf (Clang) (ms) |
 |------|-------------|-------------------:|---------------------:|------------------------:|--------------------------:|
-| PushBackToFull | `push_back` until the buffer is filled to capacity (2<sup>25</sup> elements) | 130 | 60 | 160 | 160 |
-| PushBackOverFull | `push_back` 2<sup>25</sup> times on a buffer with capacity 3 | 132 | 63 | 86 | 91 |
-| IterateOver | range-for over a buffer with 2<sup>25</sup> elements | 21 | 20 | 48 | 19 |
+| PushBackToFull | `push_back` until the buffer is filled to capacity (2<sup>25</sup> elements) | 106 | 108 | 353 | 322 |
+| PushBackOverFull | `push_back` 2<sup>25</sup> times on a buffer with capacity 3 | 119 | 105 | 138 | 195 |
+| IterateOver | range-for over a buffer with 2<sup>25</sup> elements | 83 | 57 | 77 | 72 |
 
 PushBackToFull is *completely* unfair because `std::deque` has to allocate
 memory much more frequently. In a debug build, the results are roughly
-proportional (~10x), although `baudvine::RingBuf` does comparatively worse in
-IterateOver.
+proportional (~10x).
 
 ## FAQ
 

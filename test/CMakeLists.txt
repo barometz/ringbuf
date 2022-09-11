@@ -5,6 +5,7 @@ file(GLOB test_files "test_*.cpp")
 target_sources(ringbuf-test PRIVATE
         examples.cpp
         instance_counter.cpp
+        black_box.cpp
         ${test_files}
         )
 
